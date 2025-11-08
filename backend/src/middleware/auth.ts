@@ -18,6 +18,14 @@ export const authMiddleware = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    // Check if Supabase is configured
+    if (!supabase) {
+      res.status(503).json({
+        error: 'Authentication service is not configured. Please contact the administrator.'
+      });
+      return;
+    }
+
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

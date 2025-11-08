@@ -36,4 +36,14 @@ app.listen(env.PORT, () => {
   console.log(`🚀 Backend server running on http://localhost:${env.PORT}`);
   console.log(`📡 CORS enabled for: ${env.FRONTEND_URL}`);
   console.log(`🔑 Gemini API key configured: ${env.GEMINI_API_KEY ? '✓' : '✗'}`);
+
+  // Check Supabase configuration
+  const supabaseConfigured = env.SUPABASE_URL && env.SUPABASE_SERVICE_KEY;
+  console.log(`🔐 Supabase Auth configured: ${supabaseConfigured ? '✓' : '✗'}`);
+
+  if (!supabaseConfigured) {
+    console.log('⚠️  WARNING: Supabase is not configured. Authentication will not work.');
+    console.log('   Add SUPABASE_URL and SUPABASE_SERVICE_KEY to backend/.env');
+    console.log('   See SUPABASE_SETUP.md for setup instructions.');
+  }
 });

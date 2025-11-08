@@ -4,12 +4,25 @@ import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Helper to check if Supabase is configured
+const ensureSupabaseConfigured = (res: Response): boolean => {
+  if (!supabase) {
+    res.status(503).json({
+      error: 'Authentication service is not configured. Please add Supabase credentials to .env file.'
+    });
+    return false;
+  }
+  return true;
+};
+
 /**
  * POST /api/auth/signup
  * Register a new user with email and password
  */
 router.post('/signup', async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!ensureSupabaseConfigured(res)) return;
+
     const { email, password, fullName } = req.body;
 
     if (!email || !password) {
@@ -18,7 +31,7 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
     }
 
     // Create user with Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await supabase!.auth.signUp({
       email,
       password,
       options: {
@@ -49,6 +62,8 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/login', async (req: Request, res: Response): Promise<void> => {
   try {
+    if (!ensureSupabaseConfigured(res)) return;
+
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -56,7 +71,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase!.auth.signInWithPassword({
       email,
       password,
     });
@@ -82,6 +97,8 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/logout', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!ensureSupabaseConfigured(res)) return;
+
     // Extract token from Authorization header
     const token = req.headers.authorization?.substring(7);
 
@@ -91,7 +108,7 @@ router.post('/logout', authMiddleware, async (req: AuthRequest, res: Response): 
     }
 
     // Sign out user
-    const { error } = await supabase.auth.admin.signOut(token);
+    const { error } = await supabase!.auth.admin.signOut(token);
 
     if (error) {
       res.status(400).json({ error: error.message });
@@ -111,13 +128,15 @@ router.post('/logout', authMiddleware, async (req: AuthRequest, res: Response): 
  */
 router.get('/user', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!ensureSupabaseConfigured(res)) return;
+
     if (!req.user) {
       res.status(401).json({ error: 'Not authenticated' });
       return;
     }
 
     // Get full user details from Supabase
-    const { data, error } = await supabase.auth.admin.getUserById(req.user.id);
+    const { data, error } = await supabase!.auth.admin.getUserById(req.user.id);
 
     if (error || !data.user) {
       res.status(404).json({ error: 'User not found' });
@@ -144,7 +163,9 @@ router.get('/user', authMiddleware, async (req: AuthRequest, res: Response): Pro
  */
 router.post('/google', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    if (!ensureSupabaseConfigured(res)) return;
+
+    const { data, error } = await supabase!.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: `${process.env.FRONTEND_URL}/auth/callback`,
@@ -169,7 +190,9 @@ router.post('/google', async (req: Request, res: Response): Promise<void> => {
  */
 router.post('/facebook', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    if (!ensureSupabaseConfigured(res)) return;
+
+    const { data, error } = await supabase!.auth.signInWithOAuth({
       provider: 'facebook',
       options: {
         redirectTo: `${process.env.FRONTEND_URL}/auth/callback`,
