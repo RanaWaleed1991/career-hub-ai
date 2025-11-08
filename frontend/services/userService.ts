@@ -1,50 +1,205 @@
+import { supabase } from '../src/config/supabase';
+import type { User, Session } from '@supabase/supabase-js';
 
-const CURRENT_USER_KEY = 'career_hub_current_user';
 export const ADMIN_EMAIL = 'admin@careerhub.ai';
-export const ADMIN_PASSWORD = 'SecureAdminPassword123!';
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  fullName?: string;
+}
 
 /**
- * Logs a user in by storing their email in session storage.
- * For the admin user, it validates the password.
- * @param email The user's email address.
- * @param password The user's password (optional).
- * @returns {boolean} True if login is successful, false otherwise.
+ * Sign up a new user with email and password
  */
-export const login = (email: string, password?: string): boolean => {
-  const normalizedEmail = email.toLowerCase().trim();
-  if (!normalizedEmail) return false;
+export const signup = async (
+  email: string,
+  password: string,
+  fullName?: string
+): Promise<{ user: AuthUser | null; error: string | null }> => {
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName || '',
+        },
+      },
+    });
 
-  // Admin Login Check
-  if (normalizedEmail === ADMIN_EMAIL) {
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(CURRENT_USER_KEY, normalizedEmail);
-      return true;
+    if (error) {
+      return { user: null, error: error.message };
     }
-    return false; // Wrong password for admin
+
+    if (!data.user) {
+      return { user: null, error: 'Failed to create user' };
+    }
+
+    return {
+      user: {
+        id: data.user.id,
+        email: data.user.email || email,
+        fullName: data.user.user_metadata?.full_name,
+      },
+      error: null,
+    };
+  } catch (error) {
+    return { user: null, error: 'Signup failed. Please try again.' };
   }
-
-  // Regular User Simulation (no password check)
-  sessionStorage.setItem(CURRENT_USER_KEY, normalizedEmail);
-  return true;
 };
 
 /**
- * Logs the current user out.
+ * Login with email and password
  */
-export const logout = (): void => {
-  sessionStorage.removeItem(CURRENT_USER_KEY);
+export const login = async (
+  email: string,
+  password: string
+): Promise<{ user: AuthUser | null; error: string | null }> => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return { user: null, error: error.message };
+    }
+
+    if (!data.user) {
+      return { user: null, error: 'Login failed' };
+    }
+
+    return {
+      user: {
+        id: data.user.id,
+        email: data.user.email || email,
+        fullName: data.user.user_metadata?.full_name,
+      },
+      error: null,
+    };
+  } catch (error) {
+    return { user: null, error: 'Login failed. Please try again.' };
+  }
 };
 
 /**
- * Gets the current logged-in user's email.
+ * Logout the current user
  */
-export const getCurrentUserEmail = (): string | null => {
-  return sessionStorage.getItem(CURRENT_USER_KEY);
+export const logout = async (): Promise<{ error: string | null }> => {
+  try {
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { error: null };
+  } catch (error) {
+    return { error: 'Logout failed. Please try again.' };
+  }
 };
 
 /**
- * Checks if the current user is an administrator.
+ * Get the current authenticated user
  */
-export const isAdmin = (): boolean => {
-    return getCurrentUserEmail() === ADMIN_EMAIL;
+export const getCurrentUser = async (): Promise<AuthUser | null> => {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email || '',
+      fullName: user.user_metadata?.full_name,
+    };
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    return null;
+  }
+};
+
+/**
+ * Get the current user's email (for backward compatibility)
+ */
+export const getCurrentUserEmail = async (): Promise<string | null> => {
+  const user = await getCurrentUser();
+  return user?.email || null;
+};
+
+/**
+ * Get the current session
+ */
+export const getSession = async (): Promise<Session | null> => {
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    return session;
+  } catch (error) {
+    console.error('Error getting session:', error);
+    return null;
+  }
+};
+
+/**
+ * Get the access token for API requests
+ */
+export const getAccessToken = async (): Promise<string | null> => {
+  const session = await getSession();
+  return session?.access_token || null;
+};
+
+/**
+ * Check if the current user is an administrator
+ */
+export const isAdmin = async (): Promise<boolean> => {
+  const email = await getCurrentUserEmail();
+  return email === ADMIN_EMAIL;
+};
+
+/**
+ * Sign in with OAuth provider (Google or Facebook)
+ */
+export const signInWithOAuth = async (
+  provider: 'google' | 'facebook'
+): Promise<{ error: string | null }> => {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    return { error: null };
+  } catch (error) {
+    return { error: `${provider} sign-in failed. Please try again.` };
+  }
+};
+
+/**
+ * Listen to auth state changes
+ */
+export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => {
+  return supabase.auth.onAuthStateChange((event, session) => {
+    if (session?.user) {
+      callback({
+        id: session.user.id,
+        email: session.user.email || '',
+        fullName: session.user.user_metadata?.full_name,
+      });
+    } else {
+      callback(null);
+    }
+  });
 };

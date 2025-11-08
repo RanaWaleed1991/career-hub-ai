@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
 import ResumeBuilder from './components/ResumeBuilder';
@@ -10,7 +10,6 @@ import AdminPage from './components/AdminPage';
 import ApplicationTrackerPage from './components/ApplicationTrackerPage';
 import VersionHistoryPage from './components/VersionHistoryPage';
 import ResumeAnalyserPage from './components/ResumeAnalyserPage';
-import { login as loginUser, logout as logoutUser, getCurrentUserEmail } from './services/userService';
 import PremiumModal from './components/PremiumModal';
 import WelcomeModal from './components/WelcomeModal';
 import SubscriptionExpiredModal from './components/SubscriptionExpiredModal';
@@ -18,11 +17,11 @@ import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFla
 import type { Page } from './types';
 import Dashboard from './components/Dashboard';
 import TailorResumeModal from './components/TailorResumeModal';
+import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 
 
-const App: React.FC = () => {
-  // Check session storage on initial load to maintain login state
-  const [isAuthenticated, setIsAuthenticated] = useState(!!getCurrentUserEmail());
+const AppContent: React.FC = () => {
+  const { user, loading, logout } = useAuth();
   const [page, setPage] = useState<Page>('dashboard');
 
   // State for premium features modals
@@ -35,25 +34,19 @@ const App: React.FC = () => {
 
   // State for Tailor Modal
   const [tailorModalState, setTailorModalState] = useState<{isOpen: boolean, initialText?: string}>({isOpen: false});
-  
-  const handleLogin = (email: string, password?: string) => {
-    if (loginUser(email, password)) {
-      setIsAuthenticated(true);
-      setPage('dashboard');
 
-      // Check if welcome message should be shown for the new user
-      const welcomeKey = `welcome_shown_${email.toLowerCase().trim()}`;
+  // Check if welcome message should be shown for the user
+  useEffect(() => {
+    if (user?.email) {
+      const welcomeKey = `welcome_shown_${user.email.toLowerCase().trim()}`;
       if (!localStorage.getItem(welcomeKey)) {
         setShowWelcomeModal(true);
       }
-    } else {
-      alert('Invalid email or password. Please try again.');
     }
-  };
+  }, [user?.email]);
 
-  const handleLogout = () => {
-    logoutUser();
-    setIsAuthenticated(false);
+  const handleLogout = async () => {
+    await logout();
   };
 
   const triggerPremiumFlow = () => {
@@ -63,7 +56,7 @@ const App: React.FC = () => {
         setShowPremiumModal(true);
     }
   };
-  
+
   const handlePurchasePlan = (plan: Plan) => {
     purchasePlan(plan);
     setShowPremiumModal(false);
@@ -75,16 +68,15 @@ const App: React.FC = () => {
       }, 100);
     }
   };
-  
+
   const handleCloseModal = () => {
     setShowPremiumModal(false);
     setActionToRetry(null);
   };
 
   const handleCloseWelcomeModal = () => {
-    const email = getCurrentUserEmail();
-    if (email) {
-      localStorage.setItem(`welcome_shown_${email.toLowerCase().trim()}`, 'true');
+    if (user?.email) {
+      localStorage.setItem(`welcome_shown_${user.email.toLowerCase().trim()}`, 'true');
     }
     setShowWelcomeModal(false);
   };
@@ -99,15 +91,28 @@ const App: React.FC = () => {
     clearExpiredSubscriptionFlag();
     setShowPremiumModal(true);
   };
-  
+
   const openTailorModal = (initialText?: string) => {
     setTailorModalState({ isOpen: true, initialText });
   };
 
-  if (!isAuthenticated) {
-    return <AuthPage onLogin={handleLogin} />;
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="h-screen w-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
-  
+
+  // Show auth page if not authenticated
+  if (!user) {
+    return <AuthPage />;
+  }
+
   const modalProps = {
       triggerPremiumFlow,
       setActionToRetry
@@ -144,7 +149,7 @@ const App: React.FC = () => {
       {tailorModalState.isOpen && <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />}
       {showWelcomeModal && <WelcomeModal onClose={handleCloseWelcomeModal} />}
       {showPremiumModal && (
-        <PremiumModal 
+        <PremiumModal
           onClose={handleCloseModal}
           onPurchasePlan={handlePurchasePlan}
         />
@@ -160,6 +165,14 @@ const App: React.FC = () => {
         {renderPage()}
       </main>
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 
