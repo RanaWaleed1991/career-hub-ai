@@ -1,7 +1,19 @@
 import type { ResumeAnalysisResult } from '../types';
+import { getAccessToken } from './userService';
 
 // Get API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+/**
+ * Get auth headers with JWT token
+ */
+const getAuthHeaders = async (): Promise<HeadersInit> => {
+  const token = await getAccessToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
 
 /**
  * Enhance text using AI (for summary or experience sections)
@@ -15,15 +27,17 @@ export const enhanceTextWithAI = async (text: string, section: 'summary' | 'expe
   }
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/gemini/enhance-summary`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ text, section }),
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Please log in to use this feature.');
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -31,6 +45,9 @@ export const enhanceTextWithAI = async (text: string, section: 'summary' | 'expe
     return data.enhancedText || "";
   } catch (error) {
     console.error("Error calling backend API for enhance-summary:", error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error("Failed to get AI suggestion. Please check your connection and try again.");
   }
 };
@@ -47,15 +64,17 @@ export const tailorResumeForJob = async (resumeText: string, jobDescription: str
   }
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/gemini/tailor-resume`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ resumeText, jobDescription }),
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Please log in to use this feature.');
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -63,6 +82,9 @@ export const tailorResumeForJob = async (resumeText: string, jobDescription: str
     return data.tailoredResume || "";
   } catch (error) {
     console.error("Error calling backend API for tailor-resume:", error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error("Failed to tailor resume. Please check your connection and try again.");
   }
 };
@@ -86,15 +108,17 @@ export const generateCoverLetter = async (
   }
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/gemini/generate-cover-letter`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ resumeText, jobTitle, company, jobDescription }),
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Please log in to use this feature.');
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -102,6 +126,9 @@ export const generateCoverLetter = async (
     return data.coverLetter || "";
   } catch (error) {
     console.error("Error calling backend API for cover letter:", error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error("Failed to generate cover letter. Please check your connection and try again.");
   }
 };
@@ -117,15 +144,17 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysisR
   }
 
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_URL}/api/gemini/analyze-resume`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ resumeText }),
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Please log in to use this feature.');
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -133,6 +162,9 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysisR
     return data.analysis;
   } catch (error) {
     console.error("Error calling backend API for resume analysis:", error);
+    if (error instanceof Error) {
+      throw error;
+    }
     throw new Error("Failed to analyze resume. The AI model may be temporarily unavailable. Please try again later.");
   }
 };

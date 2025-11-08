@@ -2,6 +2,7 @@ import express from 'express';
 import { env } from './config/env.js';
 import { corsMiddleware } from './middleware/cors.js';
 import geminiRoutes from './routes/gemini.js';
+import authRoutes from './routes/auth.js';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get('/health', (req, res) => {
 });
 
 // API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api/gemini', geminiRoutes);
 
 // 404 handler

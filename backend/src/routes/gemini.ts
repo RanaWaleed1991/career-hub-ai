@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { GoogleGenAI, Type } from '@google/genai';
 import { env } from '../config/env.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -129,7 +130,7 @@ const resumeAnalysisSchema = {
 };
 
 // POST /api/gemini/enhance-summary
-router.post('/enhance-summary', async (req: Request, res: Response) => {
+router.post('/enhance-summary', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { text, section } = req.body;
 
@@ -157,7 +158,7 @@ router.post('/enhance-summary', async (req: Request, res: Response) => {
 });
 
 // POST /api/gemini/generate-cover-letter
-router.post('/generate-cover-letter', async (req: Request, res: Response) => {
+router.post('/generate-cover-letter', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { resumeText, jobTitle, company, jobDescription } = req.body;
 
@@ -194,7 +195,7 @@ router.post('/generate-cover-letter', async (req: Request, res: Response) => {
 });
 
 // POST /api/gemini/analyze-resume
-router.post('/analyze-resume', async (req: Request, res: Response) => {
+router.post('/analyze-resume', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { resumeText } = req.body;
 
@@ -223,7 +224,7 @@ router.post('/analyze-resume', async (req: Request, res: Response) => {
 });
 
 // POST /api/gemini/tailor-resume
-router.post('/tailor-resume', async (req: Request, res: Response) => {
+router.post('/tailor-resume', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { resumeText, jobDescription } = req.body;
 
