@@ -1,25 +1,26 @@
-import { GoogleGenAI, Type } from "@google/genai";
-import type { ResumeAnalysisResult } from '../types';
+import { Router, Request, Response } from 'express';
+import { GoogleGenAI, Type } from '@google/genai';
+import { env } from '../config/env.js';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable is not set");
-}
+const router = Router();
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize Gemini AI with API key from environment
+const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
 
+// Prompt templates (same as frontend)
 const PROMPT_TEMPLATES: Record<string, string> = {
   summary: `
     As an expert resume writer, rewrite the following professional summary to be more impactful, concise, and professional for a resume.
     Focus on highlighting key achievements and skills. Keep it to 3-4 sentences.
-    
+
     Original Text:
     "{TEXT}"
 
     Rewritten Summary:
   `,
   experience: `
-    As an expert resume writer, rewrite the following job description bullet points for a resume. 
-    Transform responsibilities into achievements using action verbs and quantifiable results where possible. 
+    As an expert resume writer, rewrite the following job description bullet points for a resume.
+    Transform responsibilities into achievements using action verbs and quantifiable results where possible.
     Ensure the tone is professional and compelling. Format the output as a bulleted list (using '- ' for each point).
 
     Original Text:
@@ -72,7 +73,7 @@ const PROMPT_TEMPLATES: Record<string, string> = {
 
     **Company Name:**
     {COMPANY}
-    
+
     **Job Description:**
     ---
     {JOB_DESCRIPTION}
@@ -127,82 +128,84 @@ const resumeAnalysisSchema = {
   required: ["atsScore", "overallFeedback", "sectionFeedback", "recruiterSummary"]
 };
 
-export const enhanceTextWithAI = async (text: string, section: 'summary' | 'experience'): Promise<string> => {
-  if (!text.trim()) {
-    return "";
-  }
-  
-  const prompt = PROMPT_TEMPLATES[section].replace('{TEXT}', text);
-
+// POST /api/gemini/enhance-summary
+router.post('/enhance-summary', async (req: Request, res: Response) => {
   try {
+    const { text, section } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ error: 'Text is required' });
+    }
+
+    if (!section || !['summary', 'experience'].includes(section)) {
+      return res.status(400).json({ error: 'Section must be either "summary" or "experience"' });
+    }
+
+    const prompt = PROMPT_TEMPLATES[section].replace('{TEXT}', text);
+
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: prompt,
     });
-    
-    return response.text.trim();
+
+    const enhancedText = response.text.trim();
+    res.json({ enhancedText });
   } catch (error) {
-    console.error("Error calling Gemini API:", error);
-    throw new Error("Failed to get AI suggestion. Please check your API key and try again.");
+    console.error('Error calling Gemini API for enhance-summary:', error);
+    res.status(500).json({ error: 'Failed to enhance text. Please try again.' });
   }
-};
+});
 
-export const tailorResumeForJob = async (resumeText: string, jobDescription: string): Promise<string> => {
-  if (!resumeText.trim() || !jobDescription.trim()) {
-    return "";
-  }
-
-  const prompt = PROMPT_TEMPLATES['tailor']
-    .replace('{RESUME}', resumeText)
-    .replace('{JOB_DESCRIPTION}', jobDescription);
-
+// POST /api/gemini/generate-cover-letter
+router.post('/generate-cover-letter', async (req: Request, res: Response) => {
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro', // Using a more powerful model for this complex task
-      contents: prompt,
-    });
+    const { resumeText, jobTitle, company, jobDescription } = req.body;
 
-    return response.text.trim();
-  } catch (error) {
-    console.error("Error calling Gemini API for tailoring:", error);
-    throw new Error("Failed to tailor resume. Please check your API key and try again.");
-  }
-};
+    if (!resumeText || !resumeText.trim()) {
+      return res.status(400).json({ error: 'Resume text is required' });
+    }
+    if (!jobTitle || !jobTitle.trim()) {
+      return res.status(400).json({ error: 'Job title is required' });
+    }
+    if (!company || !company.trim()) {
+      return res.status(400).json({ error: 'Company name is required' });
+    }
+    if (!jobDescription || !jobDescription.trim()) {
+      return res.status(400).json({ error: 'Job description is required' });
+    }
 
-export const generateCoverLetter = async (resumeText: string, jobTitle: string, company: string, jobDescription: string): Promise<string> => {
-  if (!resumeText.trim() || !jobDescription.trim() || !jobTitle.trim() || !company.trim()) {
-    return "";
-  }
+    const prompt = PROMPT_TEMPLATES['coverLetter']
+      .replace('{RESUME}', resumeText)
+      .replace('{JOB_TITLE}', jobTitle)
+      .replace('{COMPANY}', company)
+      .replace('{JOB_DESCRIPTION}', jobDescription);
 
-  const prompt = PROMPT_TEMPLATES['coverLetter']
-    .replace('{RESUME}', resumeText)
-    .replace('{JOB_TITLE}', jobTitle)
-    .replace('{COMPANY}', company)
-    .replace('{JOB_DESCRIPTION}', jobDescription);
-
-  try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
       contents: prompt,
     });
 
-    return response.text.trim();
+    const coverLetter = response.text.trim();
+    res.json({ coverLetter });
   } catch (error) {
-    console.error("Error calling Gemini API for cover letter:", error);
-    throw new Error("Failed to generate cover letter. Please check your API key and try again.");
+    console.error('Error calling Gemini API for cover letter:', error);
+    res.status(500).json({ error: 'Failed to generate cover letter. Please try again.' });
   }
-};
+});
 
-export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysisResult> => {
-  if (!resumeText.trim()) {
-    throw new Error("Resume text cannot be empty.");
-  }
-
-  const prompt = PROMPT_TEMPLATES['resumeAnalysis'].replace('{RESUME_TEXT}', resumeText);
-
+// POST /api/gemini/analyze-resume
+router.post('/analyze-resume', async (req: Request, res: Response) => {
   try {
+    const { resumeText } = req.body;
+
+    if (!resumeText || !resumeText.trim()) {
+      return res.status(400).json({ error: 'Resume text is required' });
+    }
+
+    const prompt = PROMPT_TEMPLATES['resumeAnalysis'].replace('{RESUME_TEXT}', resumeText);
+
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro', // Use a powerful model for analysis
+      model: 'gemini-2.5-pro',
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -211,9 +214,41 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysisR
     });
 
     const jsonText = response.text.trim();
-    return JSON.parse(jsonText) as ResumeAnalysisResult;
+    const analysis = JSON.parse(jsonText);
+    res.json({ analysis });
   } catch (error) {
-    console.error("Error calling Gemini API for resume analysis:", error);
-    throw new Error("Failed to analyze resume. The AI model may be temporarily unavailable. Please try again later.");
+    console.error('Error calling Gemini API for resume analysis:', error);
+    res.status(500).json({ error: 'Failed to analyze resume. Please try again.' });
   }
-};
+});
+
+// POST /api/gemini/tailor-resume
+router.post('/tailor-resume', async (req: Request, res: Response) => {
+  try {
+    const { resumeText, jobDescription } = req.body;
+
+    if (!resumeText || !resumeText.trim()) {
+      return res.status(400).json({ error: 'Resume text is required' });
+    }
+    if (!jobDescription || !jobDescription.trim()) {
+      return res.status(400).json({ error: 'Job description is required' });
+    }
+
+    const prompt = PROMPT_TEMPLATES['tailor']
+      .replace('{RESUME}', resumeText)
+      .replace('{JOB_DESCRIPTION}', jobDescription);
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-pro',
+      contents: prompt,
+    });
+
+    const tailoredResume = response.text.trim();
+    res.json({ tailoredResume });
+  } catch (error) {
+    console.error('Error calling Gemini API for tailoring:', error);
+    res.status(500).json({ error: 'Failed to tailor resume. Please try again.' });
+  }
+});
+
+export default router;
