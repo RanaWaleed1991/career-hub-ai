@@ -1,0 +1,5 @@
+{
+  "name": "Career Hub AI",
+  "description": "An intelligent resume builder application that uses Gemini to help users create professional resumes. It offers multiple templates, expert tips, and AI-powered content enhancement.",
+  "requestFramePermissions": []
+}

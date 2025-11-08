@@ -1,0 +1,66 @@
+import React, { useState, useEffect } from 'react';
+import { getCourses } from '../services/contentService';
+import type { Course } from '../types';
+
+const CourseCard: React.FC<{ course: Course, index: number }> = ({ course, index }) => (
+  <div className="bg-white rounded-lg shadow-lg p-6 flex flex-col justify-between hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 border border-slate-200 opacity-0 slide-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+    <div>
+      <h3 className="text-lg font-bold text-slate-800">{course.title}</h3>
+      <p className="text-sm font-medium text-indigo-600 mb-2">{course.provider}</p>
+      <p className="text-sm text-slate-600 mb-4">{course.description}</p>
+    </div>
+    <a
+      href={course.link}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-auto block w-full text-center px-4 py-2 bg-slate-200 text-slate-800 font-semibold rounded-md hover:bg-slate-300 transition-colors"
+    >
+      View Course
+    </a>
+  </div>
+);
+
+const CoursesPage: React.FC = () => {
+  const [freeCourses, setFreeCourses] = useState<Course[]>([]);
+  const [paidCourses, setPaidCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const allCourses = getCourses();
+    setFreeCourses(allCourses.filter(c => c.type === 'free'));
+    setPaidCourses(allCourses.filter(c => c.type === 'paid'));
+  }, []);
+
+  return (
+    <div className="p-8 bg-slate-50 h-full overflow-y-auto">
+      <h2 className="text-3xl font-bold text-slate-800 mb-8 border-b pb-4">Recommended Courses</h2>
+
+      <section className="mb-12">
+        <h3 className="text-2xl font-semibold text-teal-600 mb-6">Free Courses</h3>
+        {freeCourses.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {freeCourses.map((course, index) => <CourseCard key={course.id} course={course} index={index} />)}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+            <p className="text-slate-500">No free courses have been added yet. An administrator can add them from the Admin Panel.</p>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h3 className="text-2xl font-semibold text-indigo-600 mb-6">Paid Courses</h3>
+        {paidCourses.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {paidCourses.map((course, index) => <CourseCard key={course.id} course={course} index={index + freeCourses.length} />)}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm">
+             <p className="text-slate-500">No paid courses have been added yet. An administrator can add them from the Admin Panel.</p>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+};
+
+export default CoursesPage;
