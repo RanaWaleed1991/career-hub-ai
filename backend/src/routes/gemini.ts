@@ -149,6 +149,10 @@ router.post('/enhance-summary', authMiddleware, async (req: Request, res: Respon
       contents: prompt,
     });
 
+    if (!response.text) {
+      throw new Error('No response from AI model');
+    }
+
     const enhancedText = response.text.trim();
     res.json({ enhancedText });
   } catch (error) {
@@ -186,6 +190,10 @@ router.post('/generate-cover-letter', authMiddleware, async (req: Request, res: 
       contents: prompt,
     });
 
+    if (!response.text) {
+      throw new Error('No response from AI model');
+    }
+
     const coverLetter = response.text.trim();
     res.json({ coverLetter });
   } catch (error) {
@@ -213,6 +221,10 @@ router.post('/analyze-resume', authMiddleware, async (req: Request, res: Respons
         responseSchema: resumeAnalysisSchema,
       },
     });
+
+    if (!response.text) {
+      throw new Error('No response from AI model');
+    }
 
     const jsonText = response.text.trim();
     const analysis = JSON.parse(jsonText);
@@ -243,6 +255,10 @@ router.post('/tailor-resume', authMiddleware, async (req: Request, res: Response
       model: 'gemini-2.5-pro',
       contents: prompt,
     });
+
+    if (!response.text) {
+      throw new Error('No response from AI model');
+    }
 
     const tailoredResume = response.text.trim();
     res.json({ tailoredResume });
