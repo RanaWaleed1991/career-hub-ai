@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS public.resume_versions (
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   resume_id UUID REFERENCES public.resumes(id) ON DELETE CASCADE,
   data JSONB NOT NULL,
-  version_name TEXT NOT NULL,
+  name TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -83,13 +83,10 @@ CREATE TABLE IF NOT EXISTS public.applications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   company TEXT NOT NULL,
-  position TEXT NOT NULL,
+  role TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'applied',
-  applied_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  job_url TEXT,
+  date_applied DATE DEFAULT CURRENT_DATE,
   notes TEXT,
-  salary_range TEXT,
-  location TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -130,13 +127,8 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
   plan TEXT NOT NULL DEFAULT 'free',
   status TEXT NOT NULL DEFAULT 'active',
-  trial_used BOOLEAN DEFAULT false,
-  trial_end_date TIMESTAMP WITH TIME ZONE,
-  subscription_end_date TIMESTAMP WITH TIME ZONE,
-  resumes_created INTEGER DEFAULT 0,
-  resumes_downloaded INTEGER DEFAULT 0,
-  ai_analyses_used INTEGER DEFAULT 0,
-  cover_letters_generated INTEGER DEFAULT 0,
+  features_used JSONB DEFAULT '{"ai_enhancements": 0, "downloads": 0, "cover_letters": 0, "resume_analyses": 0}'::jsonb,
+  expires_at TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -200,14 +192,20 @@ CREATE TRIGGER update_subscriptions_updated_at
 CREATE OR REPLACE FUNCTION create_user_subscription()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.subscriptions (user_id, plan, status)
-  VALUES (NEW.id, 'free', 'active')
+  INSERT INTO public.subscriptions (user_id, plan, status, features_used)
+  VALUES (
+    NEW.id,
+    'free',
+    'active',
+    '{"ai_enhancements": 0, "downloads": 0, "cover_letters": 0, "resume_analyses": 0}'::jsonb
+  )
   ON CONFLICT (user_id) DO NOTHING;
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Trigger to create subscription when user signs up
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW

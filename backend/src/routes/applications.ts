@@ -21,8 +21,8 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
 
     const applicationData = req.body;
 
-    if (!applicationData.company || !applicationData.position) {
-      res.status(400).json({ error: 'Company and position are required' });
+    if (!applicationData.company || !applicationData.role) {
+      res.status(400).json({ error: 'Company and role are required' });
       return;
     }
 

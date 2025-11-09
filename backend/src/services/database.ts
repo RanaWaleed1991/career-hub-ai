@@ -297,7 +297,7 @@ export const applicationDb = {
       .from('applications')
       .select('*')
       .eq('user_id', userId)
-      .order('applied_date', { ascending: false });
+      .order('date_applied', { ascending: false });
 
     if (error) throw error;
     return data || [];
