@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { getFreeTrialState, type FreeTrial } from '../services/premiumService';
+import { getFreeTrialState } from '../services/premiumService';
 import { SparklesIcon, EnvelopeIcon, DocumentChartBarIcon, DownloadIcon, ClipboardDocumentCheckIcon } from './icons';
 
 const TrialStatus: React.FC = () => {
-  const [trialState, setTrialState] = useState<FreeTrial | null>(null);
+  const [trialState, setTrialState] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,30 +21,23 @@ const TrialStatus: React.FC = () => {
     loadTrialState();
   }, []);
 
-  const isPremium = !!localStorage.getItem('career_hub_subscription_v3');
-
   if (loading) {
     return (
-      <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 opacity-0 slide-in-up" style={{ animationDelay: `300ms` }}>
-        <h3 className="text-xl font-semibold text-slate-800 mb-4">Trial Status</h3>
-        <div className="text-center py-4 text-slate-500">Loading...</div>
+      <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+        <div className="animate-pulse">
+          <div className="h-4 bg-slate-200 rounded w-3/4 mb-4"></div>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-3 bg-slate-200 rounded"></div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (isPremium) {
-     return (
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 opacity-0 slide-in-up" style={{ animationDelay: `300ms` }}>
-          <h3 className="text-xl font-semibold text-slate-800 mb-4">Subscription Status</h3>
-          <div className="bg-green-100 text-green-800 p-4 rounded-lg text-center font-semibold">
-            Premium Plan Active
-          </div>
-        </div>
-      );
-  }
-
   if (!trialState) {
-    return null; // Don't show if trial is over and user is not premium
+    return null;
   }
 
   const items = [
