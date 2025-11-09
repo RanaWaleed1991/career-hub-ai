@@ -1,11 +1,36 @@
-import React from 'react';
-import { getFreeTrialState } from '../services/premiumService';
+import React, { useState, useEffect } from 'react';
+import { getFreeTrialState, type FreeTrial } from '../services/premiumService';
 import { SparklesIcon, EnvelopeIcon, DocumentChartBarIcon, DownloadIcon, ClipboardDocumentCheckIcon } from './icons';
 
 const TrialStatus: React.FC = () => {
-  const trialState = getFreeTrialState();
+  const [trialState, setTrialState] = useState<FreeTrial | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadTrialState = async () => {
+      try {
+        const state = await getFreeTrialState();
+        setTrialState(state);
+      } catch (error) {
+        console.error('Failed to load trial state:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTrialState();
+  }, []);
 
   const isPremium = !!localStorage.getItem('career_hub_subscription_v3');
+
+  if (loading) {
+    return (
+      <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 opacity-0 slide-in-up" style={{ animationDelay: `300ms` }}>
+        <h3 className="text-xl font-semibold text-slate-800 mb-4">Trial Status</h3>
+        <div className="text-center py-4 text-slate-500">Loading...</div>
+      </div>
+    );
+  }
 
   if (isPremium) {
      return (
