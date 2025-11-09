@@ -27,12 +27,14 @@ router.get('/current', async (req: AuthRequest, res: Response): Promise<void> =>
         subscription: {
           user_id: req.user.id,
           plan: 'free',
-          ai_enhancements_used: 0,
-          downloads_used: 0,
-          cover_letters_generated: 0,
-          resume_analyses_done: 0,
-          trial_used: false,
-          subscription_expires: null,
+          status: 'active',
+          features_used: {
+            ai_enhancements: 0,
+            downloads: 0,
+            cover_letters: 0,
+            resume_analyses: 0,
+          },
+          expires_at: null,
         },
       });
       return;
@@ -78,12 +80,15 @@ router.post('/upgrade', async (req: AuthRequest, res: Response): Promise<void> =
 
     const subscription = await subscriptionDb.upsert(req.user.id, {
       plan,
-      subscription_expires: expiresAt,
+      status: 'active',
+      expires_at: expiresAt,
       // Reset usage counters on upgrade
-      ai_enhancements_used: 0,
-      downloads_used: 0,
-      cover_letters_generated: 0,
-      resume_analyses_done: 0,
+      features_used: {
+        ai_enhancements: 0,
+        downloads: 0,
+        cover_letters: 0,
+        resume_analyses: 0,
+      },
     });
 
     res.status(200).json({ subscription, message: 'Subscription updated successfully' });
@@ -95,7 +100,7 @@ router.post('/upgrade', async (req: AuthRequest, res: Response): Promise<void> =
 
 /**
  * PUT /api/subscriptions/features
- * Update feature usage counters
+ * Update feature usage counters (JSONB)
  */
 router.put('/features', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -105,26 +110,37 @@ router.put('/features', async (req: AuthRequest, res: Response): Promise<void> =
       return;
     }
 
-    const featureUpdates = req.body;
+    const { feature, increment = 1 } = req.body;
 
-    // Validate feature fields
-    const allowedFields = [
-      'ai_enhancements_used',
-      'downloads_used',
-      'cover_letters_generated',
-      'resume_analyses_done',
-      'trial_used',
-    ];
+    // Validate feature name
+    const allowedFeatures = ['ai_enhancements', 'downloads', 'cover_letters', 'resume_analyses'];
 
-    const hasValidField = Object.keys(featureUpdates).some((key) => allowedFields.includes(key));
-
-    if (!hasValidField) {
-      res.status(400).json({ error: 'No valid feature fields provided' });
+    if (!feature || !allowedFeatures.includes(feature)) {
+      res.status(400).json({ error: 'Valid feature name required (ai_enhancements, downloads, cover_letters, resume_analyses)' });
       return;
     }
 
-    const subscription = await subscriptionDb.updateFeatureUsage(req.user.id, featureUpdates);
-    res.status(200).json({ subscription });
+    // Get current subscription
+    const subscription = await subscriptionDb.getCurrent(req.user.id);
+    const currentFeatures = subscription?.features_used || {
+      ai_enhancements: 0,
+      downloads: 0,
+      cover_letters: 0,
+      resume_analyses: 0,
+    };
+
+    // Increment the feature count
+    const updatedFeatures = {
+      ...currentFeatures,
+      [feature]: (currentFeatures[feature] || 0) + increment,
+    };
+
+    // Update subscription with new features_used JSONB
+    const updatedSubscription = await subscriptionDb.upsert(req.user.id, {
+      features_used: updatedFeatures,
+    });
+
+    res.status(200).json({ subscription: updatedSubscription });
   } catch (error) {
     const message = handleDatabaseError(error, 'update feature usage');
     res.status(500).json({ error: message });
@@ -172,8 +188,8 @@ router.get('/check-limit/:feature', async (req: AuthRequest, res: Response): Pro
     const planLimits = limits[plan];
 
     // Check if subscription is expired
-    if (subscription?.subscription_expires) {
-      const expiryDate = new Date(subscription.subscription_expires);
+    if (subscription?.expires_at) {
+      const expiryDate = new Date(subscription.expires_at);
       if (expiryDate < new Date()) {
         // Subscription expired, treat as free
         res.status(200).json({
@@ -184,21 +200,22 @@ router.get('/check-limit/:feature', async (req: AuthRequest, res: Response): Pro
       }
     }
 
-    // Map feature names to database fields
-    const featureMap: Record<string, string> = {
-      ai_enhancements: 'ai_enhancements_used',
-      downloads: 'downloads_used',
-      cover_letters: 'cover_letters_generated',
-      resume_analyses: 'resume_analyses_done',
-    };
-
-    const usageField = featureMap[feature];
-    if (!usageField) {
+    // Validate feature name
+    const validFeatures = ['ai_enhancements', 'downloads', 'cover_letters', 'resume_analyses'];
+    if (!validFeatures.includes(feature)) {
       res.status(400).json({ error: 'Invalid feature' });
       return;
     }
 
-    const currentUsage = subscription?.[usageField] || 0;
+    // Get current usage from features_used JSONB
+    const featuresUsed = subscription?.features_used || {
+      ai_enhancements: 0,
+      downloads: 0,
+      cover_letters: 0,
+      resume_analyses: 0,
+    };
+
+    const currentUsage = featuresUsed[feature] || 0;
     const limit = planLimits[feature];
     const limitReached = currentUsage >= limit;
 
