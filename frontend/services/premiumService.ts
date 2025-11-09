@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase } from '../src/config/supabase';
 import { getAccessToken } from './userService';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';

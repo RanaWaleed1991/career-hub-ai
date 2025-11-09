@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase } from '../src/config/supabase';
 import type { ResumeData, ResumeVersion as ResumeVersionType } from '../types';
 import { getAccessToken } from './userService';
 import { getActiveResume } from './resumeService';
