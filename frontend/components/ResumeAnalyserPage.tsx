@@ -1,11 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { canAnalyzeResume, useResumeAnalysisAttempt } from '../services/premiumService';
 import { analyzeResume } from '../services/geminiService';
+import { pdfService } from '../services/pdfService';
 import type { ResumeAnalysisResult } from '../types';
 import { UploadCloudIcon, CheckCircleIcon, XCircleIcon, DocumentChartBarIcon, LightBulbIcon, UserCircleIcon, PrintIcon } from './icons';
-
-// pdf.js is loaded from a script tag in index.html
-declare const pdfjsLib: any;
 
 interface ResumeAnalyserPageProps {
   triggerPremiumFlow: () => void;
@@ -95,19 +93,13 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
         setFileName(file.name);
 
         try {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let textContent = '';
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const text = await page.getTextContent();
-                textContent += text.items.map((s: any) => s.str).join(' ');
-            }
-            
+            // Use pdfService to extract text from PDF
+            const textContent = await pdfService.extractTextFromPDF(file);
+
             if (!textContent.trim()) {
                 throw new Error("Could not extract text from the PDF. It may be an image-based PDF.");
             }
-            
+
             useResumeAnalysisAttempt();
             const result = await analyzeResume(textContent);
             setAnalysisResult(result);
