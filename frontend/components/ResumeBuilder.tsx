@@ -17,34 +17,79 @@ interface ResumeBuilderProps {
   openTailorModal: (initialText: string) => void;
 }
 
+const initialResumeData: ResumeData = {
+  personalDetails: {
+    fullName: '',
+    jobTitle: '',
+    email: '',
+    phone: '',
+    address: '',
+    linkedin: '',
+    website: '',
+    photo: '',
+  },
+  summary: '',
+  experience: [],
+  education: [],
+  skills: [],
+};
+
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setActionToRetry, setPage, openTailorModal }) => {
-  const [resumeData, setResumeData] = useState<ResumeData>(() => getLatestResume());
+  const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [template, setTemplate] = useState<TemplateType>('australian');
   const [isAiLoading, setIsAiLoading] = useState<{ field: string; index?: number } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLoadModal, setShowLoadModal] = useState(false);
 
+  // Load resume data on mount
+  useEffect(() => {
+    const loadResume = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getLatestResume();
+        setResumeData(data);
+      } catch (err) {
+        console.error('Failed to load resume:', err);
+        setError('Failed to load resume data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadResume();
+  }, []);
+
   // Auto-save resume data on change
   useEffect(() => {
-    const debounceSave = setTimeout(() => {
-        saveResume(resumeData);
-    }, 500); // Debounce to avoid excessive writes
-    return () => clearTimeout(debounceSave);
-  }, [resumeData]);
+    if (isLoading) return; // Don't save during initial load
 
+    const debounceSave = setTimeout(async () => {
+      try {
+        await saveResume(resumeData);
+      } catch (err) {
+        console.error('Failed to save resume:', err);
+      }
+    }, 500); // Debounce to avoid excessive writes
+
+    return () => clearTimeout(debounceSave);
+  }, [resumeData, isLoading]);
 
   const handleEnhance = async (field: 'summary' | 'experience', text: string, index?: number) => {
-    if (!canUseAIImprovement()) {
-      setActionToRetry(() => () => handleEnhance(field, text, index));
-      triggerPremiumFlow();
-      return;
-    }
-
-    setIsAiLoading({ field, index });
-    setError(null);
     try {
-      useAIImprovementAttempt();
+      const canUse = await canUseAIImprovement();
+      if (!canUse) {
+        setActionToRetry(() => () => handleEnhance(field, text, index));
+        triggerPremiumFlow();
+        return;
+      }
+
+      setIsAiLoading({ field, index });
+      setError(null);
+
+      await useAIImprovementAttempt();
       const enhancedText = await enhanceTextWithAI(text, field);
+
       setResumeData(prev => {
         if (field === 'summary') {
           return { ...prev, summary: enhancedText };
@@ -66,6 +111,18 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
   const handleLoadVersion = (data: ResumeData) => {
     setResumeData(data);
     setShowLoadModal(false);
+  };
+
+  // Show loading spinner while fetching resume
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your resume...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
