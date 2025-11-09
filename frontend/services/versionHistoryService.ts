@@ -41,7 +41,7 @@ export const getVersions = async (): Promise<ResumeVersion[]> => {
     // Map database format to frontend format
     return versions.map((v: any): ResumeVersion => ({
       id: v.id,
-      name: v.version_name,
+      name: v.name,
       createdAt: v.created_at,
       data: v.data,
     }));
