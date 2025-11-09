@@ -6,7 +6,7 @@ import AustralianTemplate from '../templates/AustralianTemplate';
 import CreativeTemplate from '../templates/CreativeTemplate';
 import ElegantTemplate from '../templates/ATSTemplate'; // ATSTemplate file is repurposed as ElegantTemplate
 import { PrintIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, DocumentTextIcon, DownloadIcon } from './icons';
-import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory } from '../services/premiumService';
+import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory, canSaveVersion, useVersionSave } from '../services/premiumService';
 import { saveVersion } from '../services/versionHistoryService';
 import { resumeDataToText } from '../utils/resumeUtils';
 
@@ -123,8 +123,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   };
 
   const handleSaveVersion = async () => {
-    const canAccess = await canAccessVersionHistory();
-    if (!canAccess) {
+    const canSave = await canSaveVersion();
+    if (!canSave) {
+        alert('You have reached the limit of 3 free resume versions. Upgrade to save unlimited versions.');
         setActionToRetry(() => handleSaveVersion);
         triggerPremiumFlow();
         return;
@@ -133,6 +134,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     if (name) {
         try {
             await saveVersion(name, resumeData);
+            await useVersionSave(); // Track usage
             alert(`Version "${name}" saved!`);
         } catch (err) {
             console.error('Failed to save version:', err);

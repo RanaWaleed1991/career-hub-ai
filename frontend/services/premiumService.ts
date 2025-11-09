@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase } from '../src/config/supabase';
 import { getAccessToken } from './userService';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -168,10 +168,10 @@ export const getFreeTrialState = async (): Promise<FreeTrial | null> => {
 
   const remaining = {
     resumeDownloads: Math.max(0, 3 - (sub.downloads_used || 0)),
-    coverLetters: Math.max(0, 2 - (sub.cover_letters_generated || 0)),
-    aiImprovements: Math.max(0, 5 - (sub.ai_enhancements_used || 0)),
-    resumeTailoring: Math.max(0, 2 - (sub.ai_enhancements_used || 0)),
-    resumeAnalyses: Math.max(0, 2 - (sub.resume_analyses_done || 0)),
+    coverLetters: Math.max(0, 3 - (sub.cover_letters_generated || 0)),
+    aiImprovements: 999, // Unlimited
+    resumeTailoring: 999, // Unlimited
+    resumeAnalyses: Math.max(0, 3 - (sub.resume_analyses_done || 0)),
     expiry: sub.subscription_expires ? new Date(sub.subscription_expires).getTime() : 0,
   };
 
@@ -247,14 +247,10 @@ export const useResumeDownload = async (): Promise<void> => {
   }
 };
 
-// --- AI Improvements ---
+// --- AI Improvements (UNLIMITED for free users) ---
 export const canUseAIImprovement = async (): Promise<boolean> => {
-  if (await hasPremium()) return true;
-
-  const sub = await getSubscription();
-  if (!sub) return true;
-
-  return (sub.ai_enhancements_used || 0) < 5;
+  // AI enhancements are unlimited for all users
+  return true;
 };
 
 export const useAIImprovementAttempt = async (): Promise<void> => {
@@ -280,28 +276,24 @@ export const useAIImprovementAttempt = async (): Promise<void> => {
   }
 };
 
-// --- Resume Tailoring ---
+// --- Resume Tailoring (UNLIMITED for free users) ---
 export const canTailorResume = async (): Promise<boolean> => {
-  if (await hasPremium()) return true;
-
-  const sub = await getSubscription();
-  if (!sub) return true;
-
-  return (sub.ai_enhancements_used || 0) < 5;
+  // Resume tailoring is unlimited for all users
+  return true;
 };
 
 export const useTailorAttempt = async (): Promise<void> => {
   await useAIImprovementAttempt();
 };
 
-// --- Cover Letter Generation ---
+// --- Cover Letter Generation (3 free) ---
 export const canGenerateCoverLetter = async (): Promise<boolean> => {
   if (await hasPremium()) return true;
 
   const sub = await getSubscription();
   if (!sub) return true;
 
-  return (sub.cover_letters_generated || 0) < 2;
+  return (sub.cover_letters_generated || 0) < 3;
 };
 
 export const useCoverLetterAttempt = async (): Promise<void> => {
@@ -327,14 +319,14 @@ export const useCoverLetterAttempt = async (): Promise<void> => {
   }
 };
 
-// --- Resume Analysis ---
+// --- Resume Analysis (3 free) ---
 export const canAnalyzeResume = async (): Promise<boolean> => {
   if (await hasPremium()) return true;
 
   const sub = await getSubscription();
   if (!sub) return true;
 
-  return (sub.resume_analyses_done || 0) < 2;
+  return (sub.resume_analyses_done || 0) < 3;
 };
 
 export const useResumeAnalysisAttempt = async (): Promise<void> => {
@@ -360,13 +352,49 @@ export const useResumeAnalysisAttempt = async (): Promise<void> => {
   }
 };
 
-// --- Premium Feature Gating ---
-export const canAccessApplicationTracker = async (): Promise<boolean> => {
-  return await hasPremium();
+// --- Version History (3 free versions) ---
+export const canAccessVersionHistory = async (): Promise<boolean> => {
+  // Everyone can access version history, but free users limited to 3 saves
+  return true;
 };
 
-export const canAccessVersionHistory = async (): Promise<boolean> => {
-  return await hasPremium();
+export const canSaveVersion = async (): Promise<boolean> => {
+  if (await hasPremium()) return true;
+
+  const sub = await getSubscription();
+  if (!sub) return true;
+
+  // Free users can save up to 3 versions
+  return (sub.versions_saved || 0) < 3;
+};
+
+export const useVersionSave = async (): Promise<void> => {
+  if (await hasPremium()) return;
+
+  try {
+    const headers = await getAuthHeaders();
+    const sub = await getSubscription();
+
+    const response = await fetch(`${API_URL}/api/subscriptions/features`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        versions_saved: (sub?.versions_saved || 0) + 1,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to update version count: ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Failed to update version save count:', error);
+  }
+};
+
+// --- Premium Feature Gating ---
+export const canAccessApplicationTracker = async (): Promise<boolean> => {
+  // Application tracker is free for all
+  return true;
 };
 
 export const checkCourseAccess = (): boolean => {
