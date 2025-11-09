@@ -13,16 +13,16 @@ interface EnvConfig {
   PORT: number;
   FRONTEND_URL: string;
   NODE_ENV: string;
-  SUPABASE_URL: string;
-  SUPABASE_SERVICE_KEY: string;
+  SUPABASE_URL: string | undefined;
+  SUPABASE_SERVICE_KEY: string | undefined;
 }
 
-const getEnvVar = (key: string, defaultValue?: string): string => {
+const getEnvVar = (key: string, defaultValue?: string, required: boolean = true): string => {
   const value = process.env[key] || defaultValue;
-  if (!value) {
+  if (!value && required) {
     throw new Error(`Missing required environment variable: ${key}`);
   }
-  return value;
+  return value || '';
 };
 
 export const env: EnvConfig = {
@@ -30,6 +30,6 @@ export const env: EnvConfig = {
   PORT: parseInt(getEnvVar('PORT', '3001'), 10),
   FRONTEND_URL: getEnvVar('FRONTEND_URL', 'http://localhost:5173'),
   NODE_ENV: getEnvVar('NODE_ENV', 'development'),
-  SUPABASE_URL: getEnvVar('SUPABASE_URL'),
-  SUPABASE_SERVICE_KEY: getEnvVar('SUPABASE_SERVICE_KEY'),
+  SUPABASE_URL: getEnvVar('SUPABASE_URL', '', false) || undefined,
+  SUPABASE_SERVICE_KEY: getEnvVar('SUPABASE_SERVICE_KEY', '', false) || undefined,
 };
