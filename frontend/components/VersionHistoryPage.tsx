@@ -15,21 +15,34 @@ const VersionHistoryPage: React.FC<VersionHistoryPageProps> = ({ setPage }) => {
         loadVersions();
     }, []);
 
-    const loadVersions = () => {
-        setVersions(getVersions());
+    const loadVersions = async () => {
+        try {
+            const versionsList = await getVersions();
+            setVersions(versionsList);
+        } catch (err) {
+            console.error('Failed to load versions:', err);
+        }
     }
 
-    const handleDelete = (id: string, name: string) => {
+    const handleDelete = async (id: string, name: string) => {
         if (window.confirm(`Are you sure you want to delete the version "${name}"?`)) {
-            deleteVersion(id);
-            loadVersions();
+            try {
+                await deleteVersion(id);
+                await loadVersions();
+            } catch (err) {
+                console.error('Failed to delete version:', err);
+            }
         }
     };
-    
-    const handleLoad = (version: ResumeVersion) => {
+
+    const handleLoad = async (version: ResumeVersion) => {
         if(window.confirm(`This will replace the current content in the Resume Builder with the version "${version.name}". Continue?`)) {
-            saveResume(version.data); // This makes it the "latest" resume
-            setPage('builder');
+            try {
+                await saveResume(version.data); // This makes it the "latest" resume
+                setPage('builder');
+            } catch (err) {
+                console.error('Failed to load version:', err);
+            }
         }
     };
 

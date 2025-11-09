@@ -22,7 +22,8 @@ const TailorResumeModal: React.FC<TailorResumeModalProps> = ({ onClose, initialR
   const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   const handleTailor = async () => {
-    if (!canTailorResume()) {
+    const canUse = await canTailorResume();
+    if (!canUse) {
       setShowPremiumModal(true);
       return;
     }
@@ -30,7 +31,7 @@ const TailorResumeModal: React.FC<TailorResumeModalProps> = ({ onClose, initialR
     setIsLoading(true);
     setError(null);
     try {
-      useTailorAttempt();
+      await useTailorAttempt();
       const result = await tailorResumeForJob(resumeText, jobDescription);
       setTailoredContent(result);
       setStep('result');
@@ -41,8 +42,8 @@ const TailorResumeModal: React.FC<TailorResumeModalProps> = ({ onClose, initialR
     }
   };
 
-  const handlePurchasePlan = (plan: Plan) => {
-    purchasePlan(plan);
+  const handlePurchasePlan = async (plan: Plan) => {
+    await purchasePlan(plan);
     setShowPremiumModal(false);
     // After purchase, retry the action
     setTimeout(() => {
