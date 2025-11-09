@@ -18,23 +18,61 @@ interface ResumeBuilderProps {
 }
 
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setActionToRetry, setPage, openTailorModal }) => {
-  const [resumeData, setResumeData] = useState<ResumeData>(() => getLatestResume());
+  const [resumeData, setResumeData] = useState<ResumeData>({
+    personalDetails: {
+      fullName: '',
+      jobTitle: '',
+      email: '',
+      phone: '',
+      address: '',
+      linkedin: '',
+      website: '',
+      photo: '',
+    },
+    summary: '',
+    experience: [],
+    education: [],
+    skills: [],
+  });
   const [template, setTemplate] = useState<TemplateType>('australian');
   const [isAiLoading, setIsAiLoading] = useState<{ field: string; index?: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showLoadModal, setShowLoadModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load resume data on mount
+  useEffect(() => {
+    const loadResume = async () => {
+      try {
+        const data = await getLatestResume();
+        setResumeData(data);
+      } catch (err) {
+        console.error('Failed to load resume:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadResume();
+  }, []);
 
   // Auto-save resume data on change
   useEffect(() => {
-    const debounceSave = setTimeout(() => {
-        saveResume(resumeData);
+    if (isLoading) return; // Don't save during initial load
+
+    const debounceSave = setTimeout(async () => {
+      try {
+        await saveResume(resumeData);
+      } catch (err) {
+        console.error('Failed to save resume:', err);
+      }
     }, 500); // Debounce to avoid excessive writes
     return () => clearTimeout(debounceSave);
-  }, [resumeData]);
+  }, [resumeData, isLoading]);
 
 
   const handleEnhance = async (field: 'summary' | 'experience', text: string, index?: number) => {
-    if (!canUseAIImprovement()) {
+    const canUse = await canUseAIImprovement();
+    if (!canUse) {
       setActionToRetry(() => () => handleEnhance(field, text, index));
       triggerPremiumFlow();
       return;
@@ -43,7 +81,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
     setIsAiLoading({ field, index });
     setError(null);
     try {
-      useAIImprovementAttempt();
+      await useAIImprovementAttempt();
       const enhancedText = await enhanceTextWithAI(text, field);
       setResumeData(prev => {
         if (field === 'summary') {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Page, ResumeData, TemplateType } from '../types';
 import ClassicTemplate from '../templates/ClassicTemplate';
 import ModernTemplate from '../templates/ModernTemplate';
@@ -25,11 +25,19 @@ interface ResumePreviewProps {
   openLoadModal: () => void;
 }
 
-const ResumePreview: React.FC<ResumePreviewProps> = ({ 
-  resumeData, template, setTemplate, triggerPremiumFlow, 
-  setActionToRetry, setPage, openTailorModal, openLoadModal 
+const ResumePreview: React.FC<ResumePreviewProps> = ({
+  resumeData, template, setTemplate, triggerPremiumFlow,
+  setActionToRetry, setPage, openTailorModal, openLoadModal
 }) => {
-  const showWatermark = shouldShowWatermark();
+  const [showWatermark, setShowWatermark] = useState(false);
+
+  useEffect(() => {
+    const checkWatermark = async () => {
+      const shouldShow = await shouldShowWatermark();
+      setShowWatermark(shouldShow);
+    };
+    checkWatermark();
+  }, []);
 
   const getTemplateComponent = () => {
     const props = { data: resumeData, showWatermark };
@@ -49,14 +57,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     }
   };
 
-  const handlePrintClick = () => {
-    if (canDownloadResume()) {
-      useResumeDownload();
+  const handlePrintClick = async () => {
+    const canUse = await canDownloadResume();
+    if (canUse) {
+      await useResumeDownload();
       window.print();
     } else {
-      setActionToRetry(() => () => {
-        if (canDownloadResume()) {
-          useResumeDownload();
+      setActionToRetry(() => async () => {
+        const canRetry = await canDownloadResume();
+        if (canRetry) {
+          await useResumeDownload();
           window.print();
         }
       });
@@ -65,13 +75,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   };
 
   const handleWordDownload = async () => {
-    if (!canDownloadResume()) {
+    const canUse = await canDownloadResume();
+    if (!canUse) {
       setActionToRetry(() => handleWordDownload);
       triggerPremiumFlow();
       return;
     }
 
-    useResumeDownload();
+    await useResumeDownload();
     
     const element = document.getElementById('resume-preview-content');
     if (element) {
@@ -111,21 +122,28 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     }
   };
 
-  const handleSaveVersion = () => {
-    if (!canAccessVersionHistory()) {
+  const handleSaveVersion = async () => {
+    const canAccess = await canAccessVersionHistory();
+    if (!canAccess) {
         setActionToRetry(() => handleSaveVersion);
         triggerPremiumFlow();
         return;
     }
     const name = prompt("Enter a name for this resume version:", `Version ${new Date().toLocaleString()}`);
     if (name) {
-        saveVersion(name, resumeData);
-        alert(`Version "${name}" saved!`);
+        try {
+            await saveVersion(name, resumeData);
+            alert(`Version "${name}" saved!`);
+        } catch (err) {
+            console.error('Failed to save version:', err);
+            alert('Failed to save version. Please try again.');
+        }
     }
   };
 
-  const handleLoadVersion = () => {
-    if (!canAccessVersionHistory()) {
+  const handleLoadVersion = async () => {
+    const canAccess = await canAccessVersionHistory();
+    if (!canAccess) {
         setActionToRetry(() => handleLoadVersion);
         triggerPremiumFlow();
         return;
