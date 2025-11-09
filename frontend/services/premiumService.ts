@@ -231,6 +231,9 @@ export const useResumeDownload = async (): Promise<void> => {
     const headers = await getAuthHeaders();
     const sub = await getSubscription();
 
+    // Only track if subscription record exists
+    if (!sub) return;
+
     const response = await fetch(`${API_URL}/api/subscriptions/features`, {
       method: 'PUT',
       headers,
@@ -240,10 +243,11 @@ export const useResumeDownload = async (): Promise<void> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update downloads: ${response.status}`);
+      console.warn('Failed to update resume download count:', response.status);
     }
   } catch (error) {
-    console.error('Failed to update resume download count:', error);
+    // Silently fail - usage tracking is not critical for free tier
+    console.debug('Download tracking skipped:', error);
   }
 };
 
@@ -260,6 +264,9 @@ export const useAIImprovementAttempt = async (): Promise<void> => {
     const headers = await getAuthHeaders();
     const sub = await getSubscription();
 
+    // Only track if subscription record exists
+    if (!sub) return;
+
     const response = await fetch(`${API_URL}/api/subscriptions/features`, {
       method: 'PUT',
       headers,
@@ -269,10 +276,11 @@ export const useAIImprovementAttempt = async (): Promise<void> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update AI improvements: ${response.status}`);
+      console.warn('Failed to update AI improvement count:', response.status);
     }
   } catch (error) {
-    console.error('Failed to update AI improvement count:', error);
+    // Silently fail - usage tracking is not critical for free tier
+    console.debug('AI improvement tracking skipped:', error);
   }
 };
 
@@ -303,6 +311,9 @@ export const useCoverLetterAttempt = async (): Promise<void> => {
     const headers = await getAuthHeaders();
     const sub = await getSubscription();
 
+    // Only track if subscription record exists
+    if (!sub) return;
+
     const response = await fetch(`${API_URL}/api/subscriptions/features`, {
       method: 'PUT',
       headers,
@@ -312,10 +323,11 @@ export const useCoverLetterAttempt = async (): Promise<void> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update cover letters: ${response.status}`);
+      console.warn('Failed to update cover letter count:', response.status);
     }
   } catch (error) {
-    console.error('Failed to update cover letter count:', error);
+    // Silently fail - usage tracking is not critical for free tier
+    console.debug('Cover letter tracking skipped:', error);
   }
 };
 
@@ -336,6 +348,9 @@ export const useResumeAnalysisAttempt = async (): Promise<void> => {
     const headers = await getAuthHeaders();
     const sub = await getSubscription();
 
+    // Only track if subscription record exists
+    if (!sub) return;
+
     const response = await fetch(`${API_URL}/api/subscriptions/features`, {
       method: 'PUT',
       headers,
@@ -345,10 +360,11 @@ export const useResumeAnalysisAttempt = async (): Promise<void> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update resume analyses: ${response.status}`);
+      console.warn('Failed to update resume analysis count:', response.status);
     }
   } catch (error) {
-    console.error('Failed to update resume analysis count:', error);
+    // Silently fail - usage tracking is not critical for free tier
+    console.debug('Resume analysis tracking skipped:', error);
   }
 };
 
@@ -375,6 +391,9 @@ export const useVersionSave = async (): Promise<void> => {
     const headers = await getAuthHeaders();
     const sub = await getSubscription();
 
+    // Only track if subscription record exists
+    if (!sub) return;
+
     const response = await fetch(`${API_URL}/api/subscriptions/features`, {
       method: 'PUT',
       headers,
@@ -384,10 +403,11 @@ export const useVersionSave = async (): Promise<void> => {
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to update version count: ${response.status}`);
+      console.warn('Failed to update version save count:', response.status);
     }
   } catch (error) {
-    console.error('Failed to update version save count:', error);
+    // Silently fail - usage tracking is not critical for free tier
+    console.debug('Version save tracking skipped:', error);
   }
 };
 
