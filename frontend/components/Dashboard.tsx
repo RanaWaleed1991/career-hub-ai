@@ -16,18 +16,27 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
     const [resumeData, setResumeData] = useState<ResumeData | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        setResumeData(getLatestResume());
+        const loadData = async () => {
+            try {
+                setIsLoading(true);
+                const resume = await getLatestResume();
+                setResumeData(resume);
 
-        try {
-            const savedApps = localStorage.getItem(APP_TRACKER_KEY);
-            if (savedApps) {
-                setApplications(JSON.parse(savedApps));
+                const savedApps = localStorage.getItem(APP_TRACKER_KEY);
+                if (savedApps) {
+                    setApplications(JSON.parse(savedApps));
+                }
+            } catch (e) {
+                console.error("Failed to load dashboard data", e);
+            } finally {
+                setIsLoading(false);
             }
-        } catch (e) {
-            console.error("Failed to load applications for dashboard", e);
-        }
+        };
+
+        loadData();
     }, []);
 
     const applicationSummary = {
