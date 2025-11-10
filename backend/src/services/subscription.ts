@@ -1,0 +1,341 @@
+import Stripe from 'stripe';
+import { stripe, ensureStripeConfigured, SUBSCRIPTION_TIERS } from '../config/stripe.js';
+import { subscriptionDb } from './database.js';
+
+/**
+ * Create a Stripe customer for a user
+ */
+export async function createStripeCustomer(
+  userId: string,
+  email: string,
+  name?: string
+): Promise<Stripe.Customer> {
+  ensureStripeConfigured();
+  if (!stripe) throw new Error('Stripe not configured');
+
+  const customer = await stripe.customers.create({
+    email,
+    name: name || email,
+    metadata: {
+      userId,
+    },
+  });
+
+  return customer;
+}
+
+/**
+ * Create a Stripe Checkout session for subscription
+ */
+export async function createCheckoutSession(
+  userId: string,
+  email: string,
+  priceId: string,
+  successUrl: string,
+  cancelUrl: string
+): Promise<Stripe.Checkout.Session> {
+  ensureStripeConfigured();
+  if (!stripe) throw new Error('Stripe not configured');
+
+  // Get or create customer
+  const subscription = await subscriptionDb.getCurrent(userId);
+  let customerId = subscription?.stripe_customer_id;
+
+  if (!customerId) {
+    const customer = await createStripeCustomer(userId, email);
+    customerId = customer.id;
+
+    // Save customer ID to database
+    await subscriptionDb.upsert(userId, {
+      stripe_customer_id: customerId,
+    });
+  }
+
+  // Create checkout session
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    mode: 'subscription',
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ],
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    metadata: {
+      userId,
+    },
+    subscription_data: {
+      metadata: {
+        userId,
+      },
+    },
+  });
+
+  return session;
+}
+
+/**
+ * Create a Stripe Customer Portal session
+ */
+export async function createPortalSession(
+  userId: string,
+  returnUrl: string
+): Promise<Stripe.BillingPortal.Session> {
+  ensureStripeConfigured();
+  if (!stripe) throw new Error('Stripe not configured');
+
+  const subscription = await subscriptionDb.getCurrent(userId);
+  if (!subscription?.stripe_customer_id) {
+    throw new Error('No Stripe customer found for user');
+  }
+
+  const session = await stripe.billingPortal.sessions.create({
+    customer: subscription.stripe_customer_id,
+    return_url: returnUrl,
+  });
+
+  return session;
+}
+
+/**
+ * Get subscription status from Stripe
+ */
+export async function getSubscriptionStatus(userId: string) {
+  const subscription = await subscriptionDb.getCurrent(userId);
+
+  if (!subscription) {
+    return {
+      plan: 'free',
+      status: 'active',
+      currentPeriodEnd: null,
+      cancelAtPeriodEnd: false,
+    };
+  }
+
+  // If user has a Stripe subscription, fetch latest data
+  if (subscription.stripe_subscription_id && stripe) {
+    try {
+      const stripeSubscription = await stripe.subscriptions.retrieve(
+        subscription.stripe_subscription_id
+      );
+
+      return {
+        plan: subscription.plan,
+        status: stripeSubscription.status,
+        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+        stripeSubscriptionId: stripeSubscription.id,
+      };
+    } catch (error) {
+      console.error('Error fetching Stripe subscription:', error);
+    }
+  }
+
+  // Return database data
+  return {
+    plan: subscription.plan || 'free',
+    status: subscription.status || 'active',
+    currentPeriodEnd: subscription.current_period_end,
+    cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+  };
+}
+
+/**
+ * Cancel a subscription (at period end)
+ */
+export async function cancelSubscription(userId: string): Promise<void> {
+  ensureStripeConfigured();
+  if (!stripe) throw new Error('Stripe not configured');
+
+  const subscription = await subscriptionDb.getCurrent(userId);
+  if (!subscription?.stripe_subscription_id) {
+    throw new Error('No active subscription found');
+  }
+
+  // Cancel at period end (don't immediately cancel)
+  await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+    cancel_at_period_end: true,
+  });
+
+  // Update database
+  await subscriptionDb.upsert(userId, {
+    cancel_at_period_end: true,
+  });
+}
+
+/**
+ * Reactivate a canceled subscription
+ */
+export async function reactivateSubscription(userId: string): Promise<void> {
+  ensureStripeConfigured();
+  if (!stripe) throw new Error('Stripe not configured');
+
+  const subscription = await subscriptionDb.getCurrent(userId);
+  if (!subscription?.stripe_subscription_id) {
+    throw new Error('No subscription found');
+  }
+
+  // Remove cancel_at_period_end flag
+  await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+    cancel_at_period_end: false,
+  });
+
+  // Update database
+  await subscriptionDb.upsert(userId, {
+    cancel_at_period_end: false,
+  });
+}
+
+/**
+ * Handle successful subscription checkout
+ * Called by webhook when checkout.session.completed
+ */
+export async function handleCheckoutComplete(session: Stripe.Checkout.Session): Promise<void> {
+  const userId = session.metadata?.userId;
+  if (!userId) {
+    throw new Error('No userId in session metadata');
+  }
+
+  if (!stripe) throw new Error('Stripe not configured');
+
+  // Get subscription details
+  const subscriptionId = session.subscription as string;
+  const stripeSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+  // Determine plan based on price ID
+  let plan = 'free';
+  const priceId = stripeSubscription.items.data[0]?.price.id;
+
+  for (const [tierName, tierConfig] of Object.entries(SUBSCRIPTION_TIERS)) {
+    if (tierConfig.priceId === priceId) {
+      plan = tierName;
+      break;
+    }
+  }
+
+  // Update database with subscription details
+  await subscriptionDb.upsert(userId, {
+    plan,
+    status: stripeSubscription.status,
+    stripe_customer_id: session.customer as string,
+    stripe_subscription_id: subscriptionId,
+    stripe_price_id: priceId,
+    current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
+    current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
+    cancel_at_period_end: stripeSubscription.cancel_at_period_end,
+    // Reset usage counters on new subscription
+    ai_enhancements_used: 0,
+    downloads_used: 0,
+    cover_letters_generated: 0,
+    resume_analyses_done: 0,
+  });
+}
+
+/**
+ * Handle subscription updates
+ * Called by webhook when customer.subscription.updated
+ */
+export async function handleSubscriptionUpdate(
+  subscription: Stripe.Subscription
+): Promise<void> {
+  const userId = subscription.metadata?.userId;
+  if (!userId) {
+    console.error('No userId in subscription metadata');
+    return;
+  }
+
+  // Determine plan based on price ID
+  let plan = 'free';
+  const priceId = subscription.items.data[0]?.price.id;
+
+  for (const [tierName, tierConfig] of Object.entries(SUBSCRIPTION_TIERS)) {
+    if (tierConfig.priceId === priceId) {
+      plan = tierName;
+      break;
+    }
+  }
+
+  // Update database
+  await subscriptionDb.upsert(userId, {
+    plan,
+    status: subscription.status,
+    stripe_subscription_id: subscription.id,
+    stripe_price_id: priceId,
+    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    cancel_at_period_end: subscription.cancel_at_period_end,
+  });
+}
+
+/**
+ * Handle subscription deletion
+ * Called by webhook when customer.subscription.deleted
+ */
+export async function handleSubscriptionDelete(
+  subscription: Stripe.Subscription
+): Promise<void> {
+  const userId = subscription.metadata?.userId;
+  if (!userId) {
+    console.error('No userId in subscription metadata');
+    return;
+  }
+
+  // Downgrade to free plan
+  await subscriptionDb.upsert(userId, {
+    plan: 'free',
+    status: 'canceled',
+    stripe_subscription_id: null,
+    stripe_price_id: null,
+    current_period_end: null,
+    cancel_at_period_end: false,
+  });
+}
+
+/**
+ * Handle successful payment
+ * Called by webhook when invoice.payment_succeeded
+ */
+export async function handlePaymentSuccess(invoice: Stripe.Invoice): Promise<void> {
+  const subscriptionId = invoice.subscription as string;
+  if (!subscriptionId || !stripe) return;
+
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const userId = subscription.metadata?.userId;
+
+  if (!userId) {
+    console.error('No userId in subscription metadata');
+    return;
+  }
+
+  // Update subscription status
+  await subscriptionDb.upsert(userId, {
+    status: 'active',
+    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
+    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+  });
+}
+
+/**
+ * Handle failed payment
+ * Called by webhook when invoice.payment_failed
+ */
+export async function handlePaymentFailure(invoice: Stripe.Invoice): Promise<void> {
+  const subscriptionId = invoice.subscription as string;
+  if (!subscriptionId || !stripe) return;
+
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const userId = subscription.metadata?.userId;
+
+  if (!userId) {
+    console.error('No userId in subscription metadata');
+    return;
+  }
+
+  // Update subscription status to past_due
+  await subscriptionDb.upsert(userId, {
+    status: 'past_due',
+  });
+}
