@@ -4,7 +4,7 @@ import { getAccessToken } from './userService';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 // Type exports for backward compatibility
-export type Plan = 'free' | 'monthly' | 'yearly';
+export type Plan = 'free' | 'weekly' | 'monthly';
 
 export interface FreeTrialState {
   isActive: boolean;
@@ -49,7 +49,7 @@ const getAuthHeaders = async (): Promise<HeadersInit> => {
 /**
  * Get current subscription from database
  */
-const getSubscription = async (): Promise<Subscription | null> => {
+export const getSubscription = async (): Promise<Subscription | null> => {
   try {
     const headers = await getAuthHeaders();
 
@@ -91,7 +91,7 @@ const hasPremium = async (): Promise<boolean> => {
     }
   }
 
-  return sub.plan === 'monthly' || sub.plan === 'yearly';
+  return sub.plan === 'weekly' || sub.plan === 'monthly';
 };
 
 // NEW: Class-based service for TrialStatus component

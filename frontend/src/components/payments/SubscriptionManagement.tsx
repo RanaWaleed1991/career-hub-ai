@@ -6,6 +6,7 @@ import {
   reactivateSubscription,
   SubscriptionStatus,
 } from '../../services/payments';
+import { getAccessToken } from '../../../services/userService';
 
 interface SubscriptionManagementProps {
   userToken: string | null;
@@ -16,19 +17,24 @@ export function SubscriptionManagement({ userToken }: SubscriptionManagementProp
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(userToken);
 
   useEffect(() => {
-    if (userToken) {
-      loadSubscriptionStatus();
-    }
-  }, [userToken]);
+    // Get the access token on mount
+    getAccessToken().then((t) => {
+      setToken(t);
+      if (t) {
+        loadSubscriptionStatus();
+      }
+    });
+  }, []);
 
   async function loadSubscriptionStatus() {
-    if (!userToken) return;
+    if (!token) return;
 
     try {
       setLoading(true);
-      const status = await getSubscriptionStatus(userToken);
+      const status = await getSubscriptionStatus(token);
       setSubscription(status);
     } catch (err: any) {
       setError(err.message);
@@ -38,13 +44,13 @@ export function SubscriptionManagement({ userToken }: SubscriptionManagementProp
   }
 
   async function handleManageBilling() {
-    if (!userToken) return;
+    if (!token) return;
 
     setActionLoading(true);
     setError(null);
 
     try {
-      const { portalUrl } = await createPortalSession(userToken);
+      const { portalUrl } = await createPortalSession(token);
       window.location.href = portalUrl;
     } catch (err: any) {
       setError(err.message);
@@ -53,7 +59,7 @@ export function SubscriptionManagement({ userToken }: SubscriptionManagementProp
   }
 
   async function handleCancelSubscription() {
-    if (!userToken || !confirm('Are you sure you want to cancel your subscription?')) {
+    if (!token || !confirm('Are you sure you want to cancel your subscription?')) {
       return;
     }
 
@@ -61,7 +67,7 @@ export function SubscriptionManagement({ userToken }: SubscriptionManagementProp
     setError(null);
 
     try {
-      await cancelSubscription(userToken);
+      await cancelSubscription(token);
       await loadSubscriptionStatus(); // Reload status
     } catch (err: any) {
       setError(err.message);
@@ -71,13 +77,13 @@ export function SubscriptionManagement({ userToken }: SubscriptionManagementProp
   }
 
   async function handleReactivateSubscription() {
-    if (!userToken) return;
+    if (!token) return;
 
     setActionLoading(true);
     setError(null);
 
     try {
-      await reactivateSubscription(userToken);
+      await reactivateSubscription(token);
       await loadSubscriptionStatus(); // Reload status
     } catch (err: any) {
       setError(err.message);
@@ -86,7 +92,7 @@ export function SubscriptionManagement({ userToken }: SubscriptionManagementProp
     }
   }
 
-  if (!userToken) {
+  if (!token) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
         <p>Please sign in to manage your subscription</p>

@@ -13,7 +13,11 @@ import ResumeAnalyserPage from './components/ResumeAnalyserPage';
 import PremiumModal from './components/PremiumModal';
 import WelcomeModal from './components/WelcomeModal';
 import SubscriptionExpiredModal from './components/SubscriptionExpiredModal';
-import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFlag } from './services/premiumService';
+import PaymentSuccess from './components/PaymentSuccess';
+import PaymentCancel from './components/PaymentCancel';
+import { PricingPage } from './src/components/payments/PricingPage';
+import { SubscriptionManagement } from './src/components/payments/SubscriptionManagement';
+import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFlag, getSubscription } from './services/premiumService';
 import type { Page } from './types';
 import Dashboard from './components/Dashboard';
 import TailorResumeModal from './components/TailorResumeModal';
@@ -35,6 +39,20 @@ const AppContent: React.FC = () => {
   // State for Tailor Modal
   const [tailorModalState, setTailorModalState] = useState<{isOpen: boolean, initialText?: string}>({isOpen: false});
 
+  // State for current subscription plan
+  const [currentPlan, setCurrentPlan] = useState<Plan>('free');
+
+  // Fetch current subscription plan
+  useEffect(() => {
+    if (user) {
+      getSubscription().then((sub) => {
+        if (sub) {
+          setCurrentPlan(sub.plan);
+        }
+      });
+    }
+  }, [user]);
+
   // Check if welcome message should be shown for the user
   useEffect(() => {
     if (user?.email) {
@@ -53,7 +71,8 @@ const AppContent: React.FC = () => {
     if (hasSubscriptionExpired()) {
         setShowExpiredModal(true);
     } else {
-        setShowPremiumModal(true);
+        // Redirect to pricing page for Stripe checkout
+        setPage('pricing');
     }
   };
 
@@ -89,7 +108,8 @@ const AppContent: React.FC = () => {
   const handleUpgradeFromExpired = () => {
     setShowExpiredModal(false);
     clearExpiredSubscriptionFlag();
-    setShowPremiumModal(true);
+    // Redirect to pricing page for Stripe checkout
+    setPage('pricing');
   };
 
   const openTailorModal = (initialText?: string) => {
@@ -138,6 +158,14 @@ const AppContent: React.FC = () => {
         return <VersionHistoryPage setPage={setPage} />;
       case 'admin':
         return <AdminPage />;
+      case 'pricing':
+        return <PricingPage userToken={null} currentPlan={currentPlan} />;
+      case 'subscription':
+        return <SubscriptionManagement userToken={null} />;
+      case 'paymentSuccess':
+        return <PaymentSuccess setPage={setPage} />;
+      case 'paymentCancel':
+        return <PaymentCancel setPage={setPage} />;
       case 'landing':
       default:
         return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} />;
