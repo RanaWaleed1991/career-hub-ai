@@ -4,9 +4,8 @@ import type { Page, ResumeData, Application } from '../types';
 import ProgressTracker from './ProgressTracker';
 import TrialStatus from './TrialStatus';
 import { getLatestResume } from '../services/resumeService';
+import { getApplications } from '../services/applicationService';
 import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon } from './icons';
-
-const APP_TRACKER_KEY = 'career_hub_app_tracker';
 
 interface DashboardProps {
     setPage: (page: Page) => void;
@@ -25,10 +24,9 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                 const resume = await getLatestResume();
                 setResumeData(resume);
 
-                const savedApps = localStorage.getItem(APP_TRACKER_KEY);
-                if (savedApps) {
-                    setApplications(JSON.parse(savedApps));
-                }
+                // Fetch applications from API instead of localStorage
+                const apps = await getApplications();
+                setApplications(apps);
             } catch (e) {
                 console.error("Failed to load dashboard data", e);
             } finally {
