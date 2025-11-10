@@ -40,9 +40,11 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
         setIsLoading(true);
         setError(null);
         try {
-            useCoverLetterAttempt();
             const result = await generateCoverLetter(resumeText, jobTitle, company, jobDescription);
             setGeneratedLetter(result);
+
+            // Only track usage after successful generation
+            await useCoverLetterAttempt();
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred.');
         } finally {

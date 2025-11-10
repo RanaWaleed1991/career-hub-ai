@@ -59,18 +59,17 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
   const handlePrintClick = async () => {
     const canUse = await canDownloadResume();
-    if (canUse) {
+    if (!canUse) {
+      setActionToRetry(() => handlePrintClick);
+      triggerPremiumFlow();
+      return;
+    }
+
+    // Confirm before using credit
+    const confirmed = window.confirm('This will use 1 download credit. Continue to print/save as PDF?');
+    if (confirmed) {
       await useResumeDownload();
       window.print();
-    } else {
-      setActionToRetry(() => async () => {
-        const canRetry = await canDownloadResume();
-        if (canRetry) {
-          await useResumeDownload();
-          window.print();
-        }
-      });
-      triggerPremiumFlow();
     }
   };
 
@@ -82,8 +81,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       return;
     }
 
-    await useResumeDownload();
-    
+    // Confirm before generating
+    const confirmed = window.confirm('This will use 1 download credit. Continue to download Word document?');
+    if (!confirmed) {
+      return;
+    }
+
     const element = document.getElementById('resume-preview-content');
     if (element) {
       const content = `
@@ -103,7 +106,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         </body>
         </html>
       `;
-      
+
       try {
         // Check if HTMLToDocx is available
         if (typeof HTMLToDocx === 'undefined') {
@@ -124,9 +127,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
 
+        // Only track usage after successful download
+        await useResumeDownload();
+
       } catch (error) {
         console.error("Error generating DOCX file:", error);
         alert("Sorry, there was an error creating the Word document. Please try the PDF download instead.");
+        // Don't track usage on error
       }
     }
   };
