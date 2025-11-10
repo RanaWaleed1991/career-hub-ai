@@ -31,9 +31,12 @@ const TailorResumeModal: React.FC<TailorResumeModalProps> = ({ onClose, initialR
     setIsLoading(true);
     setError(null);
     try {
-      await useTailorAttempt();
       const result = await tailorResumeForJob(resumeText, jobDescription);
       setTailoredContent(result);
+
+      // Only track usage after successful tailoring
+      await useTailorAttempt();
+
       setStep('result');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred.');

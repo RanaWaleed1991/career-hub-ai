@@ -87,8 +87,10 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
       setIsAiLoading({ field, index });
       setError(null);
 
-      await useAIImprovementAttempt();
       const enhancedText = await enhanceTextWithAI(text, field);
+
+      // Only track usage after successful enhancement
+      await useAIImprovementAttempt();
 
       setResumeData(prev => {
         if (field === 'summary') {
