@@ -10,11 +10,19 @@ import resumesRoutes from './routes/resumes.js';
 import versionsRoutes from './routes/versions.js';
 import applicationsRoutes from './routes/applications.js';
 import subscriptionsRoutes from './routes/subscriptions.js';
+import paymentsRoutes from './routes/payments.js';
+import webhooksRoutes from './routes/webhooks.js';
 
 const app = express();
 
 // Middleware
 app.use(corsMiddleware);
+
+// IMPORTANT: Webhooks must be registered BEFORE express.json() middleware
+// because Stripe needs the raw body to verify signatures
+app.use('/api/webhooks', webhooksRoutes);
+
+// JSON body parsing for all other routes
 app.use(express.json({ limit: '10mb' })); // Increased limit for resume uploads
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -30,6 +38,7 @@ app.use('/api/resumes', resumesRoutes);
 app.use('/api/versions', versionsRoutes);
 app.use('/api/applications', applicationsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -56,5 +65,14 @@ app.listen(env.PORT, () => {
     console.log('⚠️  WARNING: Supabase is not configured. Authentication will not work.');
     console.log('   Add SUPABASE_URL and SUPABASE_SERVICE_KEY to backend/.env');
     console.log('   See SUPABASE_SETUP.md for setup instructions.');
+  }
+
+  // Check Stripe configuration
+  const stripeConfigured = env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET;
+  console.log(`💳 Stripe Payments configured: ${stripeConfigured ? '✓' : '✗'}`);
+
+  if (!stripeConfigured) {
+    console.log('⚠️  WARNING: Stripe is not configured. Payments will not work.');
+    console.log('   Add STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and STRIPE_PUBLISHABLE_KEY to backend/.env');
   }
 });

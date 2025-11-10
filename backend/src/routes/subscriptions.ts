@@ -59,20 +59,22 @@ router.post('/upgrade', async (req: AuthRequest, res: Response): Promise<void> =
 
     const { plan } = req.body;
 
-    if (!plan || !['free', 'monthly', 'yearly'].includes(plan)) {
-      res.status(400).json({ error: 'Valid plan is required (free, monthly, yearly)' });
+    if (!plan || !['free', 'basic', 'professional'].includes(plan)) {
+      res.status(400).json({ error: 'Valid plan is required (free, basic, professional)' });
       return;
     }
 
     // Calculate subscription expiration based on plan
     let expiresAt = null;
-    if (plan === 'monthly') {
+    if (plan === 'basic') {
+      // Basic is weekly subscription
+      const expiry = new Date();
+      expiry.setDate(expiry.getDate() + 7);
+      expiresAt = expiry.toISOString();
+    } else if (plan === 'professional') {
+      // Professional is monthly subscription
       const expiry = new Date();
       expiry.setMonth(expiry.getMonth() + 1);
-      expiresAt = expiry.toISOString();
-    } else if (plan === 'yearly') {
-      const expiry = new Date();
-      expiry.setFullYear(expiry.getFullYear() + 1);
       expiresAt = expiry.toISOString();
     }
 
@@ -146,21 +148,21 @@ router.get('/check-limit/:feature', async (req: AuthRequest, res: Response): Pro
     const { feature } = req.params;
     const subscription = await subscriptionDb.getCurrent(req.user.id);
 
-    // Define limits per plan
+    // Define limits per plan (matching SUBSCRIPTION_TIERS from stripe config)
     const limits: Record<string, any> = {
       free: {
-        ai_enhancements: 5,
+        ai_enhancements: 3,
         downloads: 3,
-        cover_letters: 2,
-        resume_analyses: 2,
+        cover_letters: 3,
+        resume_analyses: 3,
       },
-      monthly: {
+      basic: {
         ai_enhancements: Infinity,
         downloads: Infinity,
         cover_letters: Infinity,
-        resume_analyses: Infinity,
+        resume_analyses: 10,
       },
-      yearly: {
+      professional: {
         ai_enhancements: Infinity,
         downloads: Infinity,
         cover_letters: Infinity,
