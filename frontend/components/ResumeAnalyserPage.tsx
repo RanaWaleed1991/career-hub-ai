@@ -100,8 +100,11 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
                 throw new Error("Could not extract text from the PDF. It may be an image-based PDF.");
             }
 
-            useResumeAnalysisAttempt();
             const result = await analyzeResume(textContent);
+
+            // Track usage after successful analysis
+            await useResumeAnalysisAttempt();
+
             setAnalysisResult(result);
             setView('result');
 

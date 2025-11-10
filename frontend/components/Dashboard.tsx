@@ -5,6 +5,7 @@ import ProgressTracker from './ProgressTracker';
 import TrialStatus from './TrialStatus';
 import { getLatestResume } from '../services/resumeService';
 import { getApplications } from '../services/applicationService';
+import { getVersions } from '../services/versionHistoryService';
 import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon } from './icons';
 
 interface DashboardProps {
@@ -15,6 +16,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
     const [resumeData, setResumeData] = useState<ResumeData | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
+    const [versionCount, setVersionCount] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -27,6 +29,10 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                 // Fetch applications from API instead of localStorage
                 const apps = await getApplications();
                 setApplications(apps);
+
+                // Fetch version count
+                const versions = await getVersions();
+                setVersionCount(versions.length);
             } catch (e) {
                 console.error("Failed to load dashboard data", e);
             } finally {
@@ -121,12 +127,19 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                     </div>
                      <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 opacity-0 slide-in-up" style={{ animationDelay: `500ms` }}>
                         <h3 className="text-xl font-semibold text-slate-800 mb-4">My Resume Versions</h3>
-                        <div className="text-center py-4 text-slate-500 text-sm">
-                            <p>This feature is coming soon!</p>
-                            <p>Save and compare different resume versions.</p>
+                        <div className="text-center py-4">
+                            <div className="text-4xl font-bold text-indigo-600 mb-2">{versionCount}</div>
+                            <p className="text-slate-600 text-sm">
+                                {versionCount === 0 ? 'No versions saved yet' :
+                                 versionCount === 1 ? 'Version saved' :
+                                 'Versions saved'}
+                            </p>
+                            <p className="text-slate-500 text-xs mt-2">
+                                Free tier: Up to 3 versions
+                            </p>
                         </div>
                          <button onClick={() => setPage('versions')} className="mt-2 w-full text-center px-4 py-2 bg-slate-200 text-slate-800 text-sm font-semibold rounded-md hover:bg-slate-300 transition-colors">
-                            Learn More
+                            Manage Versions
                         </button>
                     </div>
                 </div>
