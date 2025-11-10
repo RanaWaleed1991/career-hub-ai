@@ -18,13 +18,13 @@ export const stripe = env.STRIPE_SECRET_KEY
  *
  * To create prices:
  * 1. Go to Stripe Dashboard -> Products
- * 2. Create products: "Career Hub Basic" and "Career Hub Professional"
+ * 2. Create products: "Career Hub Weekly Premium" and "Career Hub Monthly Premium"
  * 3. Add prices: $9.99/week (recurring) and $24.99/month (recurring)
  * 4. Copy the price IDs (they start with price_) to your .env file
  */
 export const STRIPE_PRICE_IDS = {
-  BASIC: process.env.STRIPE_BASIC_PRICE_ID || '',
-  PROFESSIONAL: process.env.STRIPE_PROFESSIONAL_PRICE_ID || '',
+  WEEKLY: process.env.STRIPE_WEEKLY_PRICE_ID || '',
+  MONTHLY: process.env.STRIPE_MONTHLY_PRICE_ID || '',
 };
 
 /**
@@ -36,6 +36,7 @@ export interface SubscriptionTier {
   interval: 'week' | 'month';
   priceId: string;
   features: string[];
+  badge?: string | null;
   limits: {
     downloads: number;
     coverLetters: number;
@@ -50,6 +51,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
     price: 0,
     interval: 'month',
     priceId: '',
+    badge: null,
     features: [
       '3 Resume Downloads',
       '3 Cover Letters',
@@ -62,11 +64,12 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
       aiEnhancements: 3,
     },
   },
-  basic: {
-    name: 'Basic',
+  weekly: {
+    name: 'Weekly Premium',
     price: 9.99,
     interval: 'week',
-    priceId: STRIPE_PRICE_IDS.BASIC,
+    priceId: STRIPE_PRICE_IDS.WEEKLY,
+    badge: null,
     features: [
       'Unlimited resume downloads',
       'Unlimited AI improvements',
@@ -76,7 +79,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
       'Clean downloads (no watermark)',
       'Resume version history',
       'Application tracker dashboard',
-      'Auto Renewal',
     ],
     limits: {
       downloads: Infinity,
@@ -85,11 +87,12 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
       aiEnhancements: Infinity,
     },
   },
-  professional: {
-    name: 'Professional',
+  monthly: {
+    name: 'Monthly Premium',
     price: 24.99,
     interval: 'month',
-    priceId: STRIPE_PRICE_IDS.PROFESSIONAL,
+    priceId: STRIPE_PRICE_IDS.MONTHLY,
+    badge: 'BEST VALUE',
     features: [
       'Unlimited resume downloads',
       'Unlimited AI improvements',
@@ -100,7 +103,6 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
       'Resume version history',
       'Application tracker dashboard',
       'Priority job alerts',
-      'Auto Renewal',
     ],
     limits: {
       downloads: Infinity,

@@ -59,20 +59,20 @@ router.post('/upgrade', async (req: AuthRequest, res: Response): Promise<void> =
 
     const { plan } = req.body;
 
-    if (!plan || !['free', 'basic', 'professional'].includes(plan)) {
-      res.status(400).json({ error: 'Valid plan is required (free, basic, professional)' });
+    if (!plan || !['free', 'weekly', 'monthly'].includes(plan)) {
+      res.status(400).json({ error: 'Valid plan is required (free, weekly, monthly)' });
       return;
     }
 
     // Calculate subscription expiration based on plan
     let expiresAt = null;
-    if (plan === 'basic') {
-      // Basic is weekly subscription
+    if (plan === 'weekly') {
+      // Weekly is weekly subscription
       const expiry = new Date();
       expiry.setDate(expiry.getDate() + 7);
       expiresAt = expiry.toISOString();
-    } else if (plan === 'professional') {
-      // Professional is monthly subscription
+    } else if (plan === 'monthly') {
+      // Monthly is monthly subscription
       const expiry = new Date();
       expiry.setMonth(expiry.getMonth() + 1);
       expiresAt = expiry.toISOString();
@@ -156,13 +156,13 @@ router.get('/check-limit/:feature', async (req: AuthRequest, res: Response): Pro
         cover_letters: 3,
         resume_analyses: 3,
       },
-      basic: {
+      weekly: {
         ai_enhancements: Infinity,
         downloads: Infinity,
         cover_letters: Infinity,
         resume_analyses: 10,
       },
-      professional: {
+      monthly: {
         ai_enhancements: Infinity,
         downloads: Infinity,
         cover_letters: Infinity,

@@ -10,6 +10,7 @@ export interface SubscriptionTier {
   interval: 'week' | 'month';
   priceId: string;
   features: string[];
+  badge?: string | null;
 }
 
 export interface SubscriptionStatus {

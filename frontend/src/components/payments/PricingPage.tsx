@@ -128,6 +128,23 @@ export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProp
                   </div>
                 )}
 
+                {!isCurrentPlan && tier.badge && (
+                  <div
+                    style={{
+                      backgroundColor: '#FF9800',
+                      color: 'white',
+                      padding: '5px 10px',
+                      borderRadius: '5px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      marginBottom: '15px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {tier.badge}
+                  </div>
+                )}
+
                 <h2 style={{ margin: '0 0 10px 0', textTransform: 'capitalize' }}>{tier.name}</h2>
                 <div style={{ marginBottom: '20px' }}>
                   <span style={{ fontSize: '36px', fontWeight: 'bold' }}>${tier.price}</span>
