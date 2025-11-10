@@ -10,10 +10,10 @@ import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVer
 import { saveVersion } from '../services/versionHistoryService';
 import { resumeDataToText } from '../utils/resumeUtils';
 
-// Declare the global variable provided by the html-to-docx script in index.html
+// Declare the global variable provided by the html-docx-js script in index.html
 declare const window: Window & typeof globalThis & {
-  HTMLDocx?: any;
-  htmlToDocx?: any;
+  htmlDocx?: any;
+  htmlDocxJs?: any;
 };
 
 
@@ -111,22 +111,23 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       `;
 
       try {
-        // Check if html-to-docx library is available (tries multiple possible export names)
-        const htmlToDocxFunc = window.HTMLDocx || window.htmlToDocx || (window as any).HTMLToDocx;
+        // Check if html-docx-js library is available
+        const htmlDocxLib = (window as any).htmlDocx || (window as any).htmlDocxJs;
 
-        if (!htmlToDocxFunc) {
-          console.error('html-to-docx library not found. Checked: window.HTMLDocx, window.htmlToDocx, window.HTMLToDocx');
-          throw new Error('HTML to DOCX library not loaded. Please refresh the page and try again.');
+        if (!htmlDocxLib || typeof htmlDocxLib.asBlob !== 'function') {
+          console.error('html-docx-js library not found or asBlob method not available');
+          console.log('Available on window:', Object.keys(window).filter(k => k.toLowerCase().includes('html') || k.toLowerCase().includes('docx')));
+          throw new Error('Word document library not loaded. Please refresh the page and try again.');
         }
 
-        console.log('Generating Word document...');
+        console.log('Generating Word document with html-docx-js...');
 
-        // Call the library function
-        const docxBlob = await htmlToDocxFunc(content);
+        // Convert HTML to DOCX using html-docx-js
+        const converted = htmlDocxLib.asBlob(content);
 
         // Create download link
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(docxBlob);
+        link.href = URL.createObjectURL(converted);
         link.download = `${resumeData.personalDetails.fullName || 'Resume'}.docx`;
         document.body.appendChild(link);
         link.click();
