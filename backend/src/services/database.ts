@@ -401,6 +401,33 @@ export const subscriptionDb = {
   async updateFeatureUsage(userId: string, featureUpdates: any) {
     if (!supabase) throw new Error('Database not configured');
 
+    // First, check if subscription exists
+    const { data: existingSub } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    // If no subscription exists, create one with the feature updates
+    if (!existingSub) {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: userId,
+          plan: 'free',
+          status: 'active',
+          ...featureUpdates,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+
+    // Otherwise, update the existing subscription
     const { data, error } = await supabase
       .from('subscriptions')
       .update({

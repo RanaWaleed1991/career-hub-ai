@@ -10,8 +10,8 @@ import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVer
 import { saveVersion } from '../services/versionHistoryService';
 import { resumeDataToText } from '../utils/resumeUtils';
 
-// Declare the htmlToDocx global variable provided by the script in index.html
-declare const htmlToDocx: any;
+// Declare the HTMLToDocx global variable provided by the script in index.html
+declare const HTMLToDocx: any;
 
 
 interface ResumePreviewProps {
@@ -105,7 +105,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       `;
       
       try {
-        const fileBuffer = await htmlToDocx.asBlob(content);
+        // Check if HTMLToDocx is available
+        if (typeof HTMLToDocx === 'undefined') {
+          throw new Error('HTML to DOCX library not loaded');
+        }
+
+        const fileBuffer = await HTMLToDocx(content, null, {
+          table: { row: { cantSplit: true } },
+          footer: true,
+          pageNumber: true,
+        });
 
         const link = document.createElement('a');
         link.href = URL.createObjectURL(fileBuffer);
@@ -114,10 +123,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
-        
+
       } catch (error) {
         console.error("Error generating DOCX file:", error);
-        alert("Sorry, there was an error creating the Word document.");
+        alert("Sorry, there was an error creating the Word document. Please try the PDF download instead.");
       }
     }
   };
