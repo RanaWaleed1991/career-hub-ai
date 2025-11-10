@@ -10,8 +10,11 @@ import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVer
 import { saveVersion } from '../services/versionHistoryService';
 import { resumeDataToText } from '../utils/resumeUtils';
 
-// Declare the HTMLToDocx global variable provided by the script in index.html
-declare const HTMLToDocx: any;
+// Declare the global variable provided by the html-to-docx script in index.html
+declare const window: Window & typeof globalThis & {
+  HTMLDocx?: any;
+  htmlToDocx?: any;
+};
 
 
 interface ResumePreviewProps {
@@ -108,31 +111,37 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       `;
 
       try {
-        // Check if HTMLToDocx is available
-        if (typeof HTMLToDocx === 'undefined') {
-          throw new Error('HTML to DOCX library not loaded');
+        // Check if html-to-docx library is available (tries multiple possible export names)
+        const htmlToDocxFunc = window.HTMLDocx || window.htmlToDocx || (window as any).HTMLToDocx;
+
+        if (!htmlToDocxFunc) {
+          console.error('html-to-docx library not found. Checked: window.HTMLDocx, window.htmlToDocx, window.HTMLToDocx');
+          throw new Error('HTML to DOCX library not loaded. Please refresh the page and try again.');
         }
 
-        const fileBuffer = await HTMLToDocx(content, null, {
-          table: { row: { cantSplit: true } },
-          footer: true,
-          pageNumber: true,
-        });
+        console.log('Generating Word document...');
 
+        // Call the library function
+        const docxBlob = await htmlToDocxFunc(content);
+
+        // Create download link
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(fileBuffer);
+        link.href = URL.createObjectURL(docxBlob);
         link.download = `${resumeData.personalDetails.fullName || 'Resume'}.docx`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
 
+        console.log('Word document downloaded successfully');
+
         // Only track usage after successful download
         await useResumeDownload();
 
       } catch (error) {
         console.error("Error generating DOCX file:", error);
-        alert("Sorry, there was an error creating the Word document. Please try the PDF download instead.");
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        alert(`Sorry, there was an error creating the Word document.\n\nError: ${errorMessage}\n\nPlease try the PDF download instead.`);
         // Don't track usage on error
       }
     }
