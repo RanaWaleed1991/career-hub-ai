@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getStripeConfig, createCheckoutSession, SubscriptionTier } from '../../services/payments';
+import { getAccessToken } from '../../../services/userService';
 
 interface PricingPageProps {
   userToken: string | null;
@@ -11,9 +12,12 @@ export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProp
   const [loading, setLoading] = useState(true);
   const [processingTier, setProcessingTier] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(userToken);
 
   useEffect(() => {
     loadPricingTiers();
+    // Get the access token on mount
+    getAccessToken().then(setToken);
   }, []);
 
   async function loadPricingTiers() {
@@ -28,7 +32,7 @@ export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProp
   }
 
   async function handleSubscribe(priceId: string, tierName: string) {
-    if (!userToken) {
+    if (!token) {
       setError('Please sign in to subscribe');
       return;
     }
@@ -37,7 +41,7 @@ export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProp
     setError(null);
 
     try {
-      const { sessionUrl } = await createCheckoutSession(priceId, userToken);
+      const { sessionUrl } = await createCheckoutSession(priceId, token);
       // Redirect to Stripe Checkout
       window.location.href = sessionUrl;
     } catch (err: any) {
@@ -171,7 +175,7 @@ export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProp
                 {!isFree && !isCurrentPlan && (
                   <button
                     onClick={() => handleSubscribe(tier.priceId, key)}
-                    disabled={isProcessing || !userToken}
+                    disabled={isProcessing || !token}
                     style={{
                       padding: '15px',
                       backgroundColor: isProcessing ? '#ccc' : '#4CAF50',
@@ -180,21 +184,21 @@ export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProp
                       borderRadius: '8px',
                       fontSize: '16px',
                       fontWeight: 'bold',
-                      cursor: isProcessing || !userToken ? 'not-allowed' : 'pointer',
+                      cursor: isProcessing || !token ? 'not-allowed' : 'pointer',
                       transition: 'background-color 0.3s',
                     }}
                     onMouseOver={(e) => {
-                      if (!isProcessing && userToken) {
+                      if (!isProcessing && token) {
                         e.currentTarget.style.backgroundColor = '#45a049';
                       }
                     }}
                     onMouseOut={(e) => {
-                      if (!isProcessing && userToken) {
+                      if (!isProcessing && token) {
                         e.currentTarget.style.backgroundColor = '#4CAF50';
                       }
                     }}
                   >
-                    {isProcessing ? 'Processing...' : !userToken ? 'Sign In to Subscribe' : 'Subscribe Now'}
+                    {isProcessing ? 'Processing...' : !token ? 'Sign In to Subscribe' : 'Subscribe Now'}
                   </button>
                 )}
 
