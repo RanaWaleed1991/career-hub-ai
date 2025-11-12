@@ -77,7 +77,7 @@ export const getSubscription = async (): Promise<Subscription | null> => {
 /**
  * Check if user has an active premium subscription
  */
-const hasPremium = async (): Promise<boolean> => {
+export const hasPremium = async (): Promise<boolean> => {
   const sub = await getSubscription();
   if (!sub) return false;
 

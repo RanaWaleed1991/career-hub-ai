@@ -6,7 +6,7 @@ import AustralianTemplate from '../templates/AustralianTemplate';
 import CreativeTemplate from '../templates/CreativeTemplate';
 import ElegantTemplate from '../templates/ATSTemplate'; // ATSTemplate file is repurposed as ElegantTemplate
 import { PrintIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, DocumentTextIcon, DownloadIcon } from './icons';
-import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory, canSaveVersion, useVersionSave } from '../services/premiumService';
+import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory, canSaveVersion, useVersionSave, hasPremium } from '../services/premiumService';
 import { saveVersion } from '../services/versionHistoryService';
 import { resumeDataToText } from '../utils/resumeUtils';
 
@@ -68,11 +68,19 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       return;
     }
 
-    // Confirm before using credit
-    const confirmed = window.confirm('This will use 1 download credit. Continue to print/save as PDF?');
-    if (confirmed) {
-      await useResumeDownload();
+    // Check if user has premium - skip confirmation for premium users
+    const isPremium = await hasPremium();
+
+    if (isPremium) {
+      // Premium users: direct download without confirmation
       window.print();
+    } else {
+      // Free users: confirm before using credit
+      const confirmed = window.confirm('This will use 1 download credit. Continue to print/save as PDF?');
+      if (confirmed) {
+        await useResumeDownload();
+        window.print();
+      }
     }
   };
 
@@ -84,11 +92,19 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       return;
     }
 
-    // Confirm before generating
-    const confirmed = window.confirm('This will use 1 download credit. Continue to download Word document?');
-    if (!confirmed) {
-      return;
+    // Check if user has premium - skip confirmation for premium users
+    const isPremium = await hasPremium();
+
+    if (!isPremium) {
+      // Free users: confirm before using credit
+      const confirmed = window.confirm('This will use 1 download credit. Continue to download Word document?');
+      if (!confirmed) {
+        return;
+      }
+      await useResumeDownload();
     }
+
+    // Continue with download (for both premium and confirmed free users)
 
     const element = document.getElementById('resume-preview-content');
     if (element) {
@@ -135,9 +151,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         URL.revokeObjectURL(link.href);
 
         console.log('Word document downloaded successfully');
-
-        // Only track usage after successful download
-        await useResumeDownload();
 
       } catch (error) {
         console.error("Error generating DOCX file:", error);
