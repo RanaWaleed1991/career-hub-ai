@@ -17,7 +17,10 @@ export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProp
   useEffect(() => {
     loadPricingTiers();
     // Get the access token on mount
-    getAccessToken().then(setToken);
+    getAccessToken().then((t) => {
+      console.log('PricingPage: Token fetched:', t ? 'YES' : 'NO');
+      setToken(t);
+    });
   }, []);
 
   async function loadPricingTiers() {

@@ -189,7 +189,7 @@ const AppContent: React.FC = () => {
         />
       )}
       <Header onGoToHome={() => setPage('dashboard')} onLogout={handleLogout} page={page} />
-      <main className="flex-grow overflow-hidden relative fade-in">
+      <main className="flex-grow overflow-y-auto relative fade-in">
         {renderPage()}
       </main>
     </div>
