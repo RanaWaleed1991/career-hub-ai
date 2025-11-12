@@ -381,18 +381,41 @@ export const subscriptionDb = {
   async upsert(userId: string, subscriptionData: any) {
     if (!supabase) throw new Error('Database not configured');
 
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .upsert({
-        user_id: userId,
-        ...subscriptionData,
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    // Check if subscription exists
+    const existing = await this.getCurrent(userId);
 
-    if (error) throw error;
-    return data;
+    if (existing) {
+      // Update existing record, ensuring plan is never null
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .update({
+          plan: existing.plan || 'free', // Ensure plan is set if it was null
+          ...subscriptionData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } else {
+      // Create new record with all required fields
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: userId,
+          plan: 'free', // Default plan for new subscriptions
+          status: 'active',
+          ...subscriptionData,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
   },
 
   /**

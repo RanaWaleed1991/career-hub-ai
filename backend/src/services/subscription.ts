@@ -48,6 +48,7 @@ export async function createCheckoutSession(
     // Save customer ID to database
     await subscriptionDb.upsert(userId, {
       stripe_customer_id: customerId,
+      plan: subscription?.plan || 'free', // Preserve existing plan or default to free
     });
   }
 
