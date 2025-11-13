@@ -7,7 +7,7 @@ import { getLatestResume } from '../services/resumeService';
 import { getApplications } from '../services/applicationService';
 import { getVersions } from '../services/versionHistoryService';
 import { hasPremium } from '../services/premiumService';
-import { createPortalSession } from '../services/payments';
+import { createPortalSession } from '../src/services/payments';
 import { getAccessToken } from '../services/userService';
 import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon, CogIcon } from './icons';
 
