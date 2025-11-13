@@ -6,7 +6,10 @@ import TrialStatus from './TrialStatus';
 import { getLatestResume } from '../services/resumeService';
 import { getApplications } from '../services/applicationService';
 import { getVersions } from '../services/versionHistoryService';
-import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon } from './icons';
+import { hasPremium } from '../services/premiumService';
+import { createPortalSession } from '../services/payments';
+import { getAccessToken } from '../services/userService';
+import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon, CogIcon } from './icons';
 
 interface DashboardProps {
     setPage: (page: Page) => void;
@@ -18,6 +21,8 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
     const [applications, setApplications] = useState<Application[]>([]);
     const [versionCount, setVersionCount] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [isPremium, setIsPremium] = useState(false);
+    const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
@@ -33,6 +38,10 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                 // Fetch version count
                 const versions = await getVersions();
                 setVersionCount(versions.length);
+
+                // Check if user has premium
+                const premium = await hasPremium();
+                setIsPremium(premium);
             } catch (e) {
                 console.error("Failed to load dashboard data", e);
             } finally {
@@ -42,6 +51,25 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
 
         loadData();
     }, []);
+
+    const handleManageSubscription = async () => {
+        try {
+            setIsLoadingPortal(true);
+            const token = await getAccessToken();
+            if (!token) {
+                alert('Please log in to manage your subscription');
+                return;
+            }
+
+            const { portalUrl } = await createPortalSession(token);
+            window.location.href = portalUrl;
+        } catch (error) {
+            console.error('Failed to open customer portal:', error);
+            alert('Failed to open subscription management. Please try again.');
+        } finally {
+            setIsLoadingPortal(false);
+        }
+    };
 
     const applicationSummary = {
         applied: applications.filter(a => a.status === 'Applied').length,
@@ -109,6 +137,21 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                 {/* Sidebar */}
                 <div className="space-y-8">
                     <TrialStatus />
+
+                    {/* Manage Subscription Button - Only show for premium users */}
+                    {isPremium && (
+                        <div className="opacity-0 slide-in-up" style={{ animationDelay: `350ms` }}>
+                            <button
+                                onClick={handleManageSubscription}
+                                disabled={isLoadingPortal}
+                                className="w-full bg-white p-4 rounded-xl shadow-lg border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 text-indigo-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <CogIcon className="w-5 h-5" />
+                                {isLoadingPortal ? 'Opening...' : 'Manage Subscription'}
+                            </button>
+                        </div>
+                    )}
+
                     <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 opacity-0 slide-in-up" style={{ animationDelay: `400ms` }}>
                         <h3 className="text-xl font-semibold text-slate-800 mb-4">Application Summary</h3>
                         <div className="space-y-3">
