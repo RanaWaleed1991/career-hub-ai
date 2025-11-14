@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getCourses } from '../services/contentService';
+import { getPublicCourses } from '../services/contentService';
 import type { Course } from '../types';
 
 const CourseCard: React.FC<{ course: Course, index: number }> = ({ course, index }) => (
@@ -23,16 +23,45 @@ const CourseCard: React.FC<{ course: Course, index: number }> = ({ course, index
 const CoursesPage: React.FC = () => {
   const [freeCourses, setFreeCourses] = useState<Course[]>([]);
   const [paidCourses, setPaidCourses] = useState<Course[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const allCourses = getCourses();
-    setFreeCourses(allCourses.filter(c => c.type === 'free'));
-    setPaidCourses(allCourses.filter(c => c.type === 'paid'));
+    loadCourses();
   }, []);
+
+  const loadCourses = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const allCourses = await getPublicCourses();
+      setFreeCourses(allCourses.filter(c => c.type === 'free'));
+      setPaidCourses(allCourses.filter(c => c.type === 'paid'));
+    } catch (err) {
+      console.error('Failed to load courses:', err);
+      setError('Failed to load courses. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-8 bg-slate-50 h-full overflow-y-auto flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 bg-slate-50 h-full overflow-y-auto">
       <h2 className="text-3xl font-bold text-slate-800 mb-8 border-b pb-4">Recommended Courses</h2>
+
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
 
       <section className="mb-12">
         <h3 className="text-2xl font-semibold text-teal-600 mb-6">Free Courses</h3>
