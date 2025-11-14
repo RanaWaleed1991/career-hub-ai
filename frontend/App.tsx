@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
 import ResumeBuilder from './components/ResumeBuilder';
@@ -27,6 +27,7 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 const AppContent: React.FC = () => {
   const { user, loading, logout, isAdmin } = useAuth();
   const [page, setPage] = useState<Page>('dashboard');
+  const hasRedirectedAdmin = useRef(false);
 
   // State for premium features modals
   const [showPremiumModal, setShowPremiumModal] = useState(false);
@@ -53,10 +54,14 @@ const AppContent: React.FC = () => {
     }
   }, [user]);
 
-  // Redirect admin users to admin page on login
+  // Redirect admin users to admin page on initial login (only once)
   useEffect(() => {
-    if (user && isAdmin) {
+    if (user && isAdmin && !hasRedirectedAdmin.current) {
       setPage('admin');
+      hasRedirectedAdmin.current = true;
+    } else if (!user) {
+      // Reset redirect flag when user logs out
+      hasRedirectedAdmin.current = false;
     }
   }, [user, isAdmin]);
 

@@ -9,6 +9,7 @@ import { getVersions } from '../services/versionHistoryService';
 import { hasPremium } from '../services/premiumService';
 import { createPortalSession } from '../src/services/payments';
 import { getAccessToken } from '../services/userService';
+import { useAuth } from '../src/contexts/AuthContext';
 import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon, CogIcon } from './icons';
 
 interface DashboardProps {
@@ -17,6 +18,7 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
+    const { isAdmin } = useAuth();
     const [resumeData, setResumeData] = useState<ResumeData | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
     const [versionCount, setVersionCount] = useState<number>(0);
@@ -86,6 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
         { title: "Find Jobs", page: 'jobs', icon: BriefcaseIcon },
         { title: "Explore Courses", page: 'courses', icon: BookOpenIcon },
         { title: "Resume Analyser", page: 'analyser', icon: DocumentChartBarIcon },
+        ...(isAdmin ? [{ title: "Admin Panel", page: 'admin', icon: CogIcon }] : []),
     ]
 
     return (
