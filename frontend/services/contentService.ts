@@ -1,64 +1,200 @@
-
 import type { Job, Course } from '../types';
+import { getAccessToken } from './userService';
 
-const JOBS_KEY = 'career_hub_jobs';
-const COURSES_KEY = 'career_hub_courses';
+// Get API URL from environment variables
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+/**
+ * Get auth headers with JWT token
+ */
+const getAuthHeaders = async (): Promise<HeadersInit> => {
+  const token = await getAccessToken();
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
 
 // --- Jobs ---
 
-export const getJobs = (): Job[] => {
+/**
+ * Get all jobs (admin view - includes all statuses)
+ */
+export const getJobs = async (): Promise<Job[]> => {
   try {
-    const jobsJson = localStorage.getItem(JOBS_KEY);
-    return jobsJson ? JSON.parse(jobsJson) : [];
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/jobs/admin/all`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.jobs || [];
   } catch (error) {
-    console.error("Failed to parse jobs from localStorage", error);
+    console.error('Failed to fetch jobs:', error);
     return [];
   }
 };
 
-const saveJobs = (jobs: Job[]): void => {
-  localStorage.setItem(JOBS_KEY, JSON.stringify(jobs));
+/**
+ * Get public jobs (active only)
+ */
+export const getPublicJobs = async (): Promise<Job[]> => {
+  try {
+    const response = await fetch(`${API_URL}/api/jobs`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.jobs || [];
+  } catch (error) {
+    console.error('Failed to fetch public jobs:', error);
+    return [];
+  }
 };
 
-export const addJob = (job: Omit<Job, 'id'>): void => {
-  const jobs = getJobs();
-  const newJob: Job = { ...job, id: Date.now().toString() };
-  jobs.push(newJob);
-  saveJobs(jobs);
+/**
+ * Add a new job (admin only)
+ */
+export const addJob = async (job: Omit<Job, 'id'>): Promise<void> => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/jobs/admin`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(job),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to add job');
+    }
+  } catch (error) {
+    console.error('Failed to add job:', error);
+    throw error;
+  }
 };
 
-export const deleteJob = (jobId: string): void => {
-  let jobs = getJobs();
-  jobs = jobs.filter(job => job.id !== jobId);
-  saveJobs(jobs);
-};
+/**
+ * Delete a job (admin only)
+ */
+export const deleteJob = async (jobId: string): Promise<void> => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/jobs/admin/${jobId}`, {
+      method: 'DELETE',
+      headers,
+    });
 
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete job');
+    }
+  } catch (error) {
+    console.error('Failed to delete job:', error);
+    throw error;
+  }
+};
 
 // --- Courses ---
 
-export const getCourses = (): Course[] => {
-    try {
-        const coursesJson = localStorage.getItem(COURSES_KEY);
-        return coursesJson ? JSON.parse(coursesJson) : [];
-    } catch (error) {
-        console.error("Failed to parse courses from localStorage", error);
-        return [];
+/**
+ * Get all courses (admin view - includes drafts)
+ */
+export const getCourses = async (): Promise<Course[]> => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/courses/admin/all`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    const data = await response.json();
+    return data.courses || [];
+  } catch (error) {
+    console.error('Failed to fetch courses:', error);
+    return [];
+  }
 };
 
-const saveCourses = (courses: Course[]): void => {
-    localStorage.setItem(COURSES_KEY, JSON.stringify(courses));
+/**
+ * Get public courses (published only)
+ */
+export const getPublicCourses = async (): Promise<Course[]> => {
+  try {
+    const response = await fetch(`${API_URL}/api/courses`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.courses || [];
+  } catch (error) {
+    console.error('Failed to fetch public courses:', error);
+    return [];
+  }
 };
 
-export const addCourse = (course: Omit<Course, 'id'>): void => {
-    const courses = getCourses();
-    const newCourse: Course = { ...course, id: Date.now().toString() };
-    courses.push(newCourse);
-    saveCourses(courses);
+/**
+ * Add a new course (admin only)
+ */
+export const addCourse = async (course: Omit<Course, 'id'>): Promise<void> => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/courses/admin`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(course),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to add course');
+    }
+  } catch (error) {
+    console.error('Failed to add course:', error);
+    throw error;
+  }
 };
 
-export const deleteCourse = (courseId: string): void => {
-    let courses = getCourses();
-    courses = courses.filter(course => course.id !== courseId);
-    saveCourses(courses);
+/**
+ * Delete a course (admin only)
+ */
+export const deleteCourse = async (courseId: string): Promise<void> => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/courses/admin/${courseId}`, {
+      method: 'DELETE',
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to delete course');
+    }
+  } catch (error) {
+    console.error('Failed to delete course:', error);
+    throw error;
+  }
 };
