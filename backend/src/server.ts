@@ -12,6 +12,8 @@ import applicationsRoutes from './routes/applications.js';
 import subscriptionsRoutes from './routes/subscriptions.js';
 import paymentsRoutes from './routes/payments.js';
 import webhooksRoutes from './routes/webhooks.js';
+import jobsRoutes from './routes/jobs.js';
+import coursesRoutes from './routes/courses.js';
 
 const app = express();
 
@@ -39,6 +41,8 @@ app.use('/api/versions', versionsRoutes);
 app.use('/api/applications', applicationsRoutes);
 app.use('/api/subscriptions', subscriptionsRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/jobs', jobsRoutes);
+app.use('/api/courses', coursesRoutes);
 
 // 404 handler
 app.use((req, res) => {
