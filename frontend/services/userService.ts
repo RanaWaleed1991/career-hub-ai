@@ -7,6 +7,7 @@ export interface AuthUser {
   id: string;
   email: string;
   fullName?: string;
+  role: 'user' | 'admin';
 }
 
 /**
@@ -41,6 +42,7 @@ export const signup = async (
         id: data.user.id,
         email: data.user.email || email,
         fullName: data.user.user_metadata?.full_name,
+        role: (data.user.user_metadata?.role as 'user' | 'admin') || 'user',
       },
       error: null,
     };
@@ -75,6 +77,7 @@ export const login = async (
         id: data.user.id,
         email: data.user.email || email,
         fullName: data.user.user_metadata?.full_name,
+        role: (data.user.user_metadata?.role as 'user' | 'admin') || 'user',
       },
       error: null,
     };
@@ -117,6 +120,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       id: user.id,
       email: user.email || '',
       fullName: user.user_metadata?.full_name,
+      role: (user.user_metadata?.role as 'user' | 'admin') || 'user',
     };
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -159,8 +163,8 @@ export const getAccessToken = async (): Promise<string | null> => {
  * Check if the current user is an administrator
  */
 export const isAdmin = async (): Promise<boolean> => {
-  const email = await getCurrentUserEmail();
-  return email === ADMIN_EMAIL;
+  const user = await getCurrentUser();
+  return user?.role === 'admin';
 };
 
 /**
@@ -197,6 +201,7 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
         id: session.user.id,
         email: session.user.email || '',
         fullName: session.user.user_metadata?.full_name,
+        role: (session.user.user_metadata?.role as 'user' | 'admin') || 'user',
       });
     } else {
       callback(null);

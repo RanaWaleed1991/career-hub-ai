@@ -25,7 +25,7 @@ import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 
 
 const AppContent: React.FC = () => {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, logout, isAdmin } = useAuth();
   const [page, setPage] = useState<Page>('dashboard');
 
   // State for premium features modals
@@ -52,6 +52,13 @@ const AppContent: React.FC = () => {
       });
     }
   }, [user]);
+
+  // Redirect admin users to admin page on login
+  useEffect(() => {
+    if (user && isAdmin) {
+      setPage('admin');
+    }
+  }, [user, isAdmin]);
 
   // Check if welcome message should be shown for the user
   useEffect(() => {
@@ -157,6 +164,11 @@ const AppContent: React.FC = () => {
       case 'versions':
         return <VersionHistoryPage setPage={setPage} />;
       case 'admin':
+        // Protect admin route - only allow access if user is admin
+        if (!isAdmin) {
+          setPage('dashboard');
+          return <Dashboard setPage={setPage} openTailorModal={() => openTailorModal()} />;
+        }
         return <AdminPage />;
       case 'pricing':
         return <PricingPage userToken={null} currentPlan={currentPlan} />;

@@ -13,6 +13,7 @@ import {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   signup: (email: string, password: string, fullName?: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
@@ -120,6 +121,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value: AuthContextType = {
     user,
     loading,
+    isAdmin: user?.role === 'admin',
     login,
     signup,
     logout,
