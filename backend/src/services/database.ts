@@ -697,8 +697,13 @@ export const courseDb = {
     title: string;
     provider: string;
     description: string;
-    link: string;
+    video_url: string;
     type: string;
+    thumbnail_url?: string;
+    duration?: string;
+    level?: 'beginner' | 'intermediate' | 'advanced';
+    category?: string;
+    affiliate_link?: string;
   }) {
     if (!supabase) throw new Error('Database not configured');
 
@@ -707,6 +712,8 @@ export const courseDb = {
       .insert({
         ...courseData,
         status: 'published',
+        enrollment_count: 0,
+        is_featured: false,
       })
       .select()
       .single();
@@ -722,9 +729,15 @@ export const courseDb = {
     title?: string;
     provider?: string;
     description?: string;
-    link?: string;
+    video_url?: string;
     type?: string;
     status?: string;
+    thumbnail_url?: string;
+    duration?: string;
+    level?: 'beginner' | 'intermediate' | 'advanced';
+    category?: string;
+    affiliate_link?: string;
+    is_featured?: boolean;
   }) {
     if (!supabase) throw new Error('Database not configured');
 
@@ -751,6 +764,80 @@ export const courseDb = {
       .eq('id', courseId);
 
     if (error) throw error;
+    return { success: true };
+  },
+
+  /**
+   * Enroll user in a course (track enrollment)
+   */
+  async enroll(userId: string, courseId: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    // Insert enrollment (ignore if already enrolled due to unique constraint)
+    const { data, error } = await supabase
+      .from('course_enrollments')
+      .insert({
+        user_id: userId,
+        course_id: courseId,
+      })
+      .select()
+      .single();
+
+    // Increment enrollment count
+    await supabase
+      .from('courses')
+      .update({ enrollment_count: supabase.rpc('increment', { column: 'enrollment_count' }) })
+      .eq('id', courseId);
+
+    if (error && error.code !== '23505') throw error; // Ignore duplicate enrollment errors
+    return data;
+  },
+
+  /**
+   * Get user's enrollments
+   */
+  async getUserEnrollments(userId: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('course_enrollments')
+      .select(`
+        *,
+        courses (*)
+      `)
+      .eq('user_id', userId)
+      .order('enrolled_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Increment enrollment count for a course
+   */
+  async incrementEnrollmentCount(courseId: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase.rpc('increment_enrollment_count', {
+      course_id: courseId,
+    });
+
+    if (error) {
+      // Fallback: manual increment
+      const { data: course } = await supabase
+        .from('courses')
+        .select('enrollment_count')
+        .eq('id', courseId)
+        .single();
+
+      if (course) {
+        await supabase
+          .from('courses')
+          .update({ enrollment_count: (course.enrollment_count || 0) + 1 })
+          .eq('id', courseId);
+      }
+    }
+
     return { success: true };
   },
 };
