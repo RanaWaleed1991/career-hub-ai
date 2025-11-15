@@ -4,6 +4,13 @@ import { adminMiddleware } from '../middleware/adminAuth.js';
 import { jobDb, ensureDatabaseConfigured, handleDatabaseError } from '../services/database.js';
 import { AdzunaService } from '../services/adzunaService.js';
 import { env } from '../config/env.js';
+import { validate } from '../middleware/validate.js';
+import {
+  createJobSchema,
+  updateJobSchema,
+  deleteJobSchema,
+  jobCategorySchema,
+} from '../validators/schemas.js';
 
 const router = express.Router();
 
@@ -27,18 +34,11 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
  * GET /api/jobs/category/:category
  * Get jobs by category (public endpoint)
  */
-router.get('/category/:category', async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/category/:category', jobCategorySchema, validate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!ensureDatabaseConfigured(res)) return;
 
     const { category } = req.params;
-
-    // Validate category
-    const validCategories = ['tech', 'accounting', 'casual'];
-    if (!validCategories.includes(category)) {
-      res.status(400).json({ error: 'Invalid category' });
-      return;
-    }
 
     const jobs = await jobDb.getByCategory(category);
     res.status(200).json({ jobs });
@@ -68,24 +68,11 @@ router.get('/admin/all', authMiddleware, adminMiddleware, async (req: AuthReques
  * POST /api/jobs/admin
  * Create a new job (admin only)
  */
-router.post('/admin', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+router.post('/admin', authMiddleware, adminMiddleware, createJobSchema, validate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!ensureDatabaseConfigured(res)) return;
 
     const { title, company, location, description, category } = req.body;
-
-    // Validation
-    if (!title || !company || !location || !description || !category) {
-      res.status(400).json({ error: 'All fields are required: title, company, location, description, category' });
-      return;
-    }
-
-    // Validate category
-    const validCategories = ['tech', 'accounting', 'casual'];
-    if (!validCategories.includes(category)) {
-      res.status(400).json({ error: 'Invalid category. Must be: tech, accounting, or casual' });
-      return;
-    }
 
     const job = await jobDb.create({
       title,
@@ -106,30 +93,12 @@ router.post('/admin', authMiddleware, adminMiddleware, async (req: AuthRequest, 
  * PUT /api/jobs/admin/:id
  * Update a job (admin only)
  */
-router.put('/admin/:id', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+router.put('/admin/:id', authMiddleware, adminMiddleware, updateJobSchema, validate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!ensureDatabaseConfigured(res)) return;
 
     const { id } = req.params;
     const { title, company, location, description, category, status } = req.body;
-
-    // Validate category if provided
-    if (category) {
-      const validCategories = ['tech', 'accounting', 'casual'];
-      if (!validCategories.includes(category)) {
-        res.status(400).json({ error: 'Invalid category. Must be: tech, accounting, or casual' });
-        return;
-      }
-    }
-
-    // Validate status if provided
-    if (status) {
-      const validStatuses = ['active', 'inactive'];
-      if (!validStatuses.includes(status)) {
-        res.status(400).json({ error: 'Invalid status. Must be: active or inactive' });
-        return;
-      }
-    }
 
     const job = await jobDb.update(id, {
       title,
@@ -151,7 +120,7 @@ router.put('/admin/:id', authMiddleware, adminMiddleware, async (req: AuthReques
  * DELETE /api/jobs/admin/:id
  * Delete a job (admin only)
  */
-router.delete('/admin/:id', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+router.delete('/admin/:id', authMiddleware, adminMiddleware, deleteJobSchema, validate, async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!ensureDatabaseConfigured(res)) return;
 

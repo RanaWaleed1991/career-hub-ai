@@ -1,6 +1,8 @@
 import express, { Request, Response } from 'express';
 import { supabase } from '../config/supabase.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { signupSchema, loginSchema } from '../validators/schemas.js';
 
 const router = express.Router();
 
@@ -19,16 +21,11 @@ const ensureSupabaseConfigured = (res: Response): boolean => {
  * POST /api/auth/signup
  * Register a new user with email and password
  */
-router.post('/signup', async (req: Request, res: Response): Promise<void> => {
+router.post('/signup', signupSchema, validate, async (req: Request, res: Response): Promise<void> => {
   try {
     if (!ensureSupabaseConfigured(res)) return;
 
     const { email, password, fullName } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({ error: 'Email and password are required' });
-      return;
-    }
 
     // Create user with Supabase Auth
     const { data, error } = await supabase!.auth.signUp({
@@ -60,16 +57,11 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
  * POST /api/auth/login
  * Login with email and password
  */
-router.post('/login', async (req: Request, res: Response): Promise<void> => {
+router.post('/login', loginSchema, validate, async (req: Request, res: Response): Promise<void> => {
   try {
     if (!ensureSupabaseConfigured(res)) return;
 
     const { email, password } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({ error: 'Email and password are required' });
-      return;
-    }
 
     const { data, error } = await supabase!.auth.signInWithPassword({
       email,
