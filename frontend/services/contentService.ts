@@ -107,6 +107,43 @@ export const deleteJob = async (jobId: string): Promise<void> => {
   }
 };
 
+/**
+ * Sync jobs from Adzuna API (admin only)
+ */
+export const syncJobsFromAdzuna = async (options?: {
+  limitPerCategory?: number;
+  clearExisting?: boolean;
+}): Promise<{
+  message: string;
+  stats: {
+    tech: number;
+    accounting: number;
+    casual: number;
+    total: number;
+  };
+  jobs: Job[];
+}> => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/jobs/admin/sync`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(options || {}),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to sync jobs from Adzuna');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to sync jobs from Adzuna:', error);
+    throw error;
+  }
+};
+
 // --- Courses ---
 
 /**

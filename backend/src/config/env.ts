@@ -18,6 +18,8 @@ interface EnvConfig {
   STRIPE_SECRET_KEY: string | undefined;
   STRIPE_WEBHOOK_SECRET: string | undefined;
   STRIPE_PUBLISHABLE_KEY: string | undefined;
+  ADZUNA_APP_ID: string | undefined;
+  ADZUNA_API_KEY: string | undefined;
 }
 
 const getEnvVar = (key: string, defaultValue?: string, required: boolean = true): string => {
@@ -38,4 +40,6 @@ export const env: EnvConfig = {
   STRIPE_SECRET_KEY: getEnvVar('STRIPE_SECRET_KEY', '', false) || undefined,
   STRIPE_WEBHOOK_SECRET: getEnvVar('STRIPE_WEBHOOK_SECRET', '', false) || undefined,
   STRIPE_PUBLISHABLE_KEY: getEnvVar('STRIPE_PUBLISHABLE_KEY', '', false) || undefined,
+  ADZUNA_APP_ID: getEnvVar('ADZUNA_APP_ID', '', false) || undefined,
+  ADZUNA_API_KEY: getEnvVar('ADZUNA_API_KEY', '', false) || undefined,
 };

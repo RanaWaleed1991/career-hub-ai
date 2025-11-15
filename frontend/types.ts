@@ -71,6 +71,12 @@ export interface Job {
   location: string;
   description: string;
   category: JobCategory;
+  external_id?: string;
+  external_url?: string;
+  salary_min?: number;
+  salary_max?: number;
+  source?: 'manual' | 'adzuna';
+  posted_date?: string;
 }
 
 export type CourseType = 'free' | 'paid';

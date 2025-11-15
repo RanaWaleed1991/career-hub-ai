@@ -527,6 +527,12 @@ export const jobDb = {
     location: string;
     description: string;
     category: string;
+    external_id?: string;
+    external_url?: string;
+    salary_min?: number;
+    salary_max?: number;
+    source?: 'manual' | 'adzuna';
+    posted_date?: string;
   }) {
     if (!supabase) throw new Error('Database not configured');
 
@@ -535,12 +541,61 @@ export const jobDb = {
       .insert({
         ...jobData,
         status: 'active',
+        source: jobData.source || 'manual',
       })
       .select()
       .single();
 
     if (error) throw error;
     return data;
+  },
+
+  /**
+   * Bulk create jobs (for syncing from external sources)
+   */
+  async bulkCreate(jobs: Array<{
+    title: string;
+    company: string;
+    location: string;
+    description: string;
+    category: string;
+    external_id?: string;
+    external_url?: string;
+    salary_min?: number;
+    salary_max?: number;
+    source?: 'manual' | 'adzuna';
+    posted_date?: string;
+  }>) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const jobsWithDefaults = jobs.map(job => ({
+      ...job,
+      status: 'active',
+      source: job.source || 'manual',
+    }));
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert(jobsWithDefaults)
+      .select();
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Delete jobs by source (for cleanup before re-sync)
+   */
+  async deleteBySource(source: 'manual' | 'adzuna') {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { error } = await supabase
+      .from('jobs')
+      .delete()
+      .eq('source', source);
+
+    if (error) throw error;
+    return { success: true };
   },
 
   /**

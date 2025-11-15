@@ -2,6 +2,8 @@ import express, { Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { adminMiddleware } from '../middleware/adminAuth.js';
 import { jobDb, ensureDatabaseConfigured, handleDatabaseError } from '../services/database.js';
+import { AdzunaService } from '../services/adzunaService.js';
+import { env } from '../config/env.js';
 
 const router = express.Router();
 
@@ -160,6 +162,58 @@ router.delete('/admin/:id', authMiddleware, adminMiddleware, async (req: AuthReq
     res.status(200).json({ message: 'Job deleted successfully' });
   } catch (error) {
     const message = handleDatabaseError(error, 'delete job');
+    res.status(500).json({ error: message });
+  }
+});
+
+/**
+ * POST /api/jobs/admin/sync
+ * Sync jobs from Adzuna API (admin only)
+ */
+router.post('/admin/sync', authMiddleware, adminMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!ensureDatabaseConfigured(res)) return;
+
+    // Check if Adzuna is configured
+    if (!env.ADZUNA_APP_ID || !env.ADZUNA_API_KEY) {
+      res.status(503).json({
+        error: 'Adzuna API is not configured. Please add ADZUNA_APP_ID and ADZUNA_API_KEY to .env file.',
+      });
+      return;
+    }
+
+    const { limitPerCategory = 20, clearExisting = true } = req.body;
+
+    // Initialize Adzuna service
+    const adzunaService = new AdzunaService();
+
+    // Optionally clear existing Adzuna jobs to prevent duplicates
+    if (clearExisting) {
+      await jobDb.deleteBySource('adzuna');
+    }
+
+    // Fetch jobs from Adzuna for all categories
+    const { tech, accounting, casual } = await adzunaService.fetchAllCategoryJobs(limitPerCategory);
+
+    // Combine all jobs
+    const allJobs = [...tech, ...accounting, ...casual];
+
+    // Bulk insert into database
+    const insertedJobs = await jobDb.bulkCreate(allJobs);
+
+    res.status(200).json({
+      message: 'Jobs synced successfully from Adzuna',
+      stats: {
+        tech: tech.length,
+        accounting: accounting.length,
+        casual: casual.length,
+        total: insertedJobs.length,
+      },
+      jobs: insertedJobs,
+    });
+  } catch (error: any) {
+    console.error('Failed to sync jobs from Adzuna:', error);
+    const message = error.message || 'Failed to sync jobs from Adzuna';
     res.status(500).json({ error: message });
   }
 });
