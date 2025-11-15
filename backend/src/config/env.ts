@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '../../.env') });
 
 interface EnvConfig {
-  GEMINI_API_KEY: string;
+  GEMINI_API_KEY: string; // Now validated by validateEnv() in server.ts
   PORT: number;
   FRONTEND_URL: string;
   NODE_ENV: string;
@@ -30,11 +30,13 @@ const getEnvVar = (key: string, defaultValue?: string, required: boolean = true)
   return value || '';
 };
 
+// NOTE: Environment validation is now handled by validateEnv() in server.ts
+// This allows env.ts to load without throwing errors, and validateEnv() performs comprehensive validation
 export const env: EnvConfig = {
-  GEMINI_API_KEY: getEnvVar('GEMINI_API_KEY'),
-  PORT: parseInt(getEnvVar('PORT', '3001'), 10),
-  FRONTEND_URL: getEnvVar('FRONTEND_URL', 'http://localhost:5173'),
-  NODE_ENV: getEnvVar('NODE_ENV', 'development'),
+  GEMINI_API_KEY: getEnvVar('GEMINI_API_KEY', '', false) || '',
+  PORT: parseInt(getEnvVar('PORT', '3001', false), 10),
+  FRONTEND_URL: getEnvVar('FRONTEND_URL', 'http://localhost:5173', false),
+  NODE_ENV: getEnvVar('NODE_ENV', 'development', false),
   SUPABASE_URL: getEnvVar('SUPABASE_URL', '', false) || undefined,
   SUPABASE_SERVICE_KEY: getEnvVar('SUPABASE_SERVICE_KEY', '', false) || undefined,
   STRIPE_SECRET_KEY: getEnvVar('STRIPE_SECRET_KEY', '', false) || undefined,
