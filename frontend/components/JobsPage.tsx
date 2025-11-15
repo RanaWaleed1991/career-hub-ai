@@ -2,17 +2,42 @@ import React, { useState, useEffect } from 'react';
 import { getPublicJobs } from '../services/contentService';
 import type { Job, JobCategory } from '../types';
 
-const JobCard: React.FC<{ job: Job, index: number }> = ({ job, index }) => (
-  <div className="bg-white p-6 rounded-lg shadow-lg border border-slate-200 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 opacity-0 slide-in-up" style={{ animationDelay: `${index * 50}ms` }}>
-    <h3 className="text-lg font-bold text-slate-800">{job.title}</h3>
-    <p className="text-md font-semibold text-indigo-600 mb-2">{job.company}</p>
-    <p className="text-sm text-slate-500 mb-3">{job.location}</p>
-    <p className="text-sm text-slate-600 mb-4">{job.description}</p>
-    <a href="#" className="block w-full text-center px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition-colors mt-4">
-      Apply Now
-    </a>
-  </div>
-);
+const JobCard: React.FC<{ job: Job, index: number }> = ({ job, index }) => {
+  const hasExternalUrl = job.external_url && job.external_url.trim() !== '';
+  const salary = job.salary_min && job.salary_max
+    ? `$${job.salary_min.toLocaleString()} - $${job.salary_max.toLocaleString()}`
+    : job.salary_min
+    ? `From $${job.salary_min.toLocaleString()}`
+    : null;
+
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-lg border border-slate-200 hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 opacity-0 slide-in-up" style={{ animationDelay: `${index * 50}ms` }}>
+      <h3 className="text-lg font-bold text-slate-800">{job.title}</h3>
+      <p className="text-md font-semibold text-indigo-600 mb-2">{job.company}</p>
+      <p className="text-sm text-slate-500 mb-3">{job.location}</p>
+      {salary && <p className="text-sm text-green-600 font-medium mb-2">{salary}</p>}
+      <p className="text-sm text-slate-600 mb-4">{job.description}</p>
+      {hasExternalUrl ? (
+        <a
+          href={job.external_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full text-center px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 transition-colors mt-4"
+        >
+          Apply Now
+        </a>
+      ) : (
+        <button
+          disabled
+          className="block w-full text-center px-4 py-2 bg-slate-400 text-white font-semibold rounded-md cursor-not-allowed mt-4"
+          title="Application link not available"
+        >
+          Apply Now
+        </button>
+      )}
+    </div>
+  );
+};
 
 const JobsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<JobCategory>('tech');

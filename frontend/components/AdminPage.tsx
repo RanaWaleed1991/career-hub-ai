@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Job, JobCategory, Course, CourseType } from '../types';
-import { getJobs, addJob, deleteJob, getCourses, addCourse, deleteCourse } from '../services/contentService';
+import { getJobs, addJob, deleteJob, getCourses, addCourse, deleteCourse, syncJobsFromAdzuna } from '../services/contentService';
 import { MinusCircleIcon } from './icons';
 
 const AdminPage: React.FC = () => {
@@ -15,6 +15,8 @@ const AdminPage: React.FC = () => {
   const [jobCategory, setJobCategory] = useState<JobCategory>('tech');
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
   const [isSubmittingJob, setIsSubmittingJob] = useState(false);
+  const [isSyncingJobs, setIsSyncingJobs] = useState(false);
+  const [syncSuccess, setSyncSuccess] = useState<string | null>(null);
 
   // Courses state
   const [courses, setCourses] = useState<Course[]>([]);
@@ -110,6 +112,34 @@ const AdminPage: React.FC = () => {
     } catch (err: any) {
       console.error('Failed to delete job:', err);
       setError(err.message || 'Failed to delete job. Please try again.');
+    }
+  };
+
+  const handleSyncJobsFromAdzuna = async () => {
+    if (!window.confirm('This will sync jobs from Adzuna API and replace existing Adzuna jobs. Continue?')) {
+      return;
+    }
+
+    try {
+      setIsSyncingJobs(true);
+      setError(null);
+      setSyncSuccess(null);
+
+      const result = await syncJobsFromAdzuna({
+        limitPerCategory: 20,
+        clearExisting: true,
+      });
+
+      // Reload jobs list
+      await loadJobs();
+
+      setSyncSuccess(`Successfully synced ${result.stats.total} jobs (Tech: ${result.stats.tech}, Accounting: ${result.stats.accounting}, Casual: ${result.stats.casual})`);
+      setTimeout(() => setSyncSuccess(null), 10000); // Clear success message after 10 seconds
+    } catch (err: any) {
+      console.error('Failed to sync jobs from Adzuna:', err);
+      setError(err.message || 'Failed to sync jobs from Adzuna. Make sure API credentials are configured.');
+    } finally {
+      setIsSyncingJobs(false);
     }
   };
 
@@ -218,22 +248,44 @@ const AdminPage: React.FC = () => {
 
           {/* Jobs List */}
           <div className="p-6 bg-white rounded-lg shadow-lg border border-slate-200">
-            <h3 className="text-xl font-semibold mb-4">Existing Jobs ({jobs.length})</h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-semibold">Existing Jobs ({jobs.length})</h3>
+              <button
+                onClick={handleSyncJobsFromAdzuna}
+                disabled={isSyncingJobs}
+                className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSyncingJobs ? 'Syncing...' : 'Sync from Adzuna'}
+              </button>
+            </div>
+
+            {/* Success Message */}
+            {syncSuccess && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
+                <p className="text-sm text-green-700">{syncSuccess}</p>
+              </div>
+            )}
+
             {isLoadingJobs ? (
               <div className="flex justify-center items-center h-96">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
               </div>
             ) : jobs.length === 0 ? (
-              <p className="text-slate-500 text-center py-8">No jobs added yet.</p>
+              <p className="text-slate-500 text-center py-8">No jobs added yet. Add manually or sync from Adzuna.</p>
             ) : (
               <ul className="space-y-3 h-96 overflow-y-auto pr-2">
                 {jobs.map(job => (
                   <li key={job.id} className="p-3 border rounded-md flex justify-between items-center bg-slate-50">
-                    <div>
+                    <div className="flex-1">
                       <p className="font-bold">{job.title} - <span className="font-medium">{job.company}</span></p>
                       <p className="text-sm text-slate-500">{job.location} | Category: {job.category}</p>
+                      {job.source && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 mt-1 inline-block">
+                          {job.source}
+                        </span>
+                      )}
                     </div>
-                    <button onClick={() => handleDeleteJob(job.id)} className="text-red-500 hover:text-red-700"><MinusCircleIcon /></button>
+                    <button onClick={() => handleDeleteJob(job.id)} className="text-red-500 hover:text-red-700 ml-2"><MinusCircleIcon /></button>
                   </li>
                 ))}
               </ul>
