@@ -182,7 +182,7 @@ router.post('/admin/sync', authMiddleware, adminMiddleware, async (req: AuthRequ
       return;
     }
 
-    const { limitPerCategory = 20, clearExisting = true } = req.body;
+    const { limitPerCategory = 20, clearExisting = true, location } = req.body;
 
     // Initialize Adzuna service
     const adzunaService = new AdzunaService();
@@ -193,7 +193,7 @@ router.post('/admin/sync', authMiddleware, adminMiddleware, async (req: AuthRequ
     }
 
     // Fetch jobs from Adzuna for all categories
-    const { tech, accounting, casual } = await adzunaService.fetchAllCategoryJobs(limitPerCategory);
+    const { tech, accounting, casual } = await adzunaService.fetchAllCategoryJobs(limitPerCategory, location);
 
     // Combine all jobs
     const allJobs = [...tech, ...accounting, ...casual];

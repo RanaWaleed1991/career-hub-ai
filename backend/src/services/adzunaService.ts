@@ -43,7 +43,7 @@ export interface MappedJob {
 
 export class AdzunaService {
   private baseUrl = 'https://api.adzuna.com/v1/api/jobs';
-  private country = 'us'; // Default to US, can be made configurable
+  private country = 'au'; // Australia
   private appId: string;
   private appKey: string;
 
@@ -169,9 +169,10 @@ export class AdzunaService {
   /**
    * Fetch and map tech jobs
    */
-  async fetchTechJobs(limit: number = 20): Promise<MappedJob[]> {
+  async fetchTechJobs(limit: number = 20, location?: string): Promise<MappedJob[]> {
     const response = await this.searchJobs({
       what: 'software developer OR engineer OR programmer',
+      where: location,
       resultsPerPage: limit,
     });
     return this.mapJobs(response.results);
@@ -180,9 +181,10 @@ export class AdzunaService {
   /**
    * Fetch and map accounting jobs
    */
-  async fetchAccountingJobs(limit: number = 20): Promise<MappedJob[]> {
+  async fetchAccountingJobs(limit: number = 20, location?: string): Promise<MappedJob[]> {
     const response = await this.searchJobs({
       what: 'accountant OR bookkeeper OR finance',
+      where: location,
       resultsPerPage: limit,
     });
     return this.mapJobs(response.results);
@@ -191,9 +193,10 @@ export class AdzunaService {
   /**
    * Fetch and map casual jobs
    */
-  async fetchCasualJobs(limit: number = 20): Promise<MappedJob[]> {
+  async fetchCasualJobs(limit: number = 20, location?: string): Promise<MappedJob[]> {
     const response = await this.searchJobs({
       what: 'retail OR hospitality OR customer service',
+      where: location,
       resultsPerPage: limit,
     });
     return this.mapJobs(response.results);
@@ -202,15 +205,15 @@ export class AdzunaService {
   /**
    * Fetch jobs for all categories
    */
-  async fetchAllCategoryJobs(limitPerCategory: number = 20): Promise<{
+  async fetchAllCategoryJobs(limitPerCategory: number = 20, location?: string): Promise<{
     tech: MappedJob[];
     accounting: MappedJob[];
     casual: MappedJob[];
   }> {
     const [tech, accounting, casual] = await Promise.all([
-      this.fetchTechJobs(limitPerCategory),
-      this.fetchAccountingJobs(limitPerCategory),
-      this.fetchCasualJobs(limitPerCategory),
+      this.fetchTechJobs(limitPerCategory, location),
+      this.fetchAccountingJobs(limitPerCategory, location),
+      this.fetchCasualJobs(limitPerCategory, location),
     ]);
 
     return { tech, accounting, casual };

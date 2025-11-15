@@ -17,6 +17,8 @@ const AdminPage: React.FC = () => {
   const [isSubmittingJob, setIsSubmittingJob] = useState(false);
   const [isSyncingJobs, setIsSyncingJobs] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState<string | null>(null);
+  const [syncLocation, setSyncLocation] = useState<string>('australia');
+  const [showSyncOptions, setShowSyncOptions] = useState(false);
 
   // Courses state
   const [courses, setCourses] = useState<Course[]>([]);
@@ -116,7 +118,8 @@ const AdminPage: React.FC = () => {
   };
 
   const handleSyncJobsFromAdzuna = async () => {
-    if (!window.confirm('This will sync jobs from Adzuna API and replace existing Adzuna jobs. Continue?')) {
+    const locationText = syncLocation === 'australia' ? 'all of Australia' : syncLocation;
+    if (!window.confirm(`This will sync jobs from Adzuna API for ${locationText} and replace existing Adzuna jobs. Continue?`)) {
       return;
     }
 
@@ -124,16 +127,18 @@ const AdminPage: React.FC = () => {
       setIsSyncingJobs(true);
       setError(null);
       setSyncSuccess(null);
+      setShowSyncOptions(false);
 
       const result = await syncJobsFromAdzuna({
         limitPerCategory: 20,
         clearExisting: true,
+        location: syncLocation === 'australia' ? undefined : syncLocation,
       });
 
       // Reload jobs list
       await loadJobs();
 
-      setSyncSuccess(`Successfully synced ${result.stats.total} jobs (Tech: ${result.stats.tech}, Accounting: ${result.stats.accounting}, Casual: ${result.stats.casual})`);
+      setSyncSuccess(`Successfully synced ${result.stats.total} Australian jobs from ${locationText} (Tech: ${result.stats.tech}, Accounting: ${result.stats.accounting}, Casual: ${result.stats.casual})`);
       setTimeout(() => setSyncSuccess(null), 10000); // Clear success message after 10 seconds
     } catch (err: any) {
       console.error('Failed to sync jobs from Adzuna:', err);
@@ -250,14 +255,50 @@ const AdminPage: React.FC = () => {
           <div className="p-6 bg-white rounded-lg shadow-lg border border-slate-200">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold">Existing Jobs ({jobs.length})</h3>
-              <button
-                onClick={handleSyncJobsFromAdzuna}
-                disabled={isSyncingJobs}
-                className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSyncingJobs ? 'Syncing...' : 'Sync from Adzuna'}
-              </button>
+              <div className="flex gap-2 items-center">
+                <button
+                  onClick={() => setShowSyncOptions(!showSyncOptions)}
+                  disabled={isSyncingJobs}
+                  className="px-3 py-2 bg-slate-600 text-white text-sm font-semibold rounded-md hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  ⚙️
+                </button>
+                <button
+                  onClick={handleSyncJobsFromAdzuna}
+                  disabled={isSyncingJobs}
+                  className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSyncingJobs ? 'Syncing...' : 'Sync from Adzuna (AU)'}
+                </button>
+              </div>
             </div>
+
+            {/* Sync Options */}
+            {showSyncOptions && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                <h4 className="text-sm font-semibold mb-3 text-blue-900">Sync Options</h4>
+                <div className="mb-3">
+                  <label className="block text-xs font-medium mb-2 text-slate-700">Australian Location</label>
+                  <select
+                    value={syncLocation}
+                    onChange={(e) => setSyncLocation(e.target.value)}
+                    className="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="australia">All Australia</option>
+                    <option value="melbourne">Melbourne</option>
+                    <option value="sydney">Sydney</option>
+                    <option value="brisbane">Brisbane</option>
+                    <option value="perth">Perth</option>
+                    <option value="adelaide">Adelaide</option>
+                    <option value="canberra">Canberra</option>
+                  </select>
+                </div>
+                <div className="text-xs text-slate-600">
+                  <p>📍 Syncing {syncLocation === 'australia' ? 'all of Australia' : syncLocation}</p>
+                  <p>📊 20 jobs per category (Tech, Accounting, Casual)</p>
+                </div>
+              </div>
+            )}
 
             {/* Success Message */}
             {syncSuccess && (

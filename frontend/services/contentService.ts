@@ -113,6 +113,7 @@ export const deleteJob = async (jobId: string): Promise<void> => {
 export const syncJobsFromAdzuna = async (options?: {
   limitPerCategory?: number;
   clearExisting?: boolean;
+  location?: string;
 }): Promise<{
   message: string;
   stats: {
