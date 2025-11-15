@@ -105,8 +105,8 @@ export const createJobSchema = [
 
 export const updateJobSchema = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('Job ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Job ID must be a valid UUID'),
 
   body('title')
     .optional()
@@ -146,8 +146,8 @@ export const updateJobSchema = [
 
 export const deleteJobSchema = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('Job ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Job ID must be a valid UUID'),
 ];
 
 export const jobCategorySchema = [
@@ -230,8 +230,8 @@ export const createCourseSchema = [
 
 export const updateCourseSchema = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('Course ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Course ID must be a valid UUID'),
 
   body('title')
     .optional()
@@ -282,8 +282,8 @@ export const updateCourseSchema = [
 
 export const deleteCourseSchema = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('Course ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Course ID must be a valid UUID'),
 ];
 
 export const courseTypeSchema = [
@@ -294,8 +294,8 @@ export const courseTypeSchema = [
 
 export const enrollCourseSchema = [
   body('courseId')
-    .isInt({ min: 1 })
-    .withMessage('Course ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Course ID must be a valid UUID'),
 ];
 
 // =======================
@@ -376,22 +376,22 @@ export const createResumeSchema = [
 
 export const updateResumeSchema = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('Resume ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Resume ID must be a valid UUID'),
 
   ...createResumeSchema,
 ];
 
 export const deleteResumeSchema = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('Resume ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Resume ID must be a valid UUID'),
 ];
 
 export const getResumeSchema = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('Resume ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Resume ID must be a valid UUID'),
 ];
 
 // =======================
@@ -400,8 +400,8 @@ export const getResumeSchema = [
 
 export const createApplicationSchema = [
   body('job_id')
-    .isInt({ min: 1 })
-    .withMessage('Job ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Job ID must be a valid UUID'),
 
   body('company')
     .trim()
@@ -431,8 +431,8 @@ export const createApplicationSchema = [
 
 export const updateApplicationSchema = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('Application ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Application ID must be a valid UUID'),
 
   body('status')
     .optional()
@@ -448,8 +448,8 @@ export const updateApplicationSchema = [
 
 export const deleteApplicationSchema = [
   param('id')
-    .isInt({ min: 1 })
-    .withMessage('Application ID must be a positive integer'),
+    .isUUID()
+    .withMessage('Application ID must be a valid UUID'),
 ];
 
 // =======================
