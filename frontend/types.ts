@@ -80,14 +80,22 @@ export interface Job {
 }
 
 export type CourseType = 'free' | 'paid';
+export type CourseLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export interface Course {
   id: string;
   title: string;
   provider: string;
   description: string;
-  link: string;
+  video_url: string;
   type: CourseType;
+  thumbnail_url?: string;
+  duration?: string;
+  level?: CourseLevel;
+  category?: string;
+  affiliate_link?: string;
+  enrollment_count?: number;
+  is_featured?: boolean;
 }
 
 export type ApplicationStatus = 'Applied' | 'Interviewing' | 'Offer' | 'Rejected';

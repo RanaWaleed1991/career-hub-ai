@@ -236,3 +236,25 @@ export const deleteCourse = async (courseId: string): Promise<void> => {
     throw error;
   }
 };
+
+/**
+ * Track course enrollment
+ */
+export const enrollInCourse = async (courseId: string): Promise<void> => {
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/courses/enroll`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ courseId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to track enrollment');
+    }
+  } catch (error) {
+    console.error('Failed to track enrollment:', error);
+    throw error;
+  }
+};

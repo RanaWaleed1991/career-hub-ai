@@ -70,11 +70,22 @@ router.post('/admin', authMiddleware, adminMiddleware, async (req: AuthRequest, 
   try {
     if (!ensureDatabaseConfigured(res)) return;
 
-    const { title, provider, description, link, type } = req.body;
+    const {
+      title,
+      provider,
+      description,
+      video_url,
+      type,
+      thumbnail_url,
+      duration,
+      level,
+      category,
+      affiliate_link
+    } = req.body;
 
     // Validation
-    if (!title || !provider || !description || !link || !type) {
-      res.status(400).json({ error: 'All fields are required: title, provider, description, link, type' });
+    if (!title || !provider || !description || !video_url || !type) {
+      res.status(400).json({ error: 'Required fields are missing: title, provider, description, video_url, type' });
       return;
     }
 
@@ -85,19 +96,45 @@ router.post('/admin', authMiddleware, adminMiddleware, async (req: AuthRequest, 
       return;
     }
 
-    // Validate link format
-    const urlPattern = /^https?:\/\/.+/;
-    if (!urlPattern.test(link)) {
-      res.status(400).json({ error: 'Invalid URL format. Link must start with http:// or https://' });
+    // If paid course, affiliate link is required
+    if (type === 'paid' && !affiliate_link) {
+      res.status(400).json({ error: 'Affiliate link is required for paid courses' });
       return;
+    }
+
+    // Validate video_url format
+    const urlPattern = /^https?:\/\/.+/;
+    if (!urlPattern.test(video_url)) {
+      res.status(400).json({ error: 'Invalid URL format. Video URL must start with http:// or https://' });
+      return;
+    }
+
+    // Validate affiliate_link format if provided
+    if (affiliate_link && !urlPattern.test(affiliate_link)) {
+      res.status(400).json({ error: 'Invalid URL format. Affiliate link must start with http:// or https://' });
+      return;
+    }
+
+    // Validate level if provided
+    if (level) {
+      const validLevels = ['beginner', 'intermediate', 'advanced'];
+      if (!validLevels.includes(level)) {
+        res.status(400).json({ error: 'Invalid level. Must be: beginner, intermediate, or advanced' });
+        return;
+      }
     }
 
     const course = await courseDb.create({
       title,
       provider,
       description,
-      link,
+      video_url,
       type,
+      thumbnail_url,
+      duration,
+      level,
+      category,
+      affiliate_link,
     });
 
     res.status(201).json({ course });
@@ -116,7 +153,20 @@ router.put('/admin/:id', authMiddleware, adminMiddleware, async (req: AuthReques
     if (!ensureDatabaseConfigured(res)) return;
 
     const { id } = req.params;
-    const { title, provider, description, link, type, status } = req.body;
+    const {
+      title,
+      provider,
+      description,
+      video_url,
+      type,
+      status,
+      thumbnail_url,
+      duration,
+      level,
+      category,
+      affiliate_link,
+      is_featured
+    } = req.body;
 
     // Validate type if provided
     if (type) {
@@ -136,22 +186,39 @@ router.put('/admin/:id', authMiddleware, adminMiddleware, async (req: AuthReques
       }
     }
 
-    // Validate link format if provided
-    if (link) {
-      const urlPattern = /^https?:\/\/.+/;
-      if (!urlPattern.test(link)) {
-        res.status(400).json({ error: 'Invalid URL format. Link must start with http:// or https://' });
+    // Validate level if provided
+    if (level) {
+      const validLevels = ['beginner', 'intermediate', 'advanced'];
+      if (!validLevels.includes(level)) {
+        res.status(400).json({ error: 'Invalid level. Must be: beginner, intermediate, or advanced' });
         return;
       }
+    }
+
+    // Validate URL formats if provided
+    const urlPattern = /^https?:\/\/.+/;
+    if (video_url && !urlPattern.test(video_url)) {
+      res.status(400).json({ error: 'Invalid URL format. Video URL must start with http:// or https://' });
+      return;
+    }
+    if (affiliate_link && !urlPattern.test(affiliate_link)) {
+      res.status(400).json({ error: 'Invalid URL format. Affiliate link must start with http:// or https://' });
+      return;
     }
 
     const course = await courseDb.update(id, {
       title,
       provider,
       description,
-      link,
+      video_url,
       type,
       status,
+      thumbnail_url,
+      duration,
+      level,
+      category,
+      affiliate_link,
+      is_featured,
     });
 
     res.status(200).json({ course });
@@ -176,6 +243,37 @@ router.delete('/admin/:id', authMiddleware, adminMiddleware, async (req: AuthReq
     res.status(200).json({ message: 'Course deleted successfully' });
   } catch (error) {
     const message = handleDatabaseError(error, 'delete course');
+    res.status(500).json({ error: message });
+  }
+});
+
+/**
+ * POST /api/courses/enroll
+ * Track course enrollment (requires authentication)
+ */
+router.post('/enroll', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!ensureDatabaseConfigured(res)) return;
+
+    const { courseId } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ error: 'User not authenticated' });
+      return;
+    }
+
+    if (!courseId) {
+      res.status(400).json({ error: 'Course ID is required' });
+      return;
+    }
+
+    // Increment enrollment count (simpler approach)
+    await courseDb.incrementEnrollmentCount(courseId);
+
+    res.status(200).json({ success: true, message: 'Enrollment tracked successfully' });
+  } catch (error) {
+    const message = handleDatabaseError(error, 'track enrollment');
     res.status(500).json({ error: message });
   }
 });

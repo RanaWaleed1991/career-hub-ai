@@ -25,8 +25,13 @@ const AdminPage: React.FC = () => {
   const [courseTitle, setCourseTitle] = useState('');
   const [courseProvider, setCourseProvider] = useState('');
   const [courseDescription, setCourseDescription] = useState('');
-  const [courseLink, setCourseLink] = useState('');
+  const [courseVideoUrl, setCourseVideoUrl] = useState('');
   const [courseType, setCourseType] = useState<CourseType>('free');
+  const [courseThumbnailUrl, setCourseThumbnailUrl] = useState('');
+  const [courseDuration, setCourseDuration] = useState('');
+  const [courseLevel, setCourseLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
+  const [courseCategory, setCourseCategory] = useState('');
+  const [courseAffiliateLink, setCourseAffiliateLink] = useState('');
   const [isLoadingCourses, setIsLoadingCourses] = useState(false);
   const [isSubmittingCourse, setIsSubmittingCourse] = useState(false);
 
@@ -154,12 +159,24 @@ const AdminPage: React.FC = () => {
       setIsSubmittingCourse(true);
       setError(null);
 
+      // Validate affiliate link for paid courses
+      if (courseType === 'paid' && !courseAffiliateLink.trim()) {
+        setError('Affiliate link is required for paid courses');
+        setIsSubmittingCourse(false);
+        return;
+      }
+
       await addCourse({
         title: courseTitle,
         provider: courseProvider,
         description: courseDescription,
-        link: courseLink,
-        type: courseType
+        video_url: courseVideoUrl,
+        type: courseType,
+        thumbnail_url: courseThumbnailUrl || undefined,
+        duration: courseDuration || undefined,
+        level: courseLevel,
+        category: courseCategory || undefined,
+        affiliate_link: courseType === 'paid' ? courseAffiliateLink : undefined,
       });
 
       // Reload courses list
@@ -169,8 +186,13 @@ const AdminPage: React.FC = () => {
       setCourseTitle('');
       setCourseProvider('');
       setCourseDescription('');
-      setCourseLink('');
+      setCourseVideoUrl('');
       setCourseType('free');
+      setCourseThumbnailUrl('');
+      setCourseDuration('');
+      setCourseLevel('beginner');
+      setCourseCategory('');
+      setCourseAffiliateLink('');
 
       alert('Course added successfully!');
     } catch (err: any) {
@@ -338,12 +360,33 @@ const AdminPage: React.FC = () => {
       {activeTab === 'courses' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Add Course Form */}
-            <form onSubmit={handleAddCourse} className="space-y-4 p-6 bg-white rounded-lg shadow-lg border border-slate-200">
-                <h3 className="text-xl font-semibold">Add New Course</h3>
-                <div><label className={labelClass}>Course Title</label><input type="text" value={courseTitle} onChange={e => setCourseTitle(e.target.value)} className={inputClass} required disabled={isSubmittingCourse} /></div>
-                <div><label className={labelClass}>Provider</label><input type="text" value={courseProvider} onChange={e => setCourseProvider(e.target.value)} className={inputClass} required disabled={isSubmittingCourse} /></div>
-                <div><label className={labelClass}>Description</label><textarea value={courseDescription} onChange={e => setCourseDescription(e.target.value)} className={inputClass} rows={4} required disabled={isSubmittingCourse} /></div>
-                <div><label className={labelClass}>Link</label><input type="url" value={courseLink} onChange={e => setCourseLink(e.target.value)} className={inputClass} required disabled={isSubmittingCourse} /></div>
+            <form onSubmit={handleAddCourse} className="space-y-4 p-6 bg-white rounded-lg shadow-lg border border-slate-200 max-h-[600px] overflow-y-auto">
+                <h3 className="text-xl font-semibold sticky top-0 bg-white pb-2">Add New Course</h3>
+
+                <div><label className={labelClass}>Course Title</label><input type="text" value={courseTitle} onChange={e => setCourseTitle(e.target.value)} className={inputClass} required disabled={isSubmittingCourse} placeholder="e.g., Complete Web Development Bootcamp" /></div>
+
+                <div><label className={labelClass}>Provider</label><input type="text" value={courseProvider} onChange={e => setCourseProvider(e.target.value)} className={inputClass} required disabled={isSubmittingCourse} placeholder="e.g., Udemy, Coursera, freeCodeCamp" /></div>
+
+                <div><label className={labelClass}>Description</label><textarea value={courseDescription} onChange={e => setCourseDescription(e.target.value)} className={inputClass} rows={3} required disabled={isSubmittingCourse} placeholder="Brief description of what the course covers..." /></div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={labelClass}>Duration</label><input type="text" value={courseDuration} onChange={e => setCourseDuration(e.target.value)} className={inputClass} disabled={isSubmittingCourse} placeholder="e.g., 10 hours, 6 weeks" /></div>
+                  <div>
+                    <label className={labelClass}>Level</label>
+                    <select value={courseLevel} onChange={e => setCourseLevel(e.target.value as any)} className={inputClass} disabled={isSubmittingCourse}>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div><label className={labelClass}>Category</label><input type="text" value={courseCategory} onChange={e => setCourseCategory(e.target.value)} className={inputClass} disabled={isSubmittingCourse} placeholder="e.g., Programming, Design, Business" /></div>
+
+                <div><label className={labelClass}>Video/Course URL</label><input type="url" value={courseVideoUrl} onChange={e => setCourseVideoUrl(e.target.value)} className={inputClass} required disabled={isSubmittingCourse} placeholder="YouTube or course platform URL" /></div>
+
+                <div><label className={labelClass}>Thumbnail URL (optional)</label><input type="url" value={courseThumbnailUrl} onChange={e => setCourseThumbnailUrl(e.target.value)} className={inputClass} disabled={isSubmittingCourse} placeholder="Image URL for course thumbnail" /></div>
+
                 <div>
                     <label className={labelClass}>Type</label>
                     <select value={courseType} onChange={e => setCourseType(e.target.value as CourseType)} className={inputClass} disabled={isSubmittingCourse}>
@@ -351,6 +394,15 @@ const AdminPage: React.FC = () => {
                         <option value="paid">Paid</option>
                     </select>
                 </div>
+
+                {courseType === 'paid' && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+                    <label className={labelClass}>Affiliate Link <span className="text-red-500">*</span></label>
+                    <input type="url" value={courseAffiliateLink} onChange={e => setCourseAffiliateLink(e.target.value)} className={inputClass} disabled={isSubmittingCourse} placeholder="Your affiliate URL (Udemy, Coursera, etc.)" required />
+                    <p className="text-xs text-slate-600 mt-1">This is where users will be redirected to purchase the course (with your affiliate tracking)</p>
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -373,11 +425,20 @@ const AdminPage: React.FC = () => {
                   <ul className="space-y-3 h-96 overflow-y-auto pr-2">
                   {courses.map(course => (
                       <li key={course.id} className="p-3 border rounded-md flex justify-between items-center bg-slate-50">
-                      <div>
+                      <div className="flex-1">
                           <p className="font-bold">{course.title} - <span className="font-medium">{course.provider}</span></p>
-                          <p className="text-sm text-slate-500">Type: {course.type}</p>
+                          <p className="text-sm text-slate-500">
+                            Type: {course.type}
+                            {course.level && ` | Level: ${course.level}`}
+                            {course.duration && ` | ${course.duration}`}
+                          </p>
+                          {course.category && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 mt-1 inline-block">
+                              {course.category}
+                            </span>
+                          )}
                       </div>
-                      <button onClick={() => handleDeleteCourse(course.id)} className="text-red-500 hover:text-red-700"><MinusCircleIcon /></button>
+                      <button onClick={() => handleDeleteCourse(course.id)} className="text-red-500 hover:text-red-700 ml-2"><MinusCircleIcon /></button>
                       </li>
                   ))}
                   </ul>
