@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import request from 'supertest';
-import { generateTestUser, generateTestJob, extractToken, authHeaders } from './helpers.js';
+import { generateTestUser, generateTestJob, extractToken, extractUserId, authHeaders, makeUserAdmin } from './helpers.js';
 
 // Import app dynamically to avoid timing issues
 let app: any;
@@ -21,14 +21,16 @@ describe('Jobs API Integration Tests', () => {
     const appModule = await import('../../src/app.js');
     app = appModule.app;
 
-    // Note: In a real scenario, you'd create admin user with proper role assignment
-    // For now, we'll create regular users and test the permission logic
+    // Create admin user and promote to admin role
     const adminUser = generateTestUser();
     const adminResponse = await request(app)
       .post('/api/auth/signup')
       .send(adminUser);
     adminToken = extractToken(adminResponse);
+    const adminUserId = extractUserId(adminResponse);
+    await makeUserAdmin(adminUserId); // Promote to admin
 
+    // Create regular user (no admin role)
     const regularUser = generateTestUser();
     const userResponse = await request(app)
       .post('/api/auth/signup')

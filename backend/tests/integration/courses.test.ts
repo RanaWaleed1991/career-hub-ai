@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import request from 'supertest';
-import { generateTestUser, generateTestCourse, extractToken, authHeaders } from './helpers.js';
+import { generateTestUser, generateTestCourse, extractToken, extractUserId, authHeaders, makeUserAdmin } from './helpers.js';
 
 // Import app dynamically to avoid timing issues
 let app: any;
@@ -20,12 +20,16 @@ describe('Courses API Integration Tests', () => {
     const appModule = await import('../../src/app.js');
     app = appModule.app;
 
+    // Create admin user and promote to admin role
     const adminUser = generateTestUser();
     const adminResponse = await request(app)
       .post('/api/auth/signup')
       .send(adminUser);
     adminToken = extractToken(adminResponse);
+    const adminUserId = extractUserId(adminResponse);
+    await makeUserAdmin(adminUserId); // Promote to admin
 
+    // Create regular user (no admin role)
     const regularUser = generateTestUser();
     const userResponse = await request(app)
       .post('/api/auth/signup')
