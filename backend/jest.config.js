@@ -66,9 +66,15 @@ export default {
   // Restore mocks between tests
   restoreMocks: true,
 
-  // Test timeout (5 seconds)
-  testTimeout: 5000,
+  // Test timeout (10 seconds for integration tests)
+  testTimeout: 10000,
 
   // Force exit after tests complete (needed for background timers like loginAttempts cleanup)
   forceExit: true,
+
+  // Max workers (integration tests run sequentially with --runInBand)
+  maxWorkers: 1,
+
+  // Don't reset modules between tests to avoid teardown issues
+  resetModules: false,
 };
