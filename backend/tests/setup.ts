@@ -13,10 +13,9 @@ process.env.NODE_ENV = 'test';
 process.env.PORT = '3001';
 process.env.FRONTEND_URL = 'http://localhost:5173';
 
-// Supabase mock credentials
-process.env.SUPABASE_URL = 'https://test.supabase.co';
-process.env.SUPABASE_SERVICE_KEY = 'test-service-key-minimum-32-characters-long-for-testing';
-process.env.SUPABASE_ANON_KEY = 'test-anon-key-minimum-32-characters-long-for-testing';
+// NOTE: Integration tests use REAL Supabase credentials from .env
+// DO NOT override SUPABASE_URL, SUPABASE_SERVICE_KEY, or SUPABASE_ANON_KEY here
+// Unit tests should mock Supabase at the test level if needed
 
 // API Keys (mock)
 process.env.GEMINI_API_KEY = 'test-gemini-api-key';
