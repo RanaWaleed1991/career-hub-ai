@@ -100,13 +100,21 @@ export function sleep(ms: number): Promise<void> {
  * Extract token from response
  */
 export function extractToken(response: any): string {
+  // Supabase format: session.access_token
   if (response.body?.session?.access_token) {
     return response.body.session.access_token;
   }
+
+  // Alternative format: accessToken
   if (response.body?.accessToken) {
     return response.body.accessToken;
   }
-  throw new Error('No token found in response');
+
+  // Debug: log the actual response structure
+  console.error('Token extraction failed. Response body:', JSON.stringify(response.body, null, 2));
+  console.error('Response status:', response.status);
+
+  throw new Error(`No token found in response. Status: ${response.status}, Body keys: ${Object.keys(response.body || {}).join(', ')}`);
 }
 
 /**
