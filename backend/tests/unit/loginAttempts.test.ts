@@ -4,7 +4,7 @@
  * Tests for Sprint 6.3 login attempt tracking and account lockout
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import {
   recordFailedLogin,
   isAccountLocked,
@@ -12,18 +12,24 @@ import {
   getLoginAttemptStats,
 } from '../../src/utils/loginAttempts.js';
 
-// Mock Date.now() for predictable tests
-const mockNow = new Date('2024-01-01T12:00:00Z').getTime();
-
 describe('Login Attempts Tracker', () => {
   beforeEach(() => {
+    // Use fake timers for predictable time-based tests
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2024-01-01T12:00:00Z'));
+
     // Clear all login attempts before each test
     clearLoginAttempts('test@example.com');
     clearLoginAttempts('admin@example.com');
     clearLoginAttempts('locked@example.com');
+    clearLoginAttempts('user@example.com');
+    clearLoginAttempts('user1@example.com');
+    clearLoginAttempts('user2@example.com');
+  });
 
-    // Reset Date.now mock
-    jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+  afterEach(() => {
+    // Restore real timers after each test
+    jest.useRealTimers();
   });
 
   describe('recordFailedLogin', () => {
@@ -71,7 +77,8 @@ describe('Login Attempts Tracker', () => {
 
       expect(result.lockedUntil).toBeDefined();
       if (result.lockedUntil) {
-        const lockoutDuration = result.lockedUntil.getTime() - mockNow;
+        const now = new Date('2024-01-01T12:00:00Z');
+        const lockoutDuration = result.lockedUntil.getTime() - now.getTime();
         const fifteenMinutes = 15 * 60 * 1000;
         expect(lockoutDuration).toBe(fifteenMinutes);
       }
@@ -83,8 +90,7 @@ describe('Login Attempts Tracker', () => {
       recordFailedLogin('test@example.com');
 
       // Advance time by 16 minutes (beyond 15-minute window)
-      const sixteenMinutesLater = mockNow + (16 * 60 * 1000);
-      jest.spyOn(Date, 'now').mockReturnValue(sixteenMinutesLater);
+      jest.advanceTimersByTime(16 * 60 * 1000);
 
       // New attempt should reset counter
       const result = recordFailedLogin('test@example.com');
@@ -129,8 +135,7 @@ describe('Login Attempts Tracker', () => {
       }
 
       // Advance time beyond lockout period (16 minutes)
-      const sixteenMinutesLater = mockNow + (16 * 60 * 1000);
-      jest.spyOn(Date, 'now').mockReturnValue(sixteenMinutesLater);
+      jest.advanceTimersByTime(16 * 60 * 1000);
 
       const result = isAccountLocked('test@example.com');
 
@@ -284,9 +289,8 @@ describe('Login Attempts Tracker', () => {
       // Verify locked
       expect(isAccountLocked('user@example.com').isLocked).toBe(true);
 
-      // Advance time beyond lockout
-      const sixteenMinutesLater = mockNow + (16 * 60 * 1000);
-      jest.spyOn(Date, 'now').mockReturnValue(sixteenMinutesLater);
+      // Advance time beyond lockout (16 minutes)
+      jest.advanceTimersByTime(16 * 60 * 1000);
 
       // Should be unlocked and able to try again
       expect(isAccountLocked('user@example.com').isLocked).toBe(false);
