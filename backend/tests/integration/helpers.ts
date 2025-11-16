@@ -124,10 +124,54 @@ export function extractToken(response: any): string {
 }
 
 /**
+ * Extract user ID from signup/login response
+ */
+export function extractUserId(response: any): string {
+  if (response.body?.user?.id) {
+    return response.body.user.id;
+  }
+
+  throw new Error(`No user ID found in response. Body keys: ${Object.keys(response.body || {}).join(', ')}`);
+}
+
+/**
  * Create auth headers with token
  */
 export function authHeaders(token: string) {
   return {
     'Authorization': `Bearer ${token}`,
   };
+}
+
+/**
+ * Make a user an admin by updating their user_metadata
+ * Uses Supabase Admin API with service role key
+ */
+export async function makeUserAdmin(userId: string): Promise<void> {
+  const { createClient } = await import('@supabase/supabase-js');
+
+  // Get Supabase credentials from environment
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('SUPABASE_URL and SUPABASE_SERVICE_KEY must be set');
+  }
+
+  // Create admin client with service role key
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+
+  // Update user metadata to set admin role
+  const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    user_metadata: { role: 'admin' },
+  });
+
+  if (error) {
+    throw new Error(`Failed to make user admin: ${error.message}`);
+  }
 }
