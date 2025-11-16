@@ -31,11 +31,13 @@ router.post('/signup', signupSchema, validate, async (req: Request, res: Respons
     if (!ensureSupabaseConfigured(res)) return;
 
     const { email, password, fullName } = req.body;
+    // Normalize email: trim whitespace and lowercase
+    const normalizedEmail = email.trim().toLowerCase();
 
     // Create user with Supabase Auth
     // In test mode, auto-confirm emails to prevent bounce warnings
     const { data, error } = await supabase!.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         data: {
