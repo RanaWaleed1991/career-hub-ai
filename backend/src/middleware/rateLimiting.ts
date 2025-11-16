@@ -4,6 +4,7 @@ import rateLimit from 'express-rate-limit';
  * General API rate limiter
  * Applies to most API endpoints
  * 100 requests per 15 minutes per IP
+ * Disabled in test mode to allow integration tests
  */
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -11,6 +12,7 @@ export const generalLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many requests',
@@ -24,6 +26,7 @@ export const generalLimiter = rateLimit({
  * AI endpoint rate limiter
  * Applies to AI-powered endpoints (resume analysis, cover letter generation)
  * 500 requests per hour per IP (allows premium users unlimited usage while preventing extreme abuse)
+ * Disabled in test mode to allow integration tests
  */
 export const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -31,6 +34,7 @@ export const aiLimiter = rateLimit({
   message: 'Too many AI requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many AI requests',
@@ -44,6 +48,7 @@ export const aiLimiter = rateLimit({
  * Authentication rate limiter
  * Applies to login, registration, password reset
  * 5 attempts per 15 minutes per IP (prevent brute force)
+ * Disabled in test mode to allow integration tests
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -52,6 +57,7 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Don't count successful requests
+  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many authentication attempts',
@@ -65,6 +71,7 @@ export const authLimiter = rateLimit({
  * Payment endpoint rate limiter
  * Applies to Stripe payment endpoints
  * 10 attempts per hour per IP (prevent payment abuse)
+ * Disabled in test mode to allow integration tests
  */
 export const paymentLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -72,6 +79,7 @@ export const paymentLimiter = rateLimit({
   message: 'Too many payment requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many payment requests',
@@ -85,6 +93,7 @@ export const paymentLimiter = rateLimit({
  * Strict rate limiter for sensitive operations
  * Can be applied to admin endpoints or other critical operations
  * 30 requests per hour per IP
+ * Disabled in test mode to allow integration tests
  */
 export const strictLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
@@ -92,6 +101,7 @@ export const strictLimiter = rateLimit({
   message: 'Too many requests to sensitive endpoint, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
   handler: (req, res) => {
     res.status(429).json({
       error: 'Rate limit exceeded',
