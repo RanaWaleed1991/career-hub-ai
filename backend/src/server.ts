@@ -19,6 +19,8 @@ import paymentsRoutes from './routes/payments.js';
 import webhooksRoutes from './routes/webhooks.js';
 import jobsRoutes from './routes/jobs.js';
 import coursesRoutes from './routes/courses.js';
+import userRoutes from './routes/user.js';
+import { enforceHttps, addSecurityHeaders } from './middleware/httpsEnforcement.js';
 
 // Validate environment variables at startup
 validateEnv();
@@ -41,17 +43,20 @@ const app = express();
 // SECURITY MIDDLEWARE (Order is important!)
 // ============================================================================
 
-// 1. Helmet - Security headers (must be first)
+// 1. HTTPS enforcement (must be first - before any other processing)
+app.use(enforceHttps);
+
+// 2. Helmet - Security headers
 app.use(helmetConfig);
 
-// 2. CORS - Cross-Origin Resource Sharing
+// 3. CORS - Cross-Origin Resource Sharing
 app.use(cors(getCorsOptions()));
 
-// 3. Request logging and monitoring
+// 4. Request logging and monitoring
 app.use(requestLogger);
 app.use(suspiciousActivityDetector);
 
-// 4. Request size limit check
+// 5. Request size limit check
 app.use(requestSizeLimit);
 
 // IMPORTANT: Webhooks must be registered BEFORE express.json() middleware
@@ -87,10 +92,13 @@ app.use('/api/subscriptions', paymentLimiter, subscriptionsRoutes);
 app.use('/api/jobs', strictLimiter, jobsRoutes);
 app.use('/api/courses', strictLimiter, coursesRoutes);
 
-// General API routes - standard rate limiting
-app.use('/api/resumes', generalLimiter, resumesRoutes);
-app.use('/api/versions', generalLimiter, versionsRoutes);
-app.use('/api/applications', generalLimiter, applicationsRoutes);
+// User data management routes - GDPR compliance (with security headers)
+app.use('/api/user', generalLimiter, addSecurityHeaders, userRoutes);
+
+// General API routes - standard rate limiting (with security headers for sensitive data)
+app.use('/api/resumes', generalLimiter, addSecurityHeaders, resumesRoutes);
+app.use('/api/versions', generalLimiter, addSecurityHeaders, versionsRoutes);
+app.use('/api/applications', generalLimiter, addSecurityHeaders, applicationsRoutes);
 
 // ============================================================================
 // ERROR HANDLING

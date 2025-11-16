@@ -10,6 +10,7 @@ import {
   courseTypeSchema,
   enrollCourseSchema,
 } from '../validators/schemas.js';
+import { sanitizeDescription, sanitizePlainText, sanitizeUrl } from '../utils/sanitization.js';
 
 const router = express.Router();
 
@@ -84,18 +85,25 @@ router.post('/admin', authMiddleware, adminMiddleware, createCourseSchema, valid
       affiliate_link
     } = req.body;
 
-    const course = await courseDb.create({
-      title,
-      provider,
-      description,
-      video_url,
+    // Sanitize inputs to prevent XSS attacks
+    const sanitizedData: any = {
+      title: sanitizePlainText(title),
+      provider: sanitizePlainText(provider),
+      description: sanitizeDescription(description), // Allows safe HTML formatting
+      video_url: sanitizeUrl(video_url),
       type,
-      thumbnail_url,
-      duration,
       level,
-      category,
-      affiliate_link,
-    });
+    };
+
+    // Optional fields
+    if (thumbnail_url) sanitizedData.thumbnail_url = sanitizeUrl(thumbnail_url);
+    if (duration) sanitizedData.duration = sanitizePlainText(duration);
+    if (category) sanitizedData.category = sanitizePlainText(category);
+    if (affiliate_link) sanitizedData.affiliate_link = sanitizeUrl(affiliate_link);
+
+    const course = await courseDb.create(sanitizedData);
+
+    console.log(`✅ Course created: "${sanitizedData.title}" by admin ${req.user?.email}`);
 
     res.status(201).json({ course });
   } catch (error) {
@@ -128,20 +136,24 @@ router.put('/admin/:id', authMiddleware, adminMiddleware, updateCourseSchema, va
       is_featured
     } = req.body;
 
-    const course = await courseDb.update(id, {
-      title,
-      provider,
-      description,
-      video_url,
-      type,
-      status,
-      thumbnail_url,
-      duration,
-      level,
-      category,
-      affiliate_link,
-      is_featured,
-    });
+    // Sanitize inputs to prevent XSS attacks
+    const sanitizedData: any = {};
+    if (title) sanitizedData.title = sanitizePlainText(title);
+    if (provider) sanitizedData.provider = sanitizePlainText(provider);
+    if (description) sanitizedData.description = sanitizeDescription(description);
+    if (video_url) sanitizedData.video_url = sanitizeUrl(video_url);
+    if (type) sanitizedData.type = type;
+    if (status) sanitizedData.status = status;
+    if (thumbnail_url) sanitizedData.thumbnail_url = sanitizeUrl(thumbnail_url);
+    if (duration) sanitizedData.duration = sanitizePlainText(duration);
+    if (level) sanitizedData.level = level;
+    if (category) sanitizedData.category = sanitizePlainText(category);
+    if (affiliate_link) sanitizedData.affiliate_link = sanitizeUrl(affiliate_link);
+    if (is_featured !== undefined) sanitizedData.is_featured = is_featured;
+
+    const course = await courseDb.update(id, sanitizedData);
+
+    console.log(`✅ Course updated: ID ${id} by admin ${req.user?.email}`);
 
     res.status(200).json({ course });
   } catch (error) {
