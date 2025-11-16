@@ -17,8 +17,8 @@ import { isDevelopment } from '../config/validateEnv.js';
  * @param next - Next middleware function
  */
 export function enforceHttps(req: Request, res: Response, next: NextFunction): void {
-  // Skip in development mode
-  if (isDevelopment()) {
+  // Skip in development and test mode
+  if (isDevelopment() || process.env.NODE_ENV === 'test') {
     return next();
   }
 
@@ -78,8 +78,8 @@ export function addSecurityHeaders(req: Request, res: Response, next: NextFuncti
  * @param next - Next middleware function
  */
 export function requireHttps(req: Request, res: Response, next: NextFunction): void {
-  // Skip in development
-  if (isDevelopment()) {
+  // Skip in development and test mode
+  if (isDevelopment() || process.env.NODE_ENV === 'test') {
     return next();
   }
 
