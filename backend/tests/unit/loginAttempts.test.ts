@@ -208,16 +208,17 @@ describe('Login Attempts Tracker', () => {
 
       const stats = getLoginAttemptStats();
 
-      expect(stats.totalAttempts).toBeGreaterThanOrEqual(2);
+      expect(stats.totalTracked).toBeGreaterThanOrEqual(2);
       expect(stats.lockedAccounts).toBeGreaterThanOrEqual(1);
+      expect(stats.attemptsInWindow).toBeGreaterThanOrEqual(2);
     });
 
     it('should return empty stats when no attempts', () => {
       const stats = getLoginAttemptStats();
 
-      expect(stats.totalAttempts).toBe(0);
+      expect(stats.totalTracked).toBe(0);
       expect(stats.lockedAccounts).toBe(0);
-      expect(stats.recentAttempts).toEqual([]);
+      expect(stats.attemptsInWindow).toBe(0);
     });
   });
 
