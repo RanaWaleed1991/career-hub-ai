@@ -23,18 +23,18 @@ export const generalLimiter = rateLimit({
 /**
  * AI endpoint rate limiter
  * Applies to AI-powered endpoints (resume analysis, cover letter generation)
- * 20 requests per hour per IP (AI operations are expensive)
+ * 500 requests per hour per IP (allows premium users unlimited usage while preventing extreme abuse)
  */
 export const aiLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 20, // Limit each IP to 20 requests per hour
+  max: 500, // Increased from 20 to allow unlimited premium usage
   message: 'Too many AI requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many AI requests',
-      message: 'You have exceeded the 20 AI requests per hour limit.',
+      message: 'You have exceeded the 500 AI requests per hour limit.',
       retryAfter: Math.ceil(req.rateLimit.resetTime! / 1000),
     });
   },
