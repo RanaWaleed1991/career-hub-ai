@@ -47,9 +47,18 @@ const envSchema = Joi.object({
     .required()
     .description('Stripe webhook secret for signature verification'),
 
+  // Stripe price IDs (support both single and multiple pricing tiers)
   STRIPE_PRICE_ID: Joi.string()
-    .required()
-    .description('Stripe price ID for subscription'),
+    .optional()
+    .description('Stripe price ID for subscription (single tier)'),
+
+  STRIPE_WEEKLY_PRICE_ID: Joi.string()
+    .optional()
+    .description('Stripe weekly subscription price ID'),
+
+  STRIPE_MONTHLY_PRICE_ID: Joi.string()
+    .optional()
+    .description('Stripe monthly subscription price ID'),
 
   // Adzuna job API configuration
   ADZUNA_APP_ID: Joi.string()
@@ -57,8 +66,12 @@ const envSchema = Joi.object({
     .description('Adzuna API application ID'),
 
   ADZUNA_APP_KEY: Joi.string()
-    .required()
+    .optional()
     .description('Adzuna API application key'),
+
+  ADZUNA_API_KEY: Joi.string()
+    .optional()
+    .description('Adzuna API key (alternative naming)'),
 }).unknown(true); // Allow other env variables
 
 /**
@@ -78,6 +91,14 @@ export function validateEnv(): void {
     throw new Error(`Environment validation failed:\n${missingVars}`);
   }
 
+  // Custom validation: Check for at least one Adzuna API key naming convention
+  if (!process.env.ADZUNA_APP_KEY && !process.env.ADZUNA_API_KEY) {
+    const errorMsg = 'Either ADZUNA_APP_KEY or ADZUNA_API_KEY is required';
+    console.error('❌ Environment validation failed:');
+    console.error(errorMsg);
+    throw new Error(`Environment validation failed:\n${errorMsg}`);
+  }
+
   console.log('✅ Environment variables validated successfully');
 
   // Log security-relevant configuration (without exposing secrets)
@@ -90,6 +111,8 @@ export function validateEnv(): void {
   console.log(`  STRIPE_SECRET_KEY: ${value.STRIPE_SECRET_KEY ? '✓ Set' : '✗ Missing'}`);
   console.log(`  STRIPE_WEBHOOK_SECRET: ${value.STRIPE_WEBHOOK_SECRET ? '✓ Set' : '✗ Missing'}`);
   console.log(`  ADZUNA_APP_ID: ${value.ADZUNA_APP_ID ? '✓ Set' : '✗ Missing'}`);
+  const adzunaKey = value.ADZUNA_APP_KEY || value.ADZUNA_API_KEY;
+  console.log(`  ADZUNA_API_KEY: ${adzunaKey ? '✓ Set' : '✗ Missing'}`);
 }
 
 /**
@@ -105,15 +128,18 @@ export function getMissingEnvVars(): string[] {
     'GEMINI_API_KEY',
     'STRIPE_SECRET_KEY',
     'STRIPE_WEBHOOK_SECRET',
-    'STRIPE_PRICE_ID',
     'ADZUNA_APP_ID',
-    'ADZUNA_APP_KEY',
   ];
 
   for (const varName of requiredVars) {
     if (!process.env[varName]) {
       missing.push(varName);
     }
+  }
+
+  // Check for Adzuna API key (supports both naming conventions)
+  if (!process.env.ADZUNA_APP_KEY && !process.env.ADZUNA_API_KEY) {
+    missing.push('ADZUNA_APP_KEY or ADZUNA_API_KEY');
   }
 
   return missing;
