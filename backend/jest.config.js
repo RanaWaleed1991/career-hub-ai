@@ -57,6 +57,13 @@ export default {
   // Setup files to run before tests
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
 
+  // Globals for tests
+  globals: {
+    'ts-jest': {
+      isolatedModules: true,
+    },
+  },
+
   // Verbose output
   verbose: true,
 

@@ -4,10 +4,17 @@
  * Tests for Sprint 6.6 - Auth endpoint integration testing
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import request from 'supertest';
-import { app } from '../../src/app.js';
 import { generateTestUser, extractToken } from './helpers.js';
+
+// Import app after helpers to avoid timing issues
+let app: any;
+
+beforeAll(async () => {
+  const appModule = await import('../../src/app.js');
+  app = appModule.app;
+});
 
 describe('Authentication API Integration Tests', () => {
   describe('POST /api/auth/signup', () => {

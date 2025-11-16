@@ -6,8 +6,10 @@
 
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import request from 'supertest';
-import { app } from '../../src/app.js';
 import { generateTestUser, generateTestJob, extractToken, authHeaders } from './helpers.js';
+
+// Import app dynamically to avoid timing issues
+let app: any;
 
 describe('Jobs API Integration Tests', () => {
   let adminToken: string;
@@ -15,6 +17,10 @@ describe('Jobs API Integration Tests', () => {
   let testJobId: string;
 
   beforeAll(async () => {
+    // Dynamically import app
+    const appModule = await import('../../src/app.js');
+    app = appModule.app;
+
     // Note: In a real scenario, you'd create admin user with proper role assignment
     // For now, we'll create regular users and test the permission logic
     const adminUser = generateTestUser();
