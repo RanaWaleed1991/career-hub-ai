@@ -7,11 +7,19 @@ const __dirname = dirname(__filename);
 
 // Load environment variables from .env file
 // In test mode, override any existing env vars to ensure .env file values are used
+// BUT preserve NODE_ENV to keep test mode active
 const envPath = join(__dirname, '../../.env');
+const isTestMode = process.env.NODE_ENV === 'test';
+
 dotenv.config({
   path: envPath,
-  override: process.env.NODE_ENV === 'test' // Force override in test mode
+  override: isTestMode // Force override in test mode
 });
+
+// Restore NODE_ENV if it was overwritten during test mode
+if (isTestMode) {
+  process.env.NODE_ENV = 'test';
+}
 
 interface EnvConfig {
   GEMINI_API_KEY: string; // Now validated by validateEnv() in server.ts
