@@ -6,14 +6,20 @@
 
 import { describe, it, expect, beforeAll } from '@jest/globals';
 import request from 'supertest';
-import { app } from '../../src/app.js';
 import { generateTestUser, generateTestCourse, extractToken, authHeaders } from './helpers.js';
+
+// Import app dynamically to avoid timing issues
+let app: any;
 
 describe('Courses API Integration Tests', () => {
   let adminToken: string;
   let userToken: string;
 
   beforeAll(async () => {
+    // Dynamically import app
+    const appModule = await import('../../src/app.js');
+    app = appModule.app;
+
     const adminUser = generateTestUser();
     const adminResponse = await request(app)
       .post('/api/auth/signup')
