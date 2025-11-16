@@ -312,7 +312,7 @@ describe('Sanitization Utilities', () => {
     });
 
     it('should detect SQL comments', () => {
-      const input = "test'--";
+      const input = "test'; --comment";
       const result = detectSqlInjection(input);
 
       expect(result).toBe(true);
