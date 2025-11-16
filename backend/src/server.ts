@@ -83,9 +83,11 @@ app.use('/api/auth', authLimiter, authRoutes);
 // AI-powered routes - rate limited due to high cost
 app.use('/api/gemini', aiLimiter, geminiRoutes);
 
-// Payment routes - rate limited to prevent abuse
+// Payment routes - strict rate limiting to prevent payment abuse
 app.use('/api/payments', paymentLimiter, paymentsRoutes);
-app.use('/api/subscriptions', paymentLimiter, subscriptionsRoutes);
+
+// Subscription routes - general rate limiting (users check subscription status frequently)
+app.use('/api/subscriptions', generalLimiter, subscriptionsRoutes);
 
 // Admin routes - strict rate limiting for sensitive operations
 // Note: These are protected by adminMiddleware inside the route files
