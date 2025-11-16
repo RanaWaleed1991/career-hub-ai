@@ -11,6 +11,7 @@ import {
   deleteJobSchema,
   jobCategorySchema,
 } from '../validators/schemas.js';
+import { sanitizeDescription, sanitizePlainText } from '../utils/sanitization.js';
 
 const router = express.Router();
 
@@ -74,13 +75,18 @@ router.post('/admin', authMiddleware, adminMiddleware, createJobSchema, validate
 
     const { title, company, location, description, category } = req.body;
 
-    const job = await jobDb.create({
-      title,
-      company,
-      location,
-      description,
+    // Sanitize inputs to prevent XSS attacks
+    const sanitizedData = {
+      title: sanitizePlainText(title),
+      company: sanitizePlainText(company),
+      location: sanitizePlainText(location),
+      description: sanitizeDescription(description), // Allows safe HTML formatting
       category,
-    });
+    };
+
+    const job = await jobDb.create(sanitizedData);
+
+    console.log(`✅ Job created: "${sanitizedData.title}" by admin ${req.user?.email}`);
 
     res.status(201).json({ job });
   } catch (error) {
@@ -100,14 +106,18 @@ router.put('/admin/:id', authMiddleware, adminMiddleware, updateJobSchema, valid
     const { id } = req.params;
     const { title, company, location, description, category, status } = req.body;
 
-    const job = await jobDb.update(id, {
-      title,
-      company,
-      location,
-      description,
-      category,
-      status,
-    });
+    // Sanitize inputs to prevent XSS attacks
+    const sanitizedData: any = {};
+    if (title) sanitizedData.title = sanitizePlainText(title);
+    if (company) sanitizedData.company = sanitizePlainText(company);
+    if (location) sanitizedData.location = sanitizePlainText(location);
+    if (description) sanitizedData.description = sanitizeDescription(description);
+    if (category) sanitizedData.category = category;
+    if (status) sanitizedData.status = status;
+
+    const job = await jobDb.update(id, sanitizedData);
+
+    console.log(`✅ Job updated: ID ${id} by admin ${req.user?.email}`);
 
     res.status(200).json({ job });
   } catch (error) {
