@@ -68,4 +68,7 @@ export default {
 
   // Test timeout (5 seconds)
   testTimeout: 5000,
+
+  // Force exit after tests complete (needed for background timers like loginAttempts cleanup)
+  forceExit: true,
 };
