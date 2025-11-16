@@ -8,13 +8,19 @@ import { faker } from '@faker-js/faker';
 
 /**
  * Generate test user data
+ * Uses mailinator.com for test emails to prevent Supabase bounce warnings
+ * Mailinator accepts all emails without bouncing
  */
 export function generateTestUser(overrides: any = {}) {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
+  const timestamp = Date.now();
+  const random = faker.string.alphanumeric(6);
 
   return {
-    email: faker.internet.email({ firstName, lastName }).toLowerCase(),
+    // Use mailinator.com to prevent email bounces during testing
+    // Mailinator is a test email service that accepts all emails
+    email: `test-${timestamp}-${random}@mailinator.com`,
     password: 'TestPass123!',  // Valid password meeting requirements
     fullName: `${firstName} ${lastName}`,
     ...overrides,

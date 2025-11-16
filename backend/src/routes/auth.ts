@@ -33,6 +33,7 @@ router.post('/signup', signupSchema, validate, async (req: Request, res: Respons
     const { email, password, fullName } = req.body;
 
     // Create user with Supabase Auth
+    // In test mode, auto-confirm emails to prevent bounce warnings
     const { data, error } = await supabase!.auth.signUp({
       email,
       password,
@@ -40,6 +41,7 @@ router.post('/signup', signupSchema, validate, async (req: Request, res: Respons
         data: {
           full_name: fullName || '',
         },
+        emailRedirectTo: process.env.NODE_ENV === 'test' ? undefined : `${process.env.FRONTEND_URL}/auth/callback`,
       },
     });
 
