@@ -20,7 +20,7 @@ export function generateTestUser(overrides: any = {}) {
   return {
     // Use mailinator.com to prevent email bounces during testing
     // Mailinator is a test email service that accepts all emails
-    email: `test-${timestamp}-${random}@mailinator.com`,
+    email: `test-${timestamp}-${random}@mailinator.com`.toLowerCase(),
     password: 'TestPass123!',  // Valid password meeting requirements
     fullName: `${firstName} ${lastName}`,
     ...overrides,

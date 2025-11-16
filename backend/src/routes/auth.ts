@@ -149,10 +149,10 @@ router.post('/logout', authMiddleware, async (req: AuthRequest, res: Response): 
 });
 
 /**
- * GET /api/auth/user
+ * GET /api/auth/user (and /api/auth/me)
  * Get current authenticated user info (requires auth)
  */
-router.get('/user', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!ensureSupabaseConfigured(res)) return;
 
@@ -170,18 +170,20 @@ router.get('/user', authMiddleware, async (req: AuthRequest, res: Response): Pro
     }
 
     res.status(200).json({
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-        fullName: data.user.user_metadata?.full_name || '',
-        createdAt: data.user.created_at,
-      },
+      id: data.user.id,
+      email: data.user.email,
+      fullName: data.user.user_metadata?.full_name || '',
+      createdAt: data.user.created_at,
     });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user info' });
   }
-});
+};
+
+// Register the same handler for both /user and /me endpoints
+router.get('/user', authMiddleware, getCurrentUser);
+router.get('/me', authMiddleware, getCurrentUser);
 
 /**
  * POST /api/auth/google
