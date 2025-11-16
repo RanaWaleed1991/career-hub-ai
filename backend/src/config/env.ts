@@ -6,7 +6,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load environment variables from .env file
-dotenv.config({ path: join(__dirname, '../../.env') });
+// In test mode, override any existing env vars to ensure .env file values are used
+const envPath = join(__dirname, '../../.env');
+dotenv.config({
+  path: envPath,
+  override: process.env.NODE_ENV === 'test' // Force override in test mode
+});
 
 interface EnvConfig {
   GEMINI_API_KEY: string; // Now validated by validateEnv() in server.ts
