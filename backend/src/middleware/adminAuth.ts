@@ -43,8 +43,9 @@ export const adminMiddleware = async (
       return;
     }
 
-    // Check if user has admin role in user_metadata
-    const userRole = user.user_metadata?.role;
+    // Check if user has admin role in app_metadata or user_metadata
+    // app_metadata is preferred as it's accessible in RLS policies
+    const userRole = user.app_metadata?.role || user.user_metadata?.role;
 
     if (userRole !== 'admin') {
       res.status(403).json({

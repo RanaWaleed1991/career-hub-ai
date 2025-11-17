@@ -144,8 +144,9 @@ export function authHeaders(token: string) {
 }
 
 /**
- * Make a user an admin by updating their user_metadata
+ * Make a user an admin by updating their metadata
  * Uses Supabase Admin API with service role key
+ * Sets both user_metadata and app_metadata for compatibility
  */
 export async function makeUserAdmin(userId: string): Promise<void> {
   const { createClient } = await import('@supabase/supabase-js');
@@ -166,9 +167,12 @@ export async function makeUserAdmin(userId: string): Promise<void> {
     },
   });
 
-  // Update user metadata to set admin role
+  // Update BOTH user_metadata and app_metadata
+  // app_metadata is accessible in RLS policies via auth.jwt()
+  // user_metadata is accessible in application code
   const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
     user_metadata: { role: 'admin' },
+    app_metadata: { role: 'admin' },
   });
 
   if (error) {
