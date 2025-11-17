@@ -26,9 +26,17 @@ describe('Jobs API Integration Tests', () => {
     const adminResponse = await request(app)
       .post('/api/auth/signup')
       .send(adminUser);
-    adminToken = extractToken(adminResponse);
     const adminUserId = extractUserId(adminResponse);
     await makeUserAdmin(adminUserId); // Promote to admin
+
+    // IMPORTANT: Login again to get a new JWT with app_metadata
+    const adminLoginResponse = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: adminUser.email,
+        password: adminUser.password,
+      });
+    adminToken = extractToken(adminLoginResponse);
 
     // Create regular user (no admin role)
     const regularUser = generateTestUser();
