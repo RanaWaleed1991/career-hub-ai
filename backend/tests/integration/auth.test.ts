@@ -102,14 +102,17 @@ describe('Authentication API Integration Tests', () => {
     });
 
     it('should trim and lowercase email', async () => {
-      const userData = generateTestUser({ email: '  TEST@EXAMPLE.COM  ' });
+      const baseEmail = generateTestUser().email;
+      // Add whitespace and uppercase to test normalization
+      const messyEmail = `  ${baseEmail.toUpperCase()}  `;
+      const userData = generateTestUser({ email: messyEmail });
 
       const response = await request(app)
         .post('/api/auth/signup')
         .send(userData)
         .expect(201);
 
-      expect(response.body.user.email).toBe('test@example.com');
+      expect(response.body.user.email).toBe(baseEmail);
     });
   });
 

@@ -152,8 +152,8 @@ export const deleteJobSchema = [
 
 export const jobCategorySchema = [
   param('category')
-    .isIn(['tech', 'accounting', 'casual'])
-    .withMessage('Category must be tech, accounting, or casual'),
+    .isIn(['tech', 'accounting', 'casual', 'healthcare'])
+    .withMessage('Category must be tech, accounting, casual, or healthcare'),
 ];
 
 // =======================
