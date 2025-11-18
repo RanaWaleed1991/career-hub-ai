@@ -23,9 +23,9 @@ export default defineConfig({
 
   // Reporter configuration
   reporter: [
-    ['html', { outputFolder: 'test-results/html-report' }],
+    ['html', { outputFolder: 'playwright-report' }],
     ['list'], // Console output
-    ['json', { outputFile: 'test-results/results.json' }]
+    ['json', { outputFile: 'playwright-report/results.json' }]
   ],
 
   // Global test settings
@@ -71,11 +71,15 @@ export default defineConfig({
   ],
 
   // Start dev servers before tests
+  // NOTE: On Windows, start servers manually in separate terminals:
+  // Terminal 1: cd backend && npm run dev
+  // Terminal 2: cd frontend && npm run dev
+  // Then run: npm run test:e2e
   webServer: [
     {
       command: 'cd frontend && npm run dev',
       url: 'http://localhost:5173',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true, // Changed to true - reuse existing servers
       timeout: 120 * 1000,
       stdout: 'pipe',
       stderr: 'pipe',
@@ -83,7 +87,7 @@ export default defineConfig({
     {
       command: 'cd backend && npm run dev',
       url: 'http://localhost:3001',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: true, // Changed to true - reuse existing servers
       timeout: 120 * 1000,
       stdout: 'pipe',
       stderr: 'pipe',
