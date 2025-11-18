@@ -242,8 +242,7 @@ test.describe('Authentication Flow', () => {
     const testUser = generateTestUser();
     await registerUser(page, testUser.email, testUser.password, testUser.fullName);
 
-    // Note: registerUser now automatically dismisses Welcome Modal
-    // Verify logged in and ready to interact
+    // Verify logged in
     await expect(page.getByText('Dashboard')).toBeVisible();
 
     // Find and click logout button
@@ -252,18 +251,17 @@ test.describe('Authentication Flow', () => {
     if (await logoutButton.isVisible({ timeout: 3000 })) {
       await logoutButton.click();
 
-      // Wait for logout to complete - check for auth page or URL change
+      // Wait for logout to complete
       await page.waitForTimeout(2000);
 
-      // Try multiple ways to verify logout succeeded
+      // Verify logout succeeded
       const onLoginPage = await page.locator('#email-login').isVisible();
       const hasSignInButton = await page.getByRole('button', { name: 'Sign In' }).isVisible();
       const notOnDashboard = !(await page.getByText('Dashboard').isVisible());
 
-      // Test passes if we see login form OR sign in button OR not on dashboard
       expect(onLoginPage || hasSignInButton || notOnDashboard).toBe(true);
     } else {
-      console.log('⚠️ Logout button not found in expected location. Skipping logout test.');
+      console.log('⚠️ Logout button not found. Skipping logout test.');
       test.skip();
     }
   });

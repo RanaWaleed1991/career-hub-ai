@@ -1,30 +1,6 @@
 import { Page, expect } from '@playwright/test';
 
 /**
- * Dismiss Welcome Modal by setting localStorage flag
- *
- * @param page Playwright page object
- * @param email User email (used to generate the localStorage key)
- */
-export async function dismissWelcomeModal(page: Page, email: string) {
-  // Programmatically set the localStorage key to dismiss Welcome Modal
-  await page.evaluate((userEmail) => {
-    const welcomeKey = `welcome_shown_${userEmail.toLowerCase().trim()}`;
-    localStorage.setItem(welcomeKey, 'true');
-  }, email);
-
-  // Wait for modal to close
-  await page.waitForTimeout(500);
-
-  // Reload page to ensure modal doesn't reappear
-  await page.reload();
-  await page.waitForLoadState('networkidle');
-
-  // Verify still logged in after reload
-  await expect(page.getByText('Dashboard')).toBeVisible({ timeout: 10000 });
-}
-
-/**
  * Register a new user via the UI
  *
  * @param page Playwright page object
@@ -43,6 +19,13 @@ export async function registerUser(
 
   // Wait for auth page to load
   await expect(page.getByText('Career Hub AI')).toBeVisible();
+
+  // Pre-set localStorage to prevent Welcome Modal from appearing
+  // This is more reliable than trying to close it after registration
+  await page.evaluate((userEmail) => {
+    const welcomeKey = `welcome_shown_${userEmail.toLowerCase().trim()}`;
+    localStorage.setItem(welcomeKey, 'true');
+  }, email);
 
   // Check if we're on login view, switch to signup if needed
   const signupLinkText = "Don't have an account? Sign up";
@@ -68,10 +51,8 @@ export async function registerUser(
   await page.waitForURL(/\//, { timeout: 15000 });
 
   // Verify we're logged in by checking for dashboard elements
+  // Welcome Modal won't appear because we pre-set the localStorage key
   await expect(page.getByText('Dashboard')).toBeVisible({ timeout: 10000 });
-
-  // Dismiss Welcome Modal automatically (prevents it from blocking subsequent actions)
-  await dismissWelcomeModal(page, email);
 }
 
 /**
