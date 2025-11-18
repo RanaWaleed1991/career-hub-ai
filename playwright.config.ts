@@ -56,7 +56,10 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        channel: 'chrome', // Use system Chrome instead of downloaded Chromium
+      },
     },
 
     // Uncomment to test other browsers:
