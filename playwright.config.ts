@@ -70,27 +70,11 @@ export default defineConfig({
     // },
   ],
 
-  // Start dev servers before tests
-  // NOTE: On Windows, start servers manually in separate terminals:
+  // NOTE: Start dev servers MANUALLY before running tests:
   // Terminal 1: cd backend && npm run dev
   // Terminal 2: cd frontend && npm run dev
-  // Then run: npm run test:e2e
-  webServer: [
-    {
-      command: 'cd frontend && npm run dev',
-      url: 'http://localhost:5173',
-      reuseExistingServer: true, // Changed to true - reuse existing servers
-      timeout: 120 * 1000,
-      stdout: 'pipe',
-      stderr: 'pipe',
-    },
-    {
-      command: 'cd backend && npm run dev',
-      url: 'http://localhost:3001',
-      reuseExistingServer: true, // Changed to true - reuse existing servers
-      timeout: 120 * 1000,
-      stdout: 'pipe',
-      stderr: 'pipe',
-    },
-  ],
+  // Terminal 3: npm run test:e2e
+  //
+  // webServer config disabled - start servers manually
+  // webServer: undefined,
 });
