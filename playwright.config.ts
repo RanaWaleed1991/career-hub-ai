@@ -1,0 +1,92 @@
+import { defineConfig, devices } from '@playwright/test';
+
+/**
+ * Playwright E2E Testing Configuration
+ *
+ * This configuration is optimized for testing Career Hub AI:
+ * - Tests run sequentially to prevent database conflicts
+ * - Uses real Supabase with isolated test data
+ * - Mocks external APIs (Gemini, Adzuna) for speed and reliability
+ * - Uses real Stripe test mode for payment flows
+ */
+export default defineConfig({
+  testDir: './tests/e2e',
+
+  // Maximum time one test can run (30 seconds)
+  timeout: 30 * 1000,
+
+  // Test execution settings
+  fullyParallel: false, // Run sequentially to avoid database conflicts
+  forbidOnly: !!process.env.CI, // Fail CI if test.only exists
+  retries: process.env.CI ? 2 : 0, // Retry failed tests in CI
+  workers: 1, // One test at a time (CRITICAL for database safety)
+
+  // Reporter configuration
+  reporter: [
+    ['html', { outputFolder: 'test-results/html-report' }],
+    ['list'], // Console output
+    ['json', { outputFile: 'test-results/results.json' }]
+  ],
+
+  // Global test settings
+  use: {
+    // Base URL for frontend tests
+    baseURL: 'http://localhost:5173',
+
+    // Collect trace on first retry (helps debug failures)
+    trace: 'on-first-retry',
+
+    // Screenshot on failure only
+    screenshot: 'only-on-failure',
+
+    // Video recording on failure
+    video: 'retain-on-failure',
+
+    // Browser viewport
+    viewport: { width: 1280, height: 720 },
+
+    // Ignore HTTPS errors (for local dev)
+    ignoreHTTPSErrors: true,
+
+    // Default timeout for actions (10 seconds)
+    actionTimeout: 10 * 1000,
+  },
+
+  // Browser projects to test
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+
+    // Uncomment to test other browsers:
+    // {
+    //   name: 'firefox',
+    //   use: { ...devices['Desktop Firefox'] },
+    // },
+    // {
+    //   name: 'webkit',
+    //   use: { ...devices['Desktop Safari'] },
+    // },
+  ],
+
+  // Start dev servers before tests
+  webServer: [
+    {
+      command: 'cd frontend && npm run dev',
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+    {
+      command: 'cd backend && npm run dev',
+      url: 'http://localhost:3001',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    },
+  ],
+});
