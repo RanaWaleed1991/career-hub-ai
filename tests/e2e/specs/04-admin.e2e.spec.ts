@@ -117,7 +117,7 @@ test.describe('Admin Panel Flow', () => {
         location: 'Sydney, NSW',
         description: 'This job will be deleted',
         category: 'tech',
-        source: 'e2e_test',
+        source: 'manual',
         status: 'active'
       });
 
@@ -329,7 +329,7 @@ test.describe('Admin Panel Flow', () => {
           location: 'Location 1',
           description: 'Description 1',
           category: 'tech',
-          source: 'e2e_test',
+          source: 'manual',
           status: 'active'
         },
         {
@@ -338,7 +338,7 @@ test.describe('Admin Panel Flow', () => {
           location: 'Location 2',
           description: 'Description 2',
           category: 'accounting',
-          source: 'e2e_test',
+          source: 'manual',
           status: 'active'
         }
       ]);

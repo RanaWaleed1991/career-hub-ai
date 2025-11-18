@@ -31,7 +31,7 @@ test.describe('Job Board Flow', () => {
           location: 'Melbourne, VIC',
           description: 'Exciting opportunity for a senior engineer with React and Node.js experience.',
           category: 'tech',
-          source: 'e2e_test',
+          source: 'manual',
           status: 'active',
           external_url: 'https://example.com/job/1'
         },
@@ -41,7 +41,7 @@ test.describe('Job Board Flow', () => {
           location: 'Sydney, NSW',
           description: 'Great entry-level position for aspiring developers.',
           category: 'tech',
-          source: 'e2e_test',
+          source: 'manual',
           status: 'active'
         }
       ]);
@@ -91,7 +91,7 @@ test.describe('Job Board Flow', () => {
           location: 'Melbourne, VIC',
           description: 'React specialist needed',
           category: 'tech',
-          source: 'e2e_test',
+          source: 'manual',
           status: 'active'
         },
         {
@@ -100,7 +100,7 @@ test.describe('Job Board Flow', () => {
           location: 'Sydney, NSW',
           description: 'Accounting role',
           category: 'accounting',
-          source: 'e2e_test',
+          source: 'manual',
           status: 'active'
         },
         {
@@ -109,7 +109,7 @@ test.describe('Job Board Flow', () => {
           location: 'Brisbane, QLD',
           description: 'Casual barista position',
           category: 'casual',
-          source: 'e2e_test',
+          source: 'manual',
           status: 'active'
         }
       ]);
