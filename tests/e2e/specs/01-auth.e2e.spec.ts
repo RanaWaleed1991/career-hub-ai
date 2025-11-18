@@ -242,30 +242,13 @@ test.describe('Authentication Flow', () => {
     const testUser = generateTestUser();
     await registerUser(page, testUser.email, testUser.password, testUser.fullName);
 
-    // Verify logged in
+    // Note: registerUser now automatically dismisses Welcome Modal
+    // Verify logged in and ready to interact
     await expect(page.getByText('Dashboard')).toBeVisible();
 
-    // Programmatically dismiss Welcome Modal by setting localStorage key
-    // This is more reliable than trying to click the modal button
-    await page.evaluate((email) => {
-      const welcomeKey = `welcome_shown_${email.toLowerCase().trim()}`;
-      localStorage.setItem(welcomeKey, 'true');
-    }, testUser.email);
-
-    // Wait a moment for any modal animations to complete
-    await page.waitForTimeout(1000);
-
-    // Reload page to apply the localStorage change and hide the modal
-    await page.reload();
-    await page.waitForLoadState('networkidle');
-
-    // Verify still logged in after reload
-    await expect(page.getByText('Dashboard')).toBeVisible({ timeout: 10000 });
-
-    // Now the modal should not appear, and we can access the logout button
+    // Find and click logout button
     const logoutButton = page.getByRole('button', { name: /logout|sign out/i });
 
-    // Click logout
     if (await logoutButton.isVisible({ timeout: 3000 })) {
       await logoutButton.click();
 
