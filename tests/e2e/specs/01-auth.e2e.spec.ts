@@ -68,13 +68,16 @@ test.describe('Authentication Flow', () => {
 
     await page.goto('/');
 
-    // Switch to signup and WAIT for form to appear
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('networkidle');
+
+    // Switch to signup - wait for link, click it, and wait for login form to disappear
     const signupLink = page.getByText("Don't have an account? Sign up");
-    if (await signupLink.isVisible()) {
-      await signupLink.click();
-      // Wait for the view transition to complete
-      await page.waitForTimeout(500);
-    }
+    await expect(signupLink).toBeVisible({ timeout: 5000 });
+    await signupLink.click();
+
+    // Wait for login form to disappear (confirms view switched)
+    await expect(page.locator('#email-login')).toBeHidden({ timeout: 3000 });
 
     // WAIT for signup form to be visible
     await expect(page.locator('#fullname-signup')).toBeVisible({ timeout: 5000 });
@@ -100,13 +103,16 @@ test.describe('Authentication Flow', () => {
 
     await page.goto('/');
 
-    // Switch to signup and WAIT for form to appear
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('networkidle');
+
+    // Switch to signup - wait for link, click it, and wait for login form to disappear
     const signupLink = page.getByText("Don't have an account? Sign up");
-    if (await signupLink.isVisible()) {
-      await signupLink.click();
-      // Wait for the view transition to complete
-      await page.waitForTimeout(500);
-    }
+    await expect(signupLink).toBeVisible({ timeout: 5000 });
+    await signupLink.click();
+
+    // Wait for login form to disappear (confirms view switched)
+    await expect(page.locator('#email-login')).toBeHidden({ timeout: 3000 });
 
     // WAIT for signup form to be visible
     await expect(page.locator('#fullname-signup')).toBeVisible({ timeout: 5000 });
@@ -130,13 +136,16 @@ test.describe('Authentication Flow', () => {
 
     await page.goto('/');
 
-    // Switch to signup and WAIT for form to appear
+    // Wait for page to be fully loaded
+    await page.waitForLoadState('networkidle');
+
+    // Switch to signup - wait for link, click it, and wait for login form to disappear
     const signupLink = page.getByText("Don't have an account? Sign up");
-    if (await signupLink.isVisible()) {
-      await signupLink.click();
-      // Wait for the view transition to complete
-      await page.waitForTimeout(500);
-    }
+    await expect(signupLink).toBeVisible({ timeout: 5000 });
+    await signupLink.click();
+
+    // Wait for login form to disappear (confirms view switched)
+    await expect(page.locator('#email-login')).toBeHidden({ timeout: 3000 });
 
     // WAIT for signup form to be visible
     await expect(page.locator('#fullname-signup')).toBeVisible({ timeout: 5000 });
@@ -251,8 +260,9 @@ test.describe('Authentication Flow', () => {
     if (await logoutButton.isVisible({ timeout: 3000 })) {
       await logoutButton.click({ force: true });
 
-      // Should redirect to auth page
-      await expect(page.getByText('Career Hub AI')).toBeVisible({ timeout: 5000 });
+      // Should redirect to auth page - look for login-specific elements
+      await expect(page.locator('#email-login')).toBeVisible({ timeout: 5000 });
+      await expect(page.getByRole('button', { name: 'Sign In' })).toBeVisible();
     } else {
       console.log('⚠️ Logout button not found in expected location. Skipping logout test.');
       test.skip();
