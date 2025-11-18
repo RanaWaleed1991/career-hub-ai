@@ -1,28 +1,40 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
-import ResumeBuilder from './components/ResumeBuilder';
-import CoursesPage from './components/CoursesPage';
-import CoverLetterBuilder from './components/CoverLetterBuilder';
-import JobsPage from './components/JobsPage';
 import AuthPage from './components/AuthPage';
-import AdminPage from './components/AdminPage';
-import ApplicationTrackerPage from './components/ApplicationTrackerPage';
-import VersionHistoryPage from './components/VersionHistoryPage';
-import ResumeAnalyserPage from './components/ResumeAnalyserPage';
 import PremiumModal from './components/PremiumModal';
 import WelcomeModal from './components/WelcomeModal';
 import SubscriptionExpiredModal from './components/SubscriptionExpiredModal';
-import PaymentSuccess from './components/PaymentSuccess';
-import PaymentCancel from './components/PaymentCancel';
-import { PricingPage } from './src/components/payments/PricingPage';
-import { SubscriptionManagement } from './src/components/payments/SubscriptionManagement';
 import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFlag, getSubscription } from './services/premiumService';
 import type { Page } from './types';
 import Dashboard from './components/Dashboard';
-import TailorResumeModal from './components/TailorResumeModal';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 
+// Lazy load heavy components to reduce initial bundle size
+// These will be loaded on-demand when user navigates to them
+const ResumeBuilder = lazy(() => import('./components/ResumeBuilder'));
+const ResumeAnalyserPage = lazy(() => import('./components/ResumeAnalyserPage'));
+const AdminPage = lazy(() => import('./components/AdminPage'));
+const CoursesPage = lazy(() => import('./components/CoursesPage'));
+const JobsPage = lazy(() => import('./components/JobsPage'));
+const CoverLetterBuilder = lazy(() => import('./components/CoverLetterBuilder'));
+const ApplicationTrackerPage = lazy(() => import('./components/ApplicationTrackerPage'));
+const VersionHistoryPage = lazy(() => import('./components/VersionHistoryPage'));
+const PricingPage = lazy(() => import('./src/components/payments/PricingPage').then(m => ({ default: m.PricingPage })));
+const SubscriptionManagement = lazy(() => import('./src/components/payments/SubscriptionManagement').then(m => ({ default: m.SubscriptionManagement })));
+const PaymentSuccess = lazy(() => import('./components/PaymentSuccess'));
+const PaymentCancel = lazy(() => import('./components/PaymentCancel'));
+const TailorResumeModal = lazy(() => import('./components/TailorResumeModal'));
+
+// Loading fallback component for lazy-loaded routes
+const LoadingFallback: React.FC = () => (
+  <div className="h-full w-full flex items-center justify-center bg-slate-50">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <p className="mt-4 text-gray-600">Loading...</p>
+    </div>
+  </div>
+);
 
 const AppContent: React.FC = () => {
   const { user, loading, logout, isAdmin } = useAuth();
@@ -191,7 +203,11 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="h-screen w-screen bg-slate-50 flex flex-col">
-      {tailorModalState.isOpen && <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />}
+      {tailorModalState.isOpen && (
+        <Suspense fallback={null}>
+          <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
+        </Suspense>
+      )}
       {showWelcomeModal && <WelcomeModal onClose={handleCloseWelcomeModal} />}
       {showPremiumModal && (
         <PremiumModal
@@ -207,7 +223,9 @@ const AppContent: React.FC = () => {
       )}
       <Header onGoToHome={() => setPage('dashboard')} onLogout={handleLogout} page={page} />
       <main className="flex-grow overflow-y-auto relative fade-in">
-        {renderPage()}
+        <Suspense fallback={<LoadingFallback />}>
+          {renderPage()}
+        </Suspense>
       </main>
     </div>
   );

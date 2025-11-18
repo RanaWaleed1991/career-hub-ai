@@ -1,0 +1,140 @@
+# Artillery Load Testing Configuration for Career Hub AI
+# Tests API performance under concurrent load
+#
+# Run with: npx artillery run tests/performance/load-test.yml
+#
+# Requirements:
+# - Backend server must be running on http://localhost:3000
+# - Frontend server must be running on http://localhost:5173
+# - Test user created in database for authentication tests
+
+config:
+  target: "http://localhost:3000"
+  phases:
+    # Warm-up phase: 10 seconds
+    - duration: 10
+      arrivalRate: 5
+      name: "Warm up"
+    # Ramp up phase: 20 seconds
+    - duration: 20
+      arrivalRate: 10
+      rampTo: 50
+      name: "Ramp up load"
+    # Peak load phase: 30 seconds
+    - duration: 30
+      arrivalRate: 50
+      name: "Peak load"
+    # Cool down phase: 10 seconds
+    - duration: 10
+      arrivalRate: 10
+      name: "Cool down"
+
+  # Performance targets
+  ensure:
+    # 95% of requests should complete in less than 2 seconds
+    p95: 2000
+    # 99% of requests should complete in less than 3 seconds
+    p99: 3000
+    # Maximum response time should be under 5 seconds
+    max: 5000
+    # Error rate should be less than 1%
+    maxErrorRate: 1
+
+  # Processor for dynamic data
+  processor: "./load-test-processor.js"
+
+  # Environment variables (optional, can be overridden)
+  variables:
+    apiUrl: "http://localhost:3000"
+
+scenarios:
+  # ============================================================================
+  # Scenario 1: Browse Jobs (Most Common - 40% of traffic)
+  # ============================================================================
+  - name: "Browse Jobs"
+    weight: 40
+    flow:
+      - get:
+          url: "/api/jobs"
+          headers:
+            Accept: "application/json"
+          capture:
+            - json: "$"
+              as: "jobsResponse"
+      # Verify response has jobs array
+      - think: 2
+
+      # Filter by category
+      - get:
+          url: "/api/jobs?category=tech"
+          headers:
+            Accept: "application/json"
+
+  # ============================================================================
+  # Scenario 2: Browse Courses (30% of traffic)
+  # ============================================================================
+  - name: "Browse Courses"
+    weight: 30
+    flow:
+      - get:
+          url: "/api/courses"
+          headers:
+            Accept: "application/json"
+          capture:
+            - json: "$"
+              as: "coursesResponse"
+      - think: 2
+
+      # Filter by type
+      - get:
+          url: "/api/courses?type=free"
+          headers:
+            Accept: "application/json"
+
+  # ============================================================================
+  # Scenario 3: Health Check (20% of traffic)
+  # ============================================================================
+  - name: "Health Check"
+    weight: 20
+    flow:
+      - get:
+          url: "/health"
+          headers:
+            Accept: "application/json"
+          expect:
+            - statusCode: 200
+            - contentType: json
+            - hasProperty: status
+
+  # ============================================================================
+  # Scenario 4: Mixed API Calls (10% of traffic)
+  # ============================================================================
+  - name: "Mixed API Calls"
+    weight: 10
+    flow:
+      # Get jobs
+      - get:
+          url: "/api/jobs"
+          headers:
+            Accept: "application/json"
+      - think: 1
+
+      # Get courses
+      - get:
+          url: "/api/courses"
+          headers:
+            Accept: "application/json"
+      - think: 1
+
+      # Check health
+      - get:
+          url: "/health"
+          headers:
+            Accept: "application/json"
+
+# ============================================================================
+# After Script - Summary Stats
+# ============================================================================
+after:
+  flow:
+    - log: "Load test completed!"

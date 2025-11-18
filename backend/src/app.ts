@@ -10,6 +10,7 @@ import './polyfills.js';
 
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import { env } from './config/env.js';
 import { helmetConfig, getCorsOptions, jsonErrorHandler, requestSizeLimit } from './middleware/security.js';
 import { generalLimiter, aiLimiter, authLimiter, paymentLimiter, strictLimiter } from './middleware/rateLimiting.js';
@@ -26,6 +27,7 @@ import jobsRoutes from './routes/jobs.js';
 import coursesRoutes from './routes/courses.js';
 import userRoutes from './routes/user.js';
 import { enforceHttps, addSecurityHeaders } from './middleware/httpsEnforcement.js';
+import { cacheJobs, cacheCourses } from './middleware/cache.js';
 
 export const app = express();
 
@@ -42,11 +44,26 @@ app.use(helmetConfig);
 // 3. CORS - Cross-Origin Resource Sharing
 app.use(cors(getCorsOptions()));
 
-// 4. Request logging and monitoring
+// 4. Compression - Reduces response size by 60-80% (gzip/brotli)
+app.use(compression({
+  // Only compress responses larger than 1kb
+  threshold: 1024,
+  // Compression level: 6 (balance of speed/compression)
+  level: 6,
+  // Don't compress if client doesn't support it
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
+
+// 5. Request logging and monitoring
 app.use(requestLogger);
 app.use(suspiciousActivityDetector);
 
-// 5. Request size limit check
+// 6. Request size limit check
 app.use(requestSizeLimit);
 
 // IMPORTANT: Webhooks must be registered BEFORE express.json() middleware
@@ -81,8 +98,9 @@ app.use('/api/subscriptions', generalLimiter, subscriptionsRoutes);
 
 // Admin routes - strict rate limiting for sensitive operations
 // Note: These are protected by adminMiddleware inside the route files
-app.use('/api/jobs', strictLimiter, jobsRoutes);
-app.use('/api/courses', strictLimiter, coursesRoutes);
+// Caching applied to GET requests only (5 min for jobs, 10 min for courses)
+app.use('/api/jobs', strictLimiter, cacheJobs, jobsRoutes);
+app.use('/api/courses', strictLimiter, cacheCourses, coursesRoutes);
 
 // User data management routes - GDPR compliance (with security headers)
 app.use('/api/user', generalLimiter, addSecurityHeaders, userRoutes);
