@@ -16,6 +16,17 @@ import { registerUser, login, logout, generateTestUser, isLoggedIn } from '../he
  */
 
 test.describe('Authentication Flow', () => {
+  // Clear browser storage before each test to ensure logged-out state
+  test.beforeEach(async ({ page }) => {
+    // Clear all browser storage (localStorage, sessionStorage, cookies)
+    await page.goto('/');
+    await page.evaluate(() => {
+      localStorage.clear();
+      sessionStorage.clear();
+    });
+    await page.context().clearCookies();
+  });
+
   // Clean up test data after each test
   test.afterEach(async () => {
     await cleanupAllTestData();
