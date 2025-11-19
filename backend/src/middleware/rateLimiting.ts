@@ -12,7 +12,8 @@ export const generalLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
+  // Skip in test mode AND development mode
+  skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many requests',
@@ -34,7 +35,8 @@ export const aiLimiter = rateLimit({
   message: 'Too many AI requests from this IP, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
+  // Skip in test mode AND development mode
+  skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many AI requests',
@@ -57,7 +59,8 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Don't count successful requests
-  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
+  // Skip in test mode AND development mode
+  skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many authentication attempts',
@@ -79,7 +82,8 @@ export const paymentLimiter = rateLimit({
   message: 'Too many payment requests, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
+  // Skip in test mode AND development mode
+  skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many payment requests',
@@ -101,7 +105,8 @@ export const strictLimiter = rateLimit({
   message: 'Too many requests to sensitive endpoint, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
-  skip: (req) => process.env.NODE_ENV === 'test', // Skip in test mode
+  // Skip in test mode AND development mode
+  skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
   handler: (req, res) => {
     res.status(429).json({
       error: 'Rate limit exceeded',
