@@ -5,11 +5,15 @@ import { dirname, join } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load environment variables from .env file
+// Load environment variables from appropriate .env file
 // In test mode, override any existing env vars to ensure .env file values are used
 // BUT preserve NODE_ENV to keep test mode active
-const envPath = join(__dirname, '../../.env');
 const isTestMode = process.env.NODE_ENV === 'test';
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Determine which .env file to load
+const envFileName = isProduction ? '.env.production' : '.env';
+const envPath = join(__dirname, '../../', envFileName);
 
 dotenv.config({
   path: envPath,
