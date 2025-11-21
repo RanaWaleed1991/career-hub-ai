@@ -73,10 +73,10 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             {personalDetails.email && (
               <div className="flex flex-col gap-1">
                 <div
-                  className="font-medium flex items-center gap-1"
+                  className="font-medium"
                   style={{ fontSize: '10px', color: '#94a3b8' }}
                 >
-                  <span>✉</span> Email
+                  Email
                 </div>
                 <span
                   className="break-all font-light"
@@ -90,10 +90,10 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             {personalDetails.phone && (
               <div className="flex flex-col gap-1">
                 <div
-                  className="font-medium flex items-center gap-1"
+                  className="font-medium"
                   style={{ fontSize: '10px', color: '#94a3b8' }}
                 >
-                  <span>☎</span> Phone
+                  Phone
                 </div>
                 <span className="font-light" style={{ fontSize: '12px' }}>
                   {personalDetails.phone}
@@ -104,10 +104,10 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             {personalDetails.address && (
               <div className="flex flex-col gap-1">
                 <div
-                  className="font-medium flex items-center gap-1"
+                  className="font-medium"
                   style={{ fontSize: '10px', color: '#94a3b8' }}
                 >
-                  <span>📍</span> Location
+                  Location
                 </div>
                 <span className="font-light" style={{ fontSize: '12px' }}>
                   {personalDetails.address}
@@ -118,10 +118,10 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             {personalDetails.linkedin && (
               <div className="flex flex-col gap-1">
                 <div
-                  className="font-medium flex items-center gap-1"
+                  className="font-medium"
                   style={{ fontSize: '10px', color: '#94a3b8' }}
                 >
-                  <span>in</span> LinkedIn
+                  LinkedIn
                 </div>
                 <a
                   href={personalDetails.linkedin}
@@ -141,10 +141,10 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             {personalDetails.website && (
               <div className="flex flex-col gap-1">
                 <div
-                  className="font-medium flex items-center gap-1"
+                  className="font-medium"
                   style={{ fontSize: '10px', color: '#94a3b8' }}
                 >
-                  <span>🌐</span> Website
+                  Website
                 </div>
                 <a
                   href={personalDetails.website}
@@ -310,7 +310,16 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             <div className="flex flex-col gap-8">
               {experience.filter(e => e.jobTitle).map((exp) => (
                 <div key={exp.id} className="group">
-                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline mb-1">
+                  <div
+                    className="mb-1"
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'baseline',
+                      flexWrap: 'nowrap',
+                    }}
+                  >
                     <h4
                       className="font-bold"
                       style={{ fontSize: '16px', color: '#1e293b' }}
@@ -319,11 +328,15 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
                     </h4>
                     {(exp.startDate || exp.endDate) && (
                       <span
-                        className="font-semibold uppercase tracking-wide px-2 py-1 rounded mt-1 sm:mt-0 whitespace-nowrap"
+                        className="font-semibold uppercase tracking-wide whitespace-nowrap"
                         style={{
                           fontSize: '11px',
                           color: '#64748b',
                           backgroundColor: '#f8fafc',
+                          padding: '4px 8px',
+                          borderRadius: '4px',
+                          marginLeft: '16px',
+                          flexShrink: 0,
                         }}
                       >
                         {exp.startDate} — {exp.endDate}
