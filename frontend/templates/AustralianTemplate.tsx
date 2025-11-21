@@ -43,40 +43,25 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
           </div>
           <div
             className="flex flex-col items-end gap-2"
-            style={{ fontSize: '12px', color: '#4b5563' }}
+            style={{ fontSize: '12px', color: '#4b5563', paddingLeft: '24px' }}
           >
             {personalDetails.email && (
-              <div className="flex items-center gap-2">
-                <span>{personalDetails.email}</span>
-                <span style={{ color: '#0d9488' }}>✉</span>
-              </div>
+              <div>{personalDetails.email}</div>
             )}
             {personalDetails.phone && (
-              <div className="flex items-center gap-2">
-                <span>{personalDetails.phone}</span>
-                <span style={{ color: '#0d9488' }}>☎</span>
-              </div>
+              <div>{personalDetails.phone}</div>
             )}
             {personalDetails.address && (
-              <div className="flex items-center gap-2">
-                <span>{personalDetails.address}</span>
-                <span style={{ color: '#0d9488' }}>📍</span>
-              </div>
+              <div>{personalDetails.address}</div>
             )}
             {personalDetails.linkedin && (
-              <div className="flex items-center gap-2">
-                <span className="break-all">
-                  {personalDetails.linkedin.replace(/^https?:\/\//, '')}
-                </span>
-                <span style={{ color: '#0d9488' }}>in</span>
+              <div className="break-all">
+                {personalDetails.linkedin.replace(/^https?:\/\//, '')}
               </div>
             )}
             {personalDetails.website && (
-              <div className="flex items-center gap-2">
-                <span className="break-all">
-                  {personalDetails.website.replace(/^https?:\/\//, '')}
-                </span>
-                <span style={{ color: '#0d9488' }}>🌐</span>
+              <div className="break-all">
+                {personalDetails.website.replace(/^https?:\/\//, '')}
               </div>
             )}
           </div>
