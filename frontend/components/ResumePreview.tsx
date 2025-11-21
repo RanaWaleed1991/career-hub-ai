@@ -4,7 +4,6 @@ import ClassicTemplate from '../templates/ClassicTemplate';
 import ModernTemplate from '../templates/ModernTemplate';
 import AustralianTemplate from '../templates/AustralianTemplate';
 import CreativeTemplate from '../templates/CreativeTemplate';
-import ProfessionalTemplate from '../templates/ProfessionalTemplate';
 import { PrintIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, DocumentTextIcon, DownloadIcon } from './icons';
 import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory, canSaveVersion, useVersionSave, hasPremium } from '../services/premiumService';
 import { saveVersion } from '../services/versionHistoryService';
@@ -32,15 +31,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   resumeData, template, setTemplate, triggerPremiumFlow,
   setActionToRetry, setPage, openTailorModal, openLoadModal
 }) => {
-  const [showWatermark, setShowWatermark] = useState(false);
-
-  useEffect(() => {
-    const checkWatermark = async () => {
-      const shouldShow = await shouldShowWatermark();
-      setShowWatermark(shouldShow);
-    };
-    checkWatermark();
-  }, []);
+  // Watermark disabled for all users
+  const showWatermark = false;
 
   const getTemplateComponent = () => {
     const props = { data: resumeData, showWatermark };
@@ -53,8 +45,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         return <AustralianTemplate {...props} />;
       case 'creative':
         return <CreativeTemplate {...props} />;
-      case 'professional':
-        return <ProfessionalTemplate {...props} />;
       default:
         return <AustralianTemplate {...props} />;
     }
@@ -218,8 +208,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     <button onClick={() => setTemplate('classic')} className={`${templateButtonClass} rounded-l-md ${template === 'classic' ? activeClass : inactiveClass}`}>Classic</button>
                     <button onClick={() => setTemplate('modern')} className={`${templateButtonClass} ${template === 'modern' ? activeClass : inactiveClass}`}>Modern</button>
                     <button onClick={() => setTemplate('australian')} className={`${templateButtonClass} ${template === 'australian' ? activeClass : inactiveClass}`}>Australian</button>
-                    <button onClick={() => setTemplate('creative')} className={`${templateButtonClass} ${template === 'creative' ? activeClass : inactiveClass}`}>Creative</button>
-                    <button onClick={() => setTemplate('professional')} className={`${templateButtonClass} rounded-r-md ${template === 'professional' ? activeClass : inactiveClass}`}>Professional</button>
+                    <button onClick={() => setTemplate('creative')} className={`${templateButtonClass} rounded-r-md ${template === 'creative' ? activeClass : inactiveClass}`}>Creative</button>
                 </div>
             </div>
             <div className="flex space-x-2">
