@@ -76,7 +76,7 @@ export interface ResumeVersion {
   data: ResumeData;
 }
 
-export type TemplateType = 'classic' | 'modern' | 'australian' | 'creative';
+export type TemplateType = 'classic' | 'modern' | 'australian' | 'creative' | 'elegant';
 
 export type Page = 'landing' | 'builder' | 'courses' | 'jobs' | 'coverLetter' | 'admin' | 'tracker' | 'versions' | 'analyser' | 'dashboard' | 'paymentSuccess' | 'paymentCancel' | 'pricing' | 'subscription' | 'privacy' | 'terms';
 
