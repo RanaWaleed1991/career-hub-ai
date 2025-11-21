@@ -3,7 +3,7 @@ import type { Page, ResumeData, TemplateType } from '../types';
 import ClassicTemplate from '../templates/ClassicTemplate';
 import ModernTemplate from '../templates/ModernTemplate';
 import AustralianTemplate from '../templates/AustralianTemplate';
-import CreativeTemplate from '../templates/CreativeTemplate';
+import PictureTemplate from '../templates/PictureTemplate';
 import ATSTemplate from '../templates/ATSTemplate';
 import MinimalTemplate from '../templates/MinimalTemplate';
 import { PrintIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, DocumentTextIcon, DownloadIcon } from './icons';
@@ -45,8 +45,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         return <ModernTemplate {...props} />;
       case 'australian':
         return <AustralianTemplate {...props} />;
-      case 'creative':
-        return <CreativeTemplate {...props} />;
+      case 'picture':
+        return <PictureTemplate {...props} />;
       case 'ats':
         return <ATSTemplate {...props} />;
       case 'minimal':
@@ -214,7 +214,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     <button onClick={() => setTemplate('classic')} className={`${templateButtonClass} rounded-l-md ${template === 'classic' ? activeClass : inactiveClass}`}>Classic</button>
                     <button onClick={() => setTemplate('modern')} className={`${templateButtonClass} ${template === 'modern' ? activeClass : inactiveClass}`}>Modern</button>
                     <button onClick={() => setTemplate('australian')} className={`${templateButtonClass} ${template === 'australian' ? activeClass : inactiveClass}`}>Australian</button>
-                    <button onClick={() => setTemplate('creative')} className={`${templateButtonClass} ${template === 'creative' ? activeClass : inactiveClass}`}>Creative</button>
+                    <button onClick={() => setTemplate('picture')} className={`${templateButtonClass} ${template === 'picture' ? activeClass : inactiveClass}`}>Picture</button>
                     <button onClick={() => setTemplate('ats')} className={`${templateButtonClass} ${template === 'ats' ? activeClass : inactiveClass}`}>ATS</button>
                     <button onClick={() => setTemplate('minimal')} className={`${templateButtonClass} rounded-r-md ${template === 'minimal' ? activeClass : inactiveClass}`}>Minimal</button>
                 </div>
