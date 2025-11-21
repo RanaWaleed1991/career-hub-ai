@@ -4,6 +4,7 @@ import ClassicTemplate from '../templates/ClassicTemplate';
 import ModernTemplate from '../templates/ModernTemplate';
 import AustralianTemplate from '../templates/AustralianTemplate';
 import CreativeTemplate from '../templates/CreativeTemplate';
+import ElegantTemplate from '../templates/ElegantTemplate';
 import { PrintIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, DocumentTextIcon, DownloadIcon } from './icons';
 import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory, canSaveVersion, useVersionSave, hasPremium } from '../services/premiumService';
 import { saveVersion } from '../services/versionHistoryService';
@@ -45,6 +46,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         return <AustralianTemplate {...props} />;
       case 'creative':
         return <CreativeTemplate {...props} />;
+      case 'elegant':
+        return <ElegantTemplate {...props} />;
       default:
         return <AustralianTemplate {...props} />;
     }
@@ -208,7 +211,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     <button onClick={() => setTemplate('classic')} className={`${templateButtonClass} rounded-l-md ${template === 'classic' ? activeClass : inactiveClass}`}>Classic</button>
                     <button onClick={() => setTemplate('modern')} className={`${templateButtonClass} ${template === 'modern' ? activeClass : inactiveClass}`}>Modern</button>
                     <button onClick={() => setTemplate('australian')} className={`${templateButtonClass} ${template === 'australian' ? activeClass : inactiveClass}`}>Australian</button>
-                    <button onClick={() => setTemplate('creative')} className={`${templateButtonClass} rounded-r-md ${template === 'creative' ? activeClass : inactiveClass}`}>Creative</button>
+                    <button onClick={() => setTemplate('creative')} className={`${templateButtonClass} ${template === 'creative' ? activeClass : inactiveClass}`}>Creative</button>
+                    <button onClick={() => setTemplate('elegant')} className={`${templateButtonClass} rounded-r-md ${template === 'elegant' ? activeClass : inactiveClass}`}>Elegant</button>
                 </div>
             </div>
             <div className="flex space-x-2">
