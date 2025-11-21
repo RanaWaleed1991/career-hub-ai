@@ -1,6 +1,5 @@
 import React from 'react';
 import type { ResumeData } from '../types';
-import { EnvelopeIcon, PhoneIcon, MapPinIcon } from '../components/icons';
 
 interface TemplateProps {
   data: ResumeData;
@@ -10,102 +9,288 @@ interface TemplateProps {
 const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) => {
   const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
-  // Split name into first and last for two-tone effect
-  const nameParts = personalDetails.fullName.trim().split(' ');
-  const firstName = nameParts.slice(0, -1).join(' ');
-  const lastName = nameParts[nameParts.length - 1];
-
-  // Diamond icon component
-  const DiamondIcon: React.FC<{ className?: string }> = ({ className }) => (
+  // Diamond/Chevron icon component
+  const DiamondIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
     <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M8 0L12 8L8 16L4 8L8 0Z" />
+      <path d="M8 2L13 8L8 14L3 8L8 2Z" />
     </svg>
   );
 
+  // Skill bar component with percentage
+  const SkillBar: React.FC<{ name: string; level?: number }> = ({ name, level = 85 }) => (
+    <div className="mb-3">
+      <div className="text-xs mb-1.5" style={{ color: '#2C3E50' }}>{name}</div>
+      <div className="w-full h-2 rounded" style={{ backgroundColor: '#E0E0E0' }}>
+        <div
+          className="h-full rounded"
+          style={{
+            backgroundColor: '#3B5998',
+            width: `${level}%`,
+            transition: 'width 0.3s ease'
+          }}
+        />
+      </div>
+    </div>
+  );
+
   return (
-    <div className="bg-white font-sans text-gray-800 min-h-full">
-      {/* Header Section */}
-      <div className="bg-gray-100 text-center py-8 px-12">
-        {/* Name - Two-tone */}
-        <h1 className="text-5xl font-bold tracking-wide">
-          <span className="text-gray-500">{firstName} </span>
-          <span className="text-[#1E3A8A]">{lastName.toUpperCase()}</span>
+    <div className="bg-white font-sans min-h-full" style={{ fontFamily: "'Segoe UI', 'Roboto', 'Open Sans', -apple-system, sans-serif" }}>
+      {/* Header - Full Width, Centered */}
+      <div className="text-center px-10 pt-10 pb-6 border-b" style={{ borderColor: '#E0E0E0' }}>
+        <h1
+          className="font-bold uppercase mb-2"
+          style={{
+            fontSize: '38px',
+            color: '#2C3E50',
+            letterSpacing: '2px',
+            lineHeight: '1.2'
+          }}
+        >
+          {personalDetails.fullName}
         </h1>
-        {/* Job Title */}
-        <p className="text-sm font-semibold tracking-[0.3em] mt-2 uppercase">
+        <p
+          className="uppercase"
+          style={{
+            fontSize: '14px',
+            color: '#5A6C7D',
+            letterSpacing: '1px'
+          }}
+        >
           {personalDetails.jobTitle}
         </p>
       </div>
 
-      {/* Contact Bar with Diamond Icons */}
-      <div className="flex justify-center items-center gap-8 py-4 px-12 text-sm border-b border-gray-200">
-        {personalDetails.phone && (
-          <div className="flex items-center gap-2">
-            <DiamondIcon className="text-[#1E3A8A] flex-shrink-0" />
-            <span>{personalDetails.phone}</span>
-          </div>
-        )}
-        {personalDetails.email && (
-          <div className="flex items-center gap-2">
-            <DiamondIcon className="text-[#1E3A8A] flex-shrink-0" />
-            <span>{personalDetails.email}</span>
-          </div>
-        )}
-        {personalDetails.address && (
-          <div className="flex items-center gap-2">
-            <DiamondIcon className="text-[#1E3A8A] flex-shrink-0" />
-            <span>{personalDetails.address}</span>
-          </div>
-        )}
-        {personalDetails.linkedin && (
-          <div className="flex items-center gap-2">
-            <DiamondIcon className="text-[#1E3A8A] flex-shrink-0" />
-            <a href={personalDetails.linkedin} className="hover:underline">LinkedIn</a>
-          </div>
-        )}
-      </div>
-
-      {/* Profile Section */}
-      {summary && (
-        <div className="px-12 py-6 border-b border-gray-200">
-          <h2 className="text-base font-bold text-[#1E3A8A] uppercase tracking-wider mb-3">
-            Profile
-          </h2>
-          <p className="text-sm leading-relaxed text-justify">
-            {summary}
-          </p>
-        </div>
-      )}
-
       {/* Two Column Layout */}
-      <div className="flex px-12 py-6 gap-12">
-        {/* Left Column - Professional Experience */}
-        <div className="w-3/5">
-          {experience.length > 0 && (
-            <div>
-              <h2 className="text-base font-bold text-[#1E3A8A] uppercase tracking-wider mb-4">
-                Professional
-              </h2>
+      <div className="flex">
+        {/* LEFT SIDEBAR - 30% */}
+        <div className="w-[30%] px-8 py-8" style={{ backgroundColor: '#F8F9FA' }}>
+          {/* Contact Information */}
+          <div className="mb-8">
+            <h2
+              className="font-bold uppercase mb-4 pb-2 border-b"
+              style={{
+                fontSize: '14px',
+                color: '#2C3E50',
+                letterSpacing: '1px',
+                borderColor: '#E0E0E0'
+              }}
+            >
+              Contact
+            </h2>
+            <div className="space-y-4">
+              {personalDetails.phone && (
+                <div className="flex items-start gap-2">
+                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
+                  <span style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.4' }}>
+                    {personalDetails.phone}
+                  </span>
+                </div>
+              )}
+              {personalDetails.email && (
+                <div className="flex items-start gap-2">
+                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
+                  <span style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.4', wordBreak: 'break-word' }}>
+                    {personalDetails.email}
+                  </span>
+                </div>
+              )}
+              {personalDetails.address && (
+                <div className="flex items-start gap-2">
+                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
+                  <span style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.4' }}>
+                    {personalDetails.address}
+                  </span>
+                </div>
+              )}
+              {personalDetails.linkedin && (
+                <div className="flex items-start gap-2">
+                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
+                  <a
+                    href={personalDetails.linkedin}
+                    style={{ fontSize: '11px', color: '#3B5998', lineHeight: '1.4', wordBreak: 'break-all' }}
+                    className="hover:underline"
+                  >
+                    LinkedIn Profile
+                  </a>
+                </div>
+              )}
+              {personalDetails.website && (
+                <div className="flex items-start gap-2">
+                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
+                  <a
+                    href={personalDetails.website}
+                    style={{ fontSize: '11px', color: '#3B5998', lineHeight: '1.4', wordBreak: 'break-all' }}
+                    className="hover:underline"
+                  >
+                    {personalDetails.website.replace(/^https?:\/\//, '')}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
 
-              {experience.map(exp => (
-                <div key={exp.id} className="mb-6">
+          {/* Key Skills with Progress Bars */}
+          {skills.length > 0 && skills.some(s => s.name) && (
+            <div className="mb-8">
+              <h2
+                className="font-bold uppercase mb-4 pb-2 border-b"
+                style={{
+                  fontSize: '14px',
+                  color: '#2C3E50',
+                  letterSpacing: '1px',
+                  borderColor: '#E0E0E0'
+                }}
+              >
+                {skillsLabel || 'Key Skills'}
+              </h2>
+              <div>
+                {skills.filter(s => s.name).map(skill => (
+                  <SkillBar key={skill.id} name={skill.name} level={85} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Certifications */}
+          {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
+            <div className="mb-8">
+              <h2
+                className="font-bold uppercase mb-4 pb-2 border-b"
+                style={{
+                  fontSize: '14px',
+                  color: '#2C3E50',
+                  letterSpacing: '1px',
+                  borderColor: '#E0E0E0'
+                }}
+              >
+                Certifications
+              </h2>
+              {certifications.filter(c => c.name).map(cert => (
+                <div key={cert.id} className="mb-3">
+                  <p className="font-bold" style={{ fontSize: '11px', color: '#2C3E50', marginBottom: '2px' }}>
+                    {cert.name}
+                  </p>
+                  <p style={{ fontSize: '10px', color: '#5A6C7D', marginBottom: '2px' }}>
+                    {cert.issuer}
+                  </p>
+                  <p style={{ fontSize: '10px', color: '#7A8C9D' }}>
+                    {cert.date}
+                  </p>
+                  {cert.credentialId && (
+                    <p style={{ fontSize: '9px', color: '#7A8C9D' }}>
+                      ID: {cert.credentialId}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* References */}
+          {references && references.length > 0 && references.some(r => r.name) && (
+            <div className="mb-8">
+              <h2
+                className="font-bold uppercase mb-4 pb-2 border-b"
+                style={{
+                  fontSize: '14px',
+                  color: '#2C3E50',
+                  letterSpacing: '1px',
+                  borderColor: '#E0E0E0'
+                }}
+              >
+                References
+              </h2>
+              {references.filter(r => r.name).map(ref => (
+                <div key={ref.id} className="mb-3" style={{ fontSize: '10px' }}>
+                  <p className="font-bold" style={{ color: '#2C3E50', marginBottom: '2px' }}>
+                    {ref.name}
+                  </p>
+                  <p style={{ color: '#5A6C7D', marginBottom: '1px' }}>
+                    {ref.title}
+                  </p>
+                  <p style={{ color: '#5A6C7D', marginBottom: '1px' }}>
+                    {ref.company}
+                  </p>
+                  <p style={{ color: '#7A8C9D', fontSize: '9px', marginBottom: '2px' }}>
+                    {ref.relationship}
+                  </p>
+                  {ref.phone && (
+                    <p style={{ color: '#7A8C9D', fontSize: '9px' }}>
+                      {ref.phone}
+                    </p>
+                  )}
+                  {ref.email && (
+                    <p style={{ color: '#7A8C9D', fontSize: '9px', wordBreak: 'break-word' }}>
+                      {ref.email}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT MAIN CONTENT - 70% */}
+        <div className="w-[70%] px-10 py-8">
+          {/* Profile/Summary Section */}
+          {summary && (
+            <div className="mb-7">
+              <h2
+                className="font-bold uppercase mb-3"
+                style={{
+                  fontSize: '16px',
+                  color: '#2C3E50',
+                  letterSpacing: '2px'
+                }}
+              >
+                Profile
+              </h2>
+              <p style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.6', textAlign: 'justify' }}>
+                {summary}
+              </p>
+            </div>
+          )}
+
+          {/* Professional Experience Section */}
+          {experience.length > 0 && (
+            <div className="mb-7">
+              <h2
+                className="font-bold uppercase mb-4"
+                style={{
+                  fontSize: '16px',
+                  color: '#2C3E50',
+                  letterSpacing: '2px'
+                }}
+              >
+                Professional Experience
+              </h2>
+              {experience.map((exp, index) => (
+                <div key={exp.id} className={index > 0 ? 'mt-5' : ''}>
                   <div className="mb-1">
-                    <span className="font-bold text-sm">{exp.jobTitle}</span>
-                    {exp.startDate && (
-                      <span className="text-sm italic ml-2">
-                        ({exp.startDate} – {exp.endDate})
-                      </span>
-                    )}
+                    <span className="font-bold" style={{ fontSize: '13px', color: '#2C3E50' }}>
+                      {exp.jobTitle}
+                    </span>
                   </div>
-                  <div className="text-sm italic mb-2">
-                    {exp.company}{exp.location && ` – ${exp.location}`}
+                  <div className="mb-1" style={{ fontSize: '12px', fontStyle: 'italic', color: '#5A6C7D' }}>
+                    {exp.company}
+                    {exp.location && ` • ${exp.location}`}
+                  </div>
+                  <div className="mb-2" style={{ fontSize: '11px', fontStyle: 'italic', color: '#7A8C9D' }}>
+                    ({exp.startDate} – {exp.endDate})
                   </div>
                   {exp.description && (
-                    <ul className="space-y-1.5">
+                    <ul style={{ paddingLeft: '20px', marginTop: '8px' }}>
                       {exp.description.split('\n').filter(line => line.trim()).map((line, i) => (
-                        <li key={i} className="text-sm flex items-start">
-                          <span className="mr-2 mt-1.5">•</span>
-                          <span className="flex-1">{line.replace(/^[-•]\s*/, '')}</span>
+                        <li
+                          key={i}
+                          style={{
+                            fontSize: '11px',
+                            color: '#2C3E50',
+                            lineHeight: '1.5',
+                            marginBottom: '6px'
+                          }}
+                        >
+                          {line.replace(/^[-•]\s*/, '')}
                         </li>
                       ))}
                     </ul>
@@ -115,91 +300,35 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = f
             </div>
           )}
 
-          {/* Certifications in left column if space */}
-          {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
-            <div className="mt-8">
-              <h2 className="text-base font-bold text-[#1E3A8A] uppercase tracking-wider mb-4">
-                Certifications
-              </h2>
-              {certifications.filter(c => c.name).map(cert => (
-                <div key={cert.id} className="mb-3">
-                  <div className="font-bold text-sm">{cert.name}</div>
-                  <div className="text-sm italic">{cert.issuer}</div>
-                  <div className="text-xs text-gray-600">{cert.date}</div>
-                  {cert.credentialId && (
-                    <div className="text-xs text-gray-500">Credential ID: {cert.credentialId}</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Right Column - Education & Skills */}
-        <div className="w-2/5">
-          {/* Education */}
+          {/* Education Section */}
           {education.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-base font-bold text-[#1E3A8A] uppercase tracking-wider mb-4">
+            <div className="mb-7">
+              <h2
+                className="font-bold uppercase mb-4"
+                style={{
+                  fontSize: '16px',
+                  color: '#2C3E50',
+                  letterSpacing: '2px'
+                }}
+              >
                 Education
               </h2>
               {education.map(edu => (
-                <div key={edu.id} className="mb-4">
-                  <div className="font-bold text-sm">{edu.degree}</div>
-                  <div className="text-sm italic">
-                    {edu.gradDate && `Graduated ${edu.gradDate}`}
-                  </div>
-                  <div className="text-sm italic text-gray-700 uppercase tracking-wide mt-1">
+                <div key={edu.id} className="mb-3">
+                  <p className="font-bold" style={{ fontSize: '13px', color: '#2C3E50', marginBottom: '4px' }}>
+                    {edu.degree}
+                  </p>
+                  <p style={{ fontSize: '11px', fontStyle: 'italic', color: '#7A8C9D', marginBottom: '2px' }}>
+                    ({edu.gradDate})
+                  </p>
+                  <p style={{ fontSize: '12px', fontStyle: 'italic', color: '#5A6C7D', marginBottom: '2px' }}>
                     {edu.institution}
-                  </div>
+                  </p>
                   {edu.location && (
-                    <div className="text-xs text-gray-600 italic">{edu.location}</div>
+                    <p style={{ fontSize: '11px', color: '#7A8C9D' }}>
+                      {edu.location}
+                    </p>
                   )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Skills with Progress Bars */}
-          {skills.length > 0 && skills.some(s => s.name) && (
-            <div className="mb-8">
-              <h2 className="text-base font-bold text-[#1E3A8A] uppercase tracking-wider mb-4">
-                {skillsLabel || 'Key Skills'}
-              </h2>
-              <div className="space-y-3">
-                {skills.filter(s => s.name).map(skill => (
-                  <div key={skill.id}>
-                    <div className="text-sm mb-1">{skill.name}</div>
-                    {/* Navy blue progress bar */}
-                    <div className="flex gap-1">
-                      {[...Array(7)].map((_, i) => (
-                        <div
-                          key={i}
-                          className="h-2 w-full bg-[#1E3A8A]"
-                          style={{ opacity: i < 6 ? 1 : 0.3 }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* References */}
-          {references && references.length > 0 && references.some(r => r.name) && (
-            <div className="mb-8">
-              <h2 className="text-base font-bold text-[#1E3A8A] uppercase tracking-wider mb-4">
-                References
-              </h2>
-              {references.filter(r => r.name).map(ref => (
-                <div key={ref.id} className="mb-3 text-sm">
-                  <div className="font-bold">{ref.name}</div>
-                  <div className="italic">{ref.title}</div>
-                  <div className="italic">{ref.company}</div>
-                  <div className="text-xs text-gray-600">{ref.relationship}</div>
-                  {ref.phone && <div className="text-xs">{ref.phone}</div>}
-                  {ref.email && <div className="text-xs break-words">{ref.email}</div>}
                 </div>
               ))}
             </div>
@@ -212,39 +341,46 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = f
                 .filter(s => s.title)
                 .sort((a, b) => a.order - b.order)
                 .map(section => (
-                  <div key={section.id} className="mb-8">
-                    <h2 className="text-base font-bold text-[#1E3A8A] uppercase tracking-wider mb-4">
+                  <div key={section.id} className="mb-7">
+                    <h2
+                      className="font-bold uppercase mb-4"
+                      style={{
+                        fontSize: '16px',
+                        color: '#2C3E50',
+                        letterSpacing: '2px'
+                      }}
+                    >
                       {section.title}
                     </h2>
-                    <div className="text-sm space-y-1">
+                    <div style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.5' }}>
                       {section.content.split('\n').filter(line => line.trim()).map((line, i) => {
                         const cleanLine = line.trim();
                         if (cleanLine.startsWith('-') || cleanLine.startsWith('•')) {
                           return (
-                            <div key={i} className="flex items-start">
-                              <span className="mr-2">•</span>
+                            <div key={i} className="flex items-start mb-1" style={{ paddingLeft: '20px' }}>
+                              <span style={{ marginRight: '8px' }}>•</span>
                               <span>{cleanLine.replace(/^[-•]\s*/, '')}</span>
                             </div>
                           );
                         }
-                        return <p key={i}>{cleanLine}</p>;
+                        return <p key={i} className="mb-2">{cleanLine}</p>;
                       })}
                     </div>
                   </div>
                 ))}
             </>
           )}
+
+          {/* Watermark */}
+          {showWatermark && (
+            <div className="mt-8 pt-4 border-t" style={{ borderColor: '#E0E0E0' }}>
+              <p className="text-center" style={{ fontSize: '10px', color: '#7A8C9D' }}>
+                Built with Career Hub AI - <span className="font-semibold">Get Premium</span>
+              </p>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Watermark */}
-      {showWatermark && (
-        <div className="mt-8 pt-4 px-12 border-t border-gray-200">
-          <p className="text-xs text-center text-gray-400">
-            Built with Career Hub AI - <span className="font-semibold text-gray-500">Get Premium</span>
-          </p>
-        </div>
-      )}
     </div>
   );
 };
