@@ -192,15 +192,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               box-shadow: none;
               transform: scale(1);
             }
-
-            /* Hide browser default headers and footers */
-            @page {
-              margin: 0;
-            }
-
-            body {
-              margin: 1.6cm;
-            }
+          }
+          @page {
+            size: A4;
+            margin: 0.5cm;
           }
         `}
       </style>
