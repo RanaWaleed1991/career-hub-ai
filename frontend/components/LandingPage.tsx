@@ -185,17 +185,42 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
 
         {/* Footer Section */}
         <footer className="w-full bg-slate-100 border-t border-slate-200 mt-auto py-6 px-4">
-          <div className="max-w-6xl mx-auto text-center">
-            <a 
-              href="#" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 text-slate-600 hover:text-blue-600 transition-colors group"
-              aria-label="Follow us on Facebook"
-            >
-              <FacebookIcon className="w-6 h-6 text-[#1877F2] group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Follow us on Facebook</span>
-            </a>
+          <div className="max-w-6xl mx-auto">
+            {/* Social Media */}
+            <div className="text-center mb-4">
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-2 text-slate-600 hover:text-blue-600 transition-colors group"
+                aria-label="Follow us on Facebook"
+              >
+                <FacebookIcon className="w-6 h-6 text-[#1877F2] group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Follow us on Facebook</span>
+              </a>
+            </div>
+
+            {/* Legal Links */}
+            <div className="flex justify-center items-center space-x-6 text-sm text-slate-600">
+              <button
+                onClick={() => setPage('privacy')}
+                className="hover:text-indigo-600 transition-colors hover:underline"
+              >
+                Privacy Policy
+              </button>
+              <span className="text-slate-400">•</span>
+              <button
+                onClick={() => setPage('terms')}
+                className="hover:text-indigo-600 transition-colors hover:underline"
+              >
+                Terms of Service
+              </button>
+            </div>
+
+            {/* Copyright */}
+            <div className="text-center mt-4 text-xs text-slate-500">
+              © {new Date().getFullYear()} Career Hub AI. ABN: 11 770 610 482. All rights reserved.
+            </div>
           </div>
         </footer>
       </div>

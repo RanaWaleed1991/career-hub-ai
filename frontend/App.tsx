@@ -25,6 +25,8 @@ const SubscriptionManagement = lazy(() => import('./src/components/payments/Subs
 const PaymentSuccess = lazy(() => import('./components/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('./components/PaymentCancel'));
 const TailorResumeModal = lazy(() => import('./components/TailorResumeModal'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./components/TermsOfService'));
 
 // Loading fallback component for lazy-loaded routes
 const LoadingFallback: React.FC = () => (
@@ -152,9 +154,22 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Show auth page if not authenticated
-  if (!user) {
-    return <AuthPage />;
+  // Show auth page if not authenticated (except for public pages)
+  if (!user && page !== 'privacy' && page !== 'terms') {
+    return <AuthPage setPage={setPage} />;
+  }
+
+  // If not authenticated but viewing public pages, render without header
+  if (!user && (page === 'privacy' || page === 'terms')) {
+    return (
+      <div className="h-screen w-screen bg-slate-50 flex flex-col">
+        <main className="flex-grow overflow-y-auto relative">
+          <Suspense fallback={<LoadingFallback />}>
+            {page === 'privacy' ? <PrivacyPolicy /> : <TermsOfService />}
+          </Suspense>
+        </main>
+      </div>
+    );
   }
 
   const modalProps = {
@@ -195,6 +210,10 @@ const AppContent: React.FC = () => {
         return <PaymentSuccess setPage={setPage} />;
       case 'paymentCancel':
         return <PaymentCancel setPage={setPage} />;
+      case 'privacy':
+        return <PrivacyPolicy />;
+      case 'terms':
+        return <TermsOfService />;
       case 'landing':
       default:
         return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} />;

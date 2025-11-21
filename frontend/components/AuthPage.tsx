@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { GoogleIcon, FacebookIcon } from './icons';
 import { useAuth } from '../src/contexts/AuthContext';
+import type { Page } from '../types';
 
-const AuthPage: React.FC = () => {
+interface AuthPageProps {
+  setPage: (page: Page) => void;
+}
+
+const AuthPage: React.FC<AuthPageProps> = ({ setPage }) => {
   const { login, signup, signInWithGoogle, signInWithFacebook } = useAuth();
 
   const [isLoginView, setIsLoginView] = useState(true);
@@ -236,6 +241,28 @@ const AuthPage: React.FC = () => {
             >
               {isLoginView ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
+          </div>
+
+          {/* Legal Links Footer */}
+          <div className="mt-8 pt-6 border-t border-slate-200">
+            <div className="flex justify-center items-center space-x-4 text-xs text-slate-500">
+              <button
+                onClick={() => setPage('privacy')}
+                className="hover:text-indigo-600 transition-colors hover:underline"
+              >
+                Privacy Policy
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setPage('terms')}
+                className="hover:text-indigo-600 transition-colors hover:underline"
+              >
+                Terms of Service
+              </button>
+            </div>
+            <div className="text-center mt-2 text-xs text-slate-400">
+              © {new Date().getFullYear()} Career Hub AI
+            </div>
           </div>
         </div>
       </div>
