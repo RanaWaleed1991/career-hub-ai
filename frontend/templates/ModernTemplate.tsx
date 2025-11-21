@@ -7,7 +7,7 @@ interface TemplateProps {
 }
 
 const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) => {
-  const { personalDetails, summary, experience, education, skills } = data;
+  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
   return (
     <div className="bg-white flex flex-col font-sans text-gray-800 h-full">
@@ -42,12 +42,46 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
                   ))}
               </div>
 
-              <div>
-                  <h2 className="text-sm font-semibold uppercase text-slate-400 tracking-wider mb-2 border-b border-slate-600 pb-1">Skills</h2>
-                  <ul className="text-xs space-y-1">
-                      {skills.map(skill => skill.name && <li key={skill.id} className="bg-slate-700 text-slate-200 py-1 px-2 rounded-md inline-block mr-1 mb-1">{skill.name}</li>)}
-                  </ul>
-              </div>
+              {skills.length > 0 && skills.some(s => s.name) && (
+                <div>
+                    <h2 className="text-sm font-semibold uppercase text-slate-400 tracking-wider mb-2 border-b border-slate-600 pb-1">{skillsLabel || 'Skills'}</h2>
+                    <ul className="text-xs space-y-1">
+                        {skills.filter(s => s.name).map(skill => (
+                          <li key={skill.id} className="bg-slate-700 text-slate-200 py-1 px-2 rounded-md inline-block mr-1 mb-1">{skill.name}</li>
+                        ))}
+                    </ul>
+                </div>
+              )}
+
+              {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
+                <div>
+                    <h2 className="text-sm font-semibold uppercase text-slate-400 tracking-wider mb-2 border-b border-slate-600 pb-1">Certifications</h2>
+                    {certifications.filter(c => c.name).map(cert => (
+                        <div key={cert.id} className="mb-3">
+                            <h3 className="text-sm font-bold text-slate-100">{cert.name}</h3>
+                            <p className="text-xs text-slate-300">{cert.issuer}</p>
+                            <p className="text-xs text-slate-400">{cert.date}</p>
+                            {cert.credentialId && <p className="text-xs text-slate-500">ID: {cert.credentialId}</p>}
+                        </div>
+                    ))}
+                </div>
+              )}
+
+              {references && references.length > 0 && references.some(r => r.name) && (
+                <div>
+                    <h2 className="text-sm font-semibold uppercase text-slate-400 tracking-wider mb-2 border-b border-slate-600 pb-1">References</h2>
+                    {references.filter(r => r.name).map(ref => (
+                        <div key={ref.id} className="mb-3">
+                            <h3 className="text-sm font-bold text-slate-100">{ref.name}</h3>
+                            <p className="text-xs text-slate-300">{ref.title}</p>
+                            <p className="text-xs text-slate-300">{ref.company}</p>
+                            <p className="text-xs text-slate-400">{ref.relationship}</p>
+                            {ref.phone && <p className="text-xs text-slate-500">{ref.phone}</p>}
+                            {ref.email && <p className="text-xs text-slate-500 break-words">{ref.email}</p>}
+                        </div>
+                    ))}
+                </div>
+              )}
           </div>
         </div>
 
@@ -76,6 +110,34 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
                   </div>
               ))}
           </div>
+
+          {/* Custom Sections */}
+          {customSections && customSections.length > 0 && customSections.some(s => s.title) && (
+            <>
+              {customSections
+                .filter(s => s.title)
+                .sort((a, b) => a.order - b.order)
+                .map(section => (
+                  <div key={section.id} className="mb-8">
+                    <h2 className="text-xl font-bold text-slate-800 uppercase tracking-wider border-b-2 border-slate-300 pb-2 mb-4">{section.title}</h2>
+                    <div className="text-sm text-slate-700 leading-relaxed">
+                      {section.content.split('\n').filter(line => line.trim()).map((line, i) => {
+                        const cleanLine = line.trim();
+                        if (cleanLine.startsWith('-') || cleanLine.startsWith('•')) {
+                          return (
+                            <div key={i} className="flex items-start mb-1">
+                              <span className="mr-2">•</span>
+                              <span>{cleanLine.replace(/^[-•]\s*/, '')}</span>
+                            </div>
+                          );
+                        }
+                        return <p key={i} className="mb-2">{cleanLine}</p>;
+                      })}
+                    </div>
+                  </div>
+                ))}
+            </>
+          )}
         </div>
       </div>
       {showWatermark && (
