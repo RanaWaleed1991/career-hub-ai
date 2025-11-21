@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
 import { stripe, ensureStripeConfigured, SUBSCRIPTION_TIERS } from '../config/stripe.js';
 import { subscriptionDb } from './database.js';
+import { sendPaymentConfirmationEmail, sendSubscriptionCancelledEmail } from './emailService.js';
+import { supabase } from '../config/supabase.js';
 
 /**
  * Create a Stripe customer for a user
@@ -233,6 +235,35 @@ export async function handleCheckoutComplete(session: Stripe.Checkout.Session): 
     cover_letters_generated: 0,
     resume_analyses_done: 0,
   });
+
+  // Send payment confirmation email
+  try {
+    if (supabase) {
+      const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+      if (authUser?.user?.email) {
+        const userName = authUser.user.user_metadata?.full_name || authUser.user.email;
+        const amount = stripeSubscription.items.data[0]?.price.unit_amount || 0;
+        const nextBillingDate = new Date(stripeSubscription.current_period_end * 1000);
+
+        const emailResult = await sendPaymentConfirmationEmail(
+          authUser.user.email,
+          userName,
+          plan,
+          amount,
+          nextBillingDate
+        );
+
+        if (emailResult.success) {
+          console.log(`✅ Payment confirmation email sent to: ${authUser.user.email}`);
+        } else {
+          console.error(`❌ Failed to send payment confirmation email: ${emailResult.error}`);
+        }
+      }
+    }
+  } catch (emailError) {
+    console.error('Error sending payment confirmation email:', emailError);
+    // Don't throw - email failure shouldn't block the payment processing
+  }
 }
 
 /**
@@ -297,6 +328,35 @@ export async function handleSubscriptionDelete(
     current_period_end: null,
     cancel_at_period_end: false,
   });
+
+  // Send subscription cancellation confirmation email
+  try {
+    if (supabase) {
+      const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+      if (authUser?.user?.email) {
+        const userName = authUser.user.user_metadata?.full_name || authUser.user.email;
+        // Use the current period end as the expiry date (user retains access until then)
+        const expiryDate = subscription.current_period_end
+          ? new Date(subscription.current_period_end * 1000)
+          : new Date();
+
+        const emailResult = await sendSubscriptionCancelledEmail(
+          authUser.user.email,
+          userName,
+          expiryDate
+        );
+
+        if (emailResult.success) {
+          console.log(`✅ Cancellation confirmation email sent to: ${authUser.user.email}`);
+        } else {
+          console.error(`❌ Failed to send cancellation email: ${emailResult.error}`);
+        }
+      }
+    }
+  } catch (emailError) {
+    console.error('Error sending cancellation email:', emailError);
+    // Don't throw - email failure shouldn't block the cancellation processing
+  }
 }
 
 /**
