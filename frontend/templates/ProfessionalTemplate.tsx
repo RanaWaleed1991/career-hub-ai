@@ -9,176 +9,276 @@ interface TemplateProps {
 const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) => {
   const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
-  // Diamond/Chevron icon component
-  const DiamondIcon: React.FC<{ className?: string }> = ({ className = '' }) => (
-    <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M8 2L13 8L8 14L3 8L8 2Z" />
-    </svg>
-  );
+  // Color palette
+  const colors = {
+    beigeBackground: '#D4C5A9',
+    darkBeigeBox: '#C9B991',
+    creamPage: '#F5EFE0',
+    brownHeader: '#7A6A4F',
+    blackText: '#000000',
+    stripePattern: '#F0E8D5',
+  };
 
-  // Skill bar component with percentage
-  const SkillBar: React.FC<{ name: string; level?: number }> = ({ name, level = 85 }) => (
-    <div className="mb-3">
-      <div className="text-xs mb-1.5" style={{ color: '#2C3E50' }}>{name}</div>
-      <div className="w-full h-2 rounded" style={{ backgroundColor: '#E0E0E0' }}>
+  // Diagonal stripe pattern for right column
+  const diagonalStripeStyle = {
+    backgroundImage: `repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 20px,
+      ${colors.stripePattern} 20px,
+      ${colors.stripePattern} 22px
+    )`,
+  };
+
+  return (
+    <div
+      className="min-h-full"
+      style={{
+        fontFamily: "'Georgia', 'Times New Roman', 'Playfair Display', serif",
+        backgroundColor: colors.creamPage,
+        padding: '30px',
+      }}
+    >
+      {/* HEADER SECTION - Full Width */}
+      <div
+        className="relative mb-8"
+        style={{
+          backgroundColor: colors.creamPage,
+          borderRadius: '0 0 40px 0',
+          paddingBottom: '32px',
+        }}
+      >
+        <div className="flex justify-between items-start gap-8">
+          {/* Left side: Name, Title, Summary */}
+          <div className="flex-1" style={{ maxWidth: '65%' }}>
+            {/* Name */}
+            <h1
+              className="font-bold mb-2"
+              style={{
+                fontSize: '52px',
+                color: colors.blackText,
+                lineHeight: '1.1',
+                letterSpacing: '0.5px',
+              }}
+            >
+              {personalDetails.fullName}
+            </h1>
+
+            {/* Job Title with underline */}
+            <div className="mb-4">
+              <h2
+                className="font-medium mb-1"
+                style={{
+                  fontSize: '28px',
+                  color: colors.blackText,
+                  lineHeight: '1.2',
+                }}
+              >
+                {personalDetails.jobTitle}
+              </h2>
+              <div
+                style={{
+                  width: '120px',
+                  height: '3px',
+                  backgroundColor: colors.blackText,
+                }}
+              />
+            </div>
+
+            {/* Summary/Profile */}
+            {summary && (
+              <p
+                style={{
+                  fontSize: '14px',
+                  color: colors.blackText,
+                  lineHeight: '1.7',
+                  marginTop: '16px',
+                }}
+              >
+                {summary}
+              </p>
+            )}
+          </div>
+
+          {/* Right side: Photo (if provided) */}
+          {personalDetails.photoUrl && (
+            <div
+              style={{
+                width: '200px',
+                height: '250px',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                flexShrink: 0,
+                border: `2px solid ${colors.darkBeigeBox}`,
+              }}
+            >
+              <img
+                src={personalDetails.photoUrl}
+                alt={personalDetails.fullName}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Decorative curved element */}
         <div
-          className="h-full rounded"
           style={{
-            backgroundColor: '#3B5998',
-            width: `${level}%`,
-            transition: 'width 0.3s ease'
+            position: 'absolute',
+            bottom: '-20px',
+            right: '0',
+            width: '200px',
+            height: '40px',
+            backgroundColor: colors.beigeBackground,
+            borderRadius: '40px 0 0 0',
           }}
         />
       </div>
-    </div>
-  );
 
-  return (
-    <div className="bg-white font-sans min-h-full" style={{ fontFamily: "'Segoe UI', 'Roboto', 'Open Sans', -apple-system, sans-serif" }}>
-      {/* Header - Full Width, Centered */}
-      <div className="text-center px-10 pt-10 pb-6 border-b" style={{ borderColor: '#E0E0E0' }}>
-        <h1
-          className="font-bold uppercase mb-2"
-          style={{
-            fontSize: '38px',
-            color: '#2C3E50',
-            letterSpacing: '2px',
-            lineHeight: '1.2'
-          }}
-        >
-          {personalDetails.fullName}
-        </h1>
-        <p
-          className="uppercase"
-          style={{
-            fontSize: '14px',
-            color: '#5A6C7D',
-            letterSpacing: '1px'
-          }}
-        >
-          {personalDetails.jobTitle}
-        </p>
-      </div>
-
-      {/* Two Column Layout */}
-      <div className="flex">
-        {/* LEFT SIDEBAR - 30% */}
-        <div className="w-[30%] px-8 py-8" style={{ backgroundColor: '#F8F9FA' }}>
-          {/* Contact Information */}
-          <div className="mb-8">
-            <h2
-              className="font-bold uppercase mb-4 pb-2 border-b"
+      {/* TWO-COLUMN LAYOUT */}
+      <div className="flex gap-10">
+        {/* LEFT COLUMN - 35% */}
+        <div style={{ width: '35%' }}>
+          {/* CONTACT Section */}
+          {(personalDetails.phone || personalDetails.email || personalDetails.address || personalDetails.linkedin || personalDetails.website) && (
+            <div
+              className="mb-6"
               style={{
-                fontSize: '14px',
-                color: '#2C3E50',
-                letterSpacing: '1px',
-                borderColor: '#E0E0E0'
+                backgroundColor: colors.darkBeigeBox,
+                borderRadius: '24px',
+                padding: '24px',
               }}
             >
-              Contact
-            </h2>
-            <div className="space-y-4">
-              {personalDetails.phone && (
-                <div className="flex items-start gap-2">
-                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
-                  <span style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.4' }}>
-                    {personalDetails.phone}
-                  </span>
-                </div>
-              )}
-              {personalDetails.email && (
-                <div className="flex items-start gap-2">
-                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
-                  <span style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.4', wordBreak: 'break-word' }}>
-                    {personalDetails.email}
-                  </span>
-                </div>
-              )}
-              {personalDetails.address && (
-                <div className="flex items-start gap-2">
-                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
-                  <span style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.4' }}>
-                    {personalDetails.address}
-                  </span>
-                </div>
-              )}
-              {personalDetails.linkedin && (
-                <div className="flex items-start gap-2">
-                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
-                  <a
-                    href={personalDetails.linkedin}
-                    style={{ fontSize: '11px', color: '#3B5998', lineHeight: '1.4', wordBreak: 'break-all' }}
-                    className="hover:underline"
-                  >
-                    LinkedIn Profile
-                  </a>
-                </div>
-              )}
-              {personalDetails.website && (
-                <div className="flex items-start gap-2">
-                  <DiamondIcon className="flex-shrink-0 mt-0.5" style={{ color: '#3B5998' }} />
-                  <a
-                    href={personalDetails.website}
-                    style={{ fontSize: '11px', color: '#3B5998', lineHeight: '1.4', wordBreak: 'break-all' }}
-                    className="hover:underline"
-                  >
-                    {personalDetails.website.replace(/^https?:\/\//, '')}
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Key Skills with Progress Bars */}
-          {skills.length > 0 && skills.some(s => s.name) && (
-            <div className="mb-8">
-              <h2
-                className="font-bold uppercase mb-4 pb-2 border-b"
+              <h3
+                className="font-bold uppercase mb-4"
                 style={{
-                  fontSize: '14px',
-                  color: '#2C3E50',
-                  letterSpacing: '1px',
-                  borderColor: '#E0E0E0'
+                  fontSize: '30px',
+                  color: colors.brownHeader,
                 }}
               >
-                {skillsLabel || 'Key Skills'}
-              </h2>
-              <div>
-                {skills.filter(s => s.name).map(skill => (
-                  <SkillBar key={skill.id} name={skill.name} level={85} />
-                ))}
+                Contact
+              </h3>
+              <div className="space-y-3">
+                {personalDetails.phone && (
+                  <div className="flex items-start gap-2">
+                    <span style={{ fontSize: '14px', color: colors.brownHeader }}>📞</span>
+                    <span style={{ fontSize: '14px', color: colors.blackText }}>
+                      {personalDetails.phone}
+                    </span>
+                  </div>
+                )}
+                {personalDetails.email && (
+                  <div className="flex items-start gap-2">
+                    <span style={{ fontSize: '14px', color: colors.brownHeader }}>✉️</span>
+                    <span
+                      style={{
+                        fontSize: '14px',
+                        color: colors.blackText,
+                        wordBreak: 'break-word',
+                      }}
+                    >
+                      {personalDetails.email}
+                    </span>
+                  </div>
+                )}
+                {personalDetails.address && (
+                  <div className="flex items-start gap-2">
+                    <span style={{ fontSize: '14px', color: colors.brownHeader }}>📍</span>
+                    <span style={{ fontSize: '14px', color: colors.blackText }}>
+                      {personalDetails.address}
+                    </span>
+                  </div>
+                )}
+                {personalDetails.linkedin && (
+                  <div className="flex items-start gap-2">
+                    <span style={{ fontSize: '14px', color: colors.brownHeader }}>🔗</span>
+                    <a
+                      href={personalDetails.linkedin}
+                      style={{
+                        fontSize: '14px',
+                        color: colors.blackText,
+                        textDecoration: 'underline',
+                        wordBreak: 'break-all',
+                      }}
+                    >
+                      LinkedIn
+                    </a>
+                  </div>
+                )}
+                {personalDetails.website && (
+                  <div className="flex items-start gap-2">
+                    <span style={{ fontSize: '14px', color: colors.brownHeader }}>🌐</span>
+                    <a
+                      href={personalDetails.website}
+                      style={{
+                        fontSize: '14px',
+                        color: colors.blackText,
+                        textDecoration: 'underline',
+                        wordBreak: 'break-all',
+                      }}
+                    >
+                      {personalDetails.website.replace(/^https?:\/\//, '')}
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Certifications */}
-          {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
-            <div className="mb-8">
-              <h2
-                className="font-bold uppercase mb-4 pb-2 border-b"
+          {/* EDUCATION Section */}
+          {education.length > 0 && education.some(e => e.degree) && (
+            <div
+              className="mb-6"
+              style={{
+                backgroundColor: colors.darkBeigeBox,
+                borderRadius: '24px',
+                padding: '24px',
+              }}
+            >
+              <h3
+                className="font-bold uppercase mb-4"
                 style={{
-                  fontSize: '14px',
-                  color: '#2C3E50',
-                  letterSpacing: '1px',
-                  borderColor: '#E0E0E0'
+                  fontSize: '30px',
+                  color: colors.brownHeader,
                 }}
               >
-                Certifications
-              </h2>
-              {certifications.filter(c => c.name).map(cert => (
-                <div key={cert.id} className="mb-3">
-                  <p className="font-bold" style={{ fontSize: '11px', color: '#2C3E50', marginBottom: '2px' }}>
-                    {cert.name}
+                Education
+              </h3>
+              {education.filter(e => e.degree).map((edu) => (
+                <div key={edu.id} className="mb-4 last:mb-0">
+                  <p
+                    className="font-bold"
+                    style={{
+                      fontSize: '16px',
+                      color: colors.blackText,
+                      marginBottom: '4px',
+                    }}
+                  >
+                    {edu.degree}
                   </p>
-                  <p style={{ fontSize: '10px', color: '#5A6C7D', marginBottom: '2px' }}>
-                    {cert.issuer}
-                  </p>
-                  <p style={{ fontSize: '10px', color: '#7A8C9D' }}>
-                    {cert.date}
-                  </p>
-                  {cert.credentialId && (
-                    <p style={{ fontSize: '9px', color: '#7A8C9D' }}>
-                      ID: {cert.credentialId}
+                  {edu.gradDate && (
+                    <p
+                      style={{
+                        fontSize: '14px',
+                        color: colors.blackText,
+                        marginBottom: '4px',
+                      }}
+                    >
+                      ({edu.gradDate})
+                    </p>
+                  )}
+                  {edu.institution && (
+                    <p
+                      style={{
+                        fontSize: '14px',
+                        color: colors.blackText,
+                      }}
+                    >
+                      {edu.institution}
                     </p>
                   )}
                 </div>
@@ -186,42 +286,142 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = f
             </div>
           )}
 
-          {/* References */}
-          {references && references.length > 0 && references.some(r => r.name) && (
-            <div className="mb-8">
-              <h2
-                className="font-bold uppercase mb-4 pb-2 border-b"
+          {/* SKILLS Section */}
+          {skills.length > 0 && skills.some(s => s.name) && (
+            <div
+              className="mb-6"
+              style={{
+                backgroundColor: colors.darkBeigeBox,
+                borderRadius: '24px',
+                padding: '24px',
+              }}
+            >
+              <h3
+                className="font-bold uppercase mb-4"
                 style={{
-                  fontSize: '14px',
-                  color: '#2C3E50',
-                  letterSpacing: '1px',
-                  borderColor: '#E0E0E0'
+                  fontSize: '30px',
+                  color: colors.brownHeader,
+                }}
+              >
+                {skillsLabel || 'Skills'}
+              </h3>
+              <ul className="space-y-2">
+                {skills.filter(s => s.name).map((skill) => (
+                  <li
+                    key={skill.id}
+                    style={{
+                      fontSize: '14px',
+                      color: colors.blackText,
+                      lineHeight: '1.8',
+                      paddingLeft: '8px',
+                    }}
+                  >
+                    • {skill.name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* CERTIFICATIONS Section */}
+          {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
+            <div
+              className="mb-6"
+              style={{
+                backgroundColor: colors.darkBeigeBox,
+                borderRadius: '24px',
+                padding: '24px',
+              }}
+            >
+              <h3
+                className="font-bold uppercase mb-4"
+                style={{
+                  fontSize: '30px',
+                  color: colors.brownHeader,
+                }}
+              >
+                Certification
+              </h3>
+              <ul className="space-y-2">
+                {certifications.filter(c => c.name).map((cert) => (
+                  <li
+                    key={cert.id}
+                    style={{
+                      fontSize: '14px',
+                      color: colors.blackText,
+                      lineHeight: '1.8',
+                      paddingLeft: '8px',
+                    }}
+                  >
+                    • {cert.name}
+                    {cert.issuer && ` - ${cert.issuer}`}
+                    {cert.date && ` (${cert.date})`}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* REFERENCES Section */}
+          {references && references.length > 0 && references.some(r => r.name) && (
+            <div
+              style={{
+                backgroundColor: colors.darkBeigeBox,
+                borderRadius: '24px',
+                padding: '24px',
+              }}
+            >
+              <h3
+                className="font-bold uppercase mb-4"
+                style={{
+                  fontSize: '30px',
+                  color: colors.brownHeader,
                 }}
               >
                 References
-              </h2>
-              {references.filter(r => r.name).map(ref => (
-                <div key={ref.id} className="mb-3" style={{ fontSize: '10px' }}>
-                  <p className="font-bold" style={{ color: '#2C3E50', marginBottom: '2px' }}>
+              </h3>
+              {references.filter(r => r.name).map((ref) => (
+                <div key={ref.id} className="mb-4 last:mb-0">
+                  <p
+                    className="font-bold"
+                    style={{
+                      fontSize: '14px',
+                      color: colors.blackText,
+                      marginBottom: '2px',
+                    }}
+                  >
                     {ref.name}
                   </p>
-                  <p style={{ color: '#5A6C7D', marginBottom: '1px' }}>
-                    {ref.title}
-                  </p>
-                  <p style={{ color: '#5A6C7D', marginBottom: '1px' }}>
-                    {ref.company}
-                  </p>
-                  <p style={{ color: '#7A8C9D', fontSize: '9px', marginBottom: '2px' }}>
-                    {ref.relationship}
-                  </p>
-                  {ref.phone && (
-                    <p style={{ color: '#7A8C9D', fontSize: '9px' }}>
-                      {ref.phone}
+                  {ref.title && (
+                    <p
+                      style={{
+                        fontSize: '13px',
+                        color: colors.blackText,
+                        marginBottom: '2px',
+                      }}
+                    >
+                      {ref.title}
                     </p>
                   )}
-                  {ref.email && (
-                    <p style={{ color: '#7A8C9D', fontSize: '9px', wordBreak: 'break-word' }}>
-                      {ref.email}
+                  {ref.company && (
+                    <p
+                      style={{
+                        fontSize: '13px',
+                        color: colors.blackText,
+                        marginBottom: '2px',
+                      }}
+                    >
+                      {ref.company}
+                    </p>
+                  )}
+                  {ref.phone && (
+                    <p
+                      style={{
+                        fontSize: '13px',
+                        color: colors.blackText,
+                      }}
+                    >
+                      {ref.phone}
                     </p>
                   )}
                 </div>
@@ -230,140 +430,154 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = f
           )}
         </div>
 
-        {/* RIGHT MAIN CONTENT - 70% */}
-        <div className="w-[70%] px-10 py-8">
-          {/* Profile/Summary Section */}
-          {summary && (
-            <div className="mb-7">
+        {/* RIGHT COLUMN - 65% */}
+        <div
+          style={{
+            width: '65%',
+            ...diagonalStripeStyle,
+            padding: '24px',
+            borderRadius: '12px',
+          }}
+        >
+          {/* PROFESSIONAL EXPERIENCE Section */}
+          {experience.length > 0 && experience.some(e => e.jobTitle) && (
+            <div className="mb-8">
               <h2
-                className="font-bold uppercase mb-3"
+                className="font-bold uppercase mb-5"
                 style={{
-                  fontSize: '16px',
-                  color: '#2C3E50',
-                  letterSpacing: '2px'
-                }}
-              >
-                Profile
-              </h2>
-              <p style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.6', textAlign: 'justify' }}>
-                {summary}
-              </p>
-            </div>
-          )}
-
-          {/* Professional Experience Section */}
-          {experience.length > 0 && (
-            <div className="mb-7">
-              <h2
-                className="font-bold uppercase mb-4"
-                style={{
-                  fontSize: '16px',
-                  color: '#2C3E50',
-                  letterSpacing: '2px'
+                  fontSize: '36px',
+                  color: colors.brownHeader,
                 }}
               >
                 Professional Experience
               </h2>
-              {experience.map((exp, index) => (
-                <div key={exp.id} className={index > 0 ? 'mt-5' : ''}>
-                  <div className="mb-1">
-                    <span className="font-bold" style={{ fontSize: '13px', color: '#2C3E50' }}>
-                      {exp.jobTitle}
-                    </span>
-                  </div>
-                  <div className="mb-1" style={{ fontSize: '12px', fontStyle: 'italic', color: '#5A6C7D' }}>
-                    {exp.company}
-                    {exp.location && ` • ${exp.location}`}
-                  </div>
-                  <div className="mb-2" style={{ fontSize: '11px', fontStyle: 'italic', color: '#7A8C9D' }}>
-                    ({exp.startDate} – {exp.endDate})
-                  </div>
-                  {exp.description && (
-                    <ul style={{ paddingLeft: '20px', marginTop: '8px' }}>
-                      {exp.description.split('\n').filter(line => line.trim()).map((line, i) => (
-                        <li
-                          key={i}
-                          style={{
-                            fontSize: '11px',
-                            color: '#2C3E50',
-                            lineHeight: '1.5',
-                            marginBottom: '6px'
-                          }}
-                        >
-                          {line.replace(/^[-•]\s*/, '')}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+              {experience.filter(e => e.jobTitle).map((exp, index) => (
+                <div
+                  key={exp.id}
+                  className={index > 0 ? 'mt-6' : ''}
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                    padding: '16px',
+                    borderRadius: '8px',
+                  }}
+                >
+                  {/* Job Title */}
+                  <h3
+                    className="font-bold"
+                    style={{
+                      fontSize: '20px',
+                      color: colors.blackText,
+                      marginBottom: '4px',
+                    }}
+                  >
+                    {exp.jobTitle}
+                  </h3>
 
-          {/* Education Section */}
-          {education.length > 0 && (
-            <div className="mb-7">
-              <h2
-                className="font-bold uppercase mb-4"
-                style={{
-                  fontSize: '16px',
-                  color: '#2C3E50',
-                  letterSpacing: '2px'
-                }}
-              >
-                Education
-              </h2>
-              {education.map(edu => (
-                <div key={edu.id} className="mb-3">
-                  <p className="font-bold" style={{ fontSize: '13px', color: '#2C3E50', marginBottom: '4px' }}>
-                    {edu.degree}
-                  </p>
-                  <p style={{ fontSize: '11px', fontStyle: 'italic', color: '#7A8C9D', marginBottom: '2px' }}>
-                    ({edu.gradDate})
-                  </p>
-                  <p style={{ fontSize: '12px', fontStyle: 'italic', color: '#5A6C7D', marginBottom: '2px' }}>
-                    {edu.institution}
-                  </p>
-                  {edu.location && (
-                    <p style={{ fontSize: '11px', color: '#7A8C9D' }}>
-                      {edu.location}
+                  {/* Date range */}
+                  {(exp.startDate || exp.endDate) && (
+                    <p
+                      style={{
+                        fontSize: '16px',
+                        color: colors.blackText,
+                        marginBottom: '4px',
+                      }}
+                    >
+                      ({exp.startDate} - {exp.endDate})
                     </p>
                   )}
+
+                  {/* Company name */}
+                  {exp.company && (
+                    <p
+                      className="italic"
+                      style={{
+                        fontSize: '16px',
+                        color: colors.blackText,
+                        marginBottom: '12px',
+                      }}
+                    >
+                      {exp.company}
+                      {exp.location && ` • ${exp.location}`}
+                    </p>
+                  )}
+
+                  {/* Responsibilities with diamond bullets */}
+                  {exp.description && (
+                    <div style={{ paddingLeft: '24px' }}>
+                      {exp.description.split('\n').filter(line => line.trim()).map((line, i) => (
+                        <div
+                          key={i}
+                          className="flex items-start gap-2 mb-2"
+                        >
+                          <span
+                            style={{
+                              color: colors.brownHeader,
+                              fontSize: '14px',
+                              marginTop: '2px',
+                            }}
+                          >
+                            ◆
+                          </span>
+                          <span
+                            style={{
+                              fontSize: '14px',
+                              color: colors.blackText,
+                              lineHeight: '1.6',
+                              flex: 1,
+                            }}
+                          >
+                            {line.replace(/^[-•]\s*/, '')}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
 
-          {/* Custom Sections */}
+          {/* CUSTOM SECTIONS */}
           {customSections && customSections.length > 0 && customSections.some(s => s.title) && (
             <>
               {customSections
                 .filter(s => s.title)
                 .sort((a, b) => a.order - b.order)
-                .map(section => (
-                  <div key={section.id} className="mb-7">
+                .map((section) => (
+                  <div key={section.id} className="mb-8">
                     <h2
-                      className="font-bold uppercase mb-4"
+                      className="font-bold uppercase mb-5"
                       style={{
-                        fontSize: '16px',
-                        color: '#2C3E50',
-                        letterSpacing: '2px'
+                        fontSize: '36px',
+                        color: colors.brownHeader,
                       }}
                     >
                       {section.title}
                     </h2>
-                    <div style={{ fontSize: '11px', color: '#2C3E50', lineHeight: '1.5' }}>
+                    <div
+                      style={{
+                        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                        padding: '16px',
+                        borderRadius: '8px',
+                      }}
+                    >
                       {section.content.split('\n').filter(line => line.trim()).map((line, i) => {
                         const cleanLine = line.trim();
                         if (cleanLine.startsWith('-') || cleanLine.startsWith('•')) {
                           return (
-                            <div key={i} className="flex items-start mb-1" style={{ paddingLeft: '20px' }}>
-                              <span style={{ marginRight: '8px' }}>•</span>
-                              <span>{cleanLine.replace(/^[-•]\s*/, '')}</span>
+                            <div key={i} className="flex items-start gap-2 mb-2" style={{ paddingLeft: '24px' }}>
+                              <span style={{ color: colors.brownHeader, fontSize: '14px', marginTop: '2px' }}>◆</span>
+                              <span style={{ fontSize: '14px', color: colors.blackText, lineHeight: '1.6', flex: 1 }}>
+                                {cleanLine.replace(/^[-•]\s*/, '')}
+                              </span>
                             </div>
                           );
                         }
-                        return <p key={i} className="mb-2">{cleanLine}</p>;
+                        return (
+                          <p key={i} style={{ fontSize: '14px', color: colors.blackText, lineHeight: '1.6', marginBottom: '8px' }}>
+                            {cleanLine}
+                          </p>
+                        );
                       })}
                     </div>
                   </div>
@@ -373,8 +587,14 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = f
 
           {/* Watermark */}
           {showWatermark && (
-            <div className="mt-8 pt-4 border-t" style={{ borderColor: '#E0E0E0' }}>
-              <p className="text-center" style={{ fontSize: '10px', color: '#7A8C9D' }}>
+            <div
+              className="mt-8 pt-4"
+              style={{
+                borderTop: `1px solid ${colors.darkBeigeBox}`,
+                textAlign: 'center',
+              }}
+            >
+              <p style={{ fontSize: '11px', color: colors.brownHeader }}>
                 Built with Career Hub AI - <span className="font-semibold">Get Premium</span>
               </p>
             </div>
