@@ -14,13 +14,13 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
       {/* Decorative Top Bar */}
       <div style={{ height: '16px', backgroundColor: '#0d9488', width: '100%' }} />
 
-      <div className="p-8 px-12">
+      <div className="p-8 px-10">
         {/* Header */}
         <div
           className="flex justify-between items-start mb-10 pb-8"
           style={{ borderBottom: '2px solid #f3f4f6' }}
         >
-          <div>
+          <div style={{ maxWidth: '65%' }}>
             <h1
               className="font-bold mb-2 tracking-tight leading-tight"
               style={{
@@ -82,9 +82,9 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-10">
+        <div className="grid grid-cols-3 gap-16">
           {/* Main Content (2 cols) */}
-          <div className="col-span-2 flex flex-col gap-8">
+          <div className="col-span-2 flex flex-col gap-8" style={{ paddingRight: '16px' }}>
             {/* About Me / Summary */}
             {summary && (
               <section>
