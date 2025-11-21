@@ -5,6 +5,7 @@ import ModernTemplate from '../templates/ModernTemplate';
 import AustralianTemplate from '../templates/AustralianTemplate';
 import CreativeTemplate from '../templates/CreativeTemplate';
 import ElegantTemplate from '../templates/ElegantTemplate';
+import MinimalTemplate from '../templates/MinimalTemplate';
 import { PrintIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, DocumentTextIcon, DownloadIcon } from './icons';
 import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory, canSaveVersion, useVersionSave, hasPremium } from '../services/premiumService';
 import { saveVersion } from '../services/versionHistoryService';
@@ -48,6 +49,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         return <CreativeTemplate {...props} />;
       case 'elegant':
         return <ElegantTemplate {...props} />;
+      case 'minimal':
+        return <MinimalTemplate {...props} />;
       default:
         return <AustralianTemplate {...props} />;
     }
@@ -212,7 +215,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     <button onClick={() => setTemplate('modern')} className={`${templateButtonClass} ${template === 'modern' ? activeClass : inactiveClass}`}>Modern</button>
                     <button onClick={() => setTemplate('australian')} className={`${templateButtonClass} ${template === 'australian' ? activeClass : inactiveClass}`}>Australian</button>
                     <button onClick={() => setTemplate('creative')} className={`${templateButtonClass} ${template === 'creative' ? activeClass : inactiveClass}`}>Creative</button>
-                    <button onClick={() => setTemplate('elegant')} className={`${templateButtonClass} rounded-r-md ${template === 'elegant' ? activeClass : inactiveClass}`}>Elegant</button>
+                    <button onClick={() => setTemplate('elegant')} className={`${templateButtonClass} ${template === 'elegant' ? activeClass : inactiveClass}`}>Elegant</button>
+                    <button onClick={() => setTemplate('minimal')} className={`${templateButtonClass} rounded-r-md ${template === 'minimal' ? activeClass : inactiveClass}`}>Minimal</button>
                 </div>
             </div>
             <div className="flex space-x-2">
