@@ -164,7 +164,7 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
        {showWatermark && (
         <div className="text-center mt-8 pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-400">
-                Built with Career Hub AI - <span className="font-semibold text-gray-500">Get Premium</span>
+                Built with Career Hub AI - Go Premium to remove
             </p>
         </div>
       )}

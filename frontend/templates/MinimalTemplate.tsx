@@ -456,7 +456,7 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             }}
           >
             <p style={{ fontSize: '10px', color: '#9ca3af' }}>
-              Built with Career Hub AI - <span className="font-semibold">Get Premium</span>
+              Built with Career Hub AI - Go Premium to remove
             </p>
           </div>
         )}
