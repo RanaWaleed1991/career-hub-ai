@@ -37,6 +37,9 @@ interface EnvConfig {
   STRIPE_PUBLISHABLE_KEY: string | undefined;
   ADZUNA_APP_ID: string | undefined;
   ADZUNA_API_KEY: string | undefined;
+  SENDGRID_API_KEY: string | undefined;
+  EMAIL_FROM: string | undefined;
+  EMAIL_FROM_NAME: string | undefined;
 }
 
 const getEnvVar = (key: string, defaultValue?: string, required: boolean = true): string => {
@@ -61,4 +64,7 @@ export const env: EnvConfig = {
   STRIPE_PUBLISHABLE_KEY: getEnvVar('STRIPE_PUBLISHABLE_KEY', '', false) || undefined,
   ADZUNA_APP_ID: getEnvVar('ADZUNA_APP_ID', '', false) || undefined,
   ADZUNA_API_KEY: getEnvVar('ADZUNA_API_KEY', '', false) || undefined,
+  SENDGRID_API_KEY: getEnvVar('SENDGRID_API_KEY', '', false) || undefined,
+  EMAIL_FROM: getEnvVar('EMAIL_FROM', 'careerhubaiaus@gmail.com', false),
+  EMAIL_FROM_NAME: getEnvVar('EMAIL_FROM_NAME', 'Career Hub AI', false),
 };

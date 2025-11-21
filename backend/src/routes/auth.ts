@@ -8,6 +8,7 @@ import {
   isAccountLocked,
   clearLoginAttempts,
 } from '../utils/loginAttempts.js';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -50,6 +51,19 @@ router.post('/signup', signupSchema, validate, async (req: Request, res: Respons
     if (error) {
       res.status(400).json({ error: error.message });
       return;
+    }
+
+    // Send welcome email (don't wait for it, send async)
+    if (data.user?.email) {
+      sendWelcomeEmail(data.user.email, fullName || data.user.email)
+        .then(result => {
+          if (result.success) {
+            console.log(`✅ Welcome email sent to: ${data.user.email}`);
+          } else {
+            console.error(`❌ Failed to send welcome email: ${result.error}`);
+          }
+        })
+        .catch(err => console.error('Welcome email error:', err));
     }
 
     res.status(201).json({
@@ -244,7 +258,7 @@ router.post('/facebook', async (req: Request, res: Response): Promise<void> => {
 /**
  * POST /api/auth/password-reset/request
  * Request password reset email
- * Sends email with reset link to user
+ * Sends email with reset link to user using SendGrid
  */
 router.post('/password-reset/request', async (req: Request, res: Response): Promise<void> => {
   try {
@@ -259,18 +273,45 @@ router.post('/password-reset/request', async (req: Request, res: Response): Prom
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Supabase sends password reset email automatically
-    const { error } = await supabase!.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
-    });
+    // Check if user exists (but don't reveal this to client for security)
+    const { data: authUser } = await supabase!.auth.admin.listUsers();
+    const user = authUser?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
 
-    // Always return success message (don't reveal if email exists for security)
-    if (error) {
-      console.error('Password reset request error:', error.message);
-    } else {
-      console.log(`📧 Password reset email sent to: ${normalizedEmail}`);
+    if (user) {
+      // Generate password reset link using Supabase
+      const { data, error } = await supabase!.auth.admin.generateLink({
+        type: 'recovery',
+        email: normalizedEmail,
+      });
+
+      if (!error && data.properties?.action_link) {
+        // Extract token from Supabase's action link
+        const actionLink = data.properties.action_link;
+        const tokenMatch = actionLink.match(/token=([^&]+)/);
+        const resetToken = tokenMatch ? tokenMatch[1] : '';
+
+        // Send custom password reset email via SendGrid
+        const emailResult = await sendPasswordResetEmail(
+          normalizedEmail,
+          resetToken,
+          user.user_metadata?.full_name || user.email || 'there'
+        );
+
+        if (emailResult.success) {
+          console.log(`✅ Custom password reset email sent to: ${normalizedEmail}`);
+        } else {
+          console.error(`❌ Failed to send password reset email: ${emailResult.error}`);
+          // Fall back to Supabase's email if custom email fails
+          await supabase!.auth.resetPasswordForEmail(normalizedEmail, {
+            redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
+          });
+        }
+      } else {
+        console.error('Failed to generate reset link:', error?.message);
+      }
     }
 
+    // Always return success message (don't reveal if email exists for security)
     res.status(200).json({
       message: 'If an account exists with that email, a password reset link has been sent.',
     });
