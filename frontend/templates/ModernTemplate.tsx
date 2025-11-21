@@ -417,7 +417,7 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
               }}
             >
               <p style={{ fontSize: '10px', color: '#94a3b8' }}>
-                Built with Career Hub AI - <span className="font-semibold">Get Premium</span>
+                Built with Career Hub AI - Go Premium to remove
               </p>
             </div>
           )}

@@ -11,13 +11,6 @@ import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVer
 import { saveVersion } from '../services/versionHistoryService';
 import { resumeDataToText } from '../utils/resumeUtils';
 
-// Declare the global variable provided by the html-docx-js script in index.html
-declare const window: Window & typeof globalThis & {
-  htmlDocx?: any;
-  htmlDocxJs?: any;
-};
-
-
 interface ResumePreviewProps {
   resumeData: ResumeData;
   template: TemplateType;
@@ -33,8 +26,15 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   resumeData, template, setTemplate, triggerPremiumFlow,
   setActionToRetry, setPage, openTailorModal, openLoadModal
 }) => {
-  // Watermark disabled for all users
-  const showWatermark = false;
+  const [showWatermark, setShowWatermark] = useState(true);
+
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+      const isPremium = await hasPremium();
+      setShowWatermark(!isPremium); // Show watermark only for non-premium users
+    };
+    checkPremiumStatus();
+  }, []);
 
   const getTemplateComponent = () => {
     const props = { data: resumeData, showWatermark };
@@ -80,82 +80,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     }
   };
 
-  const handleWordDownload = async () => {
-    const canUse = await canDownloadResume();
-    if (!canUse) {
-      setActionToRetry(() => handleWordDownload);
-      triggerPremiumFlow();
-      return;
-    }
-
-    // Check if user has premium - skip confirmation for premium users
-    const isPremium = await hasPremium();
-
-    if (!isPremium) {
-      // Free users: confirm before using credit
-      const confirmed = window.confirm('This will use 1 download credit. Continue to download Word document?');
-      if (!confirmed) {
-        return;
-      }
-      await useResumeDownload();
-    }
-
-    // Continue with download (for both premium and confirmed free users)
-
-    const element = document.getElementById('resume-preview-content');
-    if (element) {
-      const content = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>Resume</title>
-          <style>
-            body { font-family: Arial, sans-serif; font-size: 10pt; }
-            h1, h2, h3 { color: #333; }
-            ul { list-style-type: disc; margin-left: 20px; }
-          </style>
-        </head>
-        <body>
-          ${element.innerHTML}
-        </body>
-        </html>
-      `;
-
-      try {
-        // Check if html-docx-js library is available
-        const htmlDocxLib = (window as any).htmlDocx || (window as any).htmlDocxJs;
-
-        if (!htmlDocxLib || typeof htmlDocxLib.asBlob !== 'function') {
-          console.error('html-docx-js library not found or asBlob method not available');
-          console.log('Available on window:', Object.keys(window).filter(k => k.toLowerCase().includes('html') || k.toLowerCase().includes('docx')));
-          throw new Error('Word document library not loaded. Please refresh the page and try again.');
-        }
-
-        console.log('Generating Word document with html-docx-js...');
-
-        // Convert HTML to DOCX using html-docx-js
-        const converted = htmlDocxLib.asBlob(content);
-
-        // Create download link
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(converted);
-        link.download = `${resumeData.personalDetails.fullName || 'Resume'}.docx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-
-        console.log('Word document downloaded successfully');
-
-      } catch (error) {
-        console.error("Error generating DOCX file:", error);
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        alert(`Sorry, there was an error creating the Word document.\n\nError: ${errorMessage}\n\nPlease try the PDF download instead.`);
-        // Don't track usage on error
-      }
-    }
-  };
 
   const handleSaveVersion = async () => {
     const canSave = await canSaveVersion();
@@ -220,10 +144,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 </div>
             </div>
             <div className="flex space-x-2">
-              <button onClick={handleWordDownload} className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm">
-                  <DocumentTextIcon className="w-4 h-4"/>
-                  <span>Word</span>
-              </button>
               <button onClick={handlePrintClick} className="flex items-center space-x-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm">
                   <PrintIcon className="w-4 h-4"/>
                   <span>PDF</span>
@@ -275,7 +195,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           }
           @page {
             size: A4;
-            margin: 20mm;
+            margin: 20mm 20mm 20mm 20mm;
           }
         `}
       </style>
