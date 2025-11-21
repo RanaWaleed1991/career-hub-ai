@@ -8,7 +8,7 @@ interface TemplateProps {
 }
 
 const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) => {
-  const { personalDetails, summary, experience, education, skills } = data;
+  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
   return (
     <div className="bg-white p-12 font-sans text-gray-800 min-h-full">
@@ -79,7 +79,7 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = f
       {skills.length > 0 && skills.some(s => s.name) && (
         <div className="mb-8">
           <h2 className="text-lg font-bold text-[#1E40AF] uppercase tracking-wider mb-2 pb-2 border-b-2 border-[#0891B2]">
-            Professional Skills
+            {skillsLabel || 'Professional Skills'}
           </h2>
           <div className="grid grid-cols-2 gap-x-8 gap-y-2 mt-3">
             {skills.filter(s => s.name).map(skill => (
@@ -148,6 +148,92 @@ const ProfessionalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = f
                 <p className="text-xs text-gray-600 mt-0.5">
                   {edu.gradDate} {edu.location && `• ${edu.location}`}
                 </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Certifications Section */}
+      {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-[#1E40AF] uppercase tracking-wider mb-2 pb-2 border-b-2 border-[#0891B2]">
+            Certifications
+          </h2>
+          <div className="mt-4 space-y-4">
+            {certifications.filter(c => c.name).map(cert => (
+              <div key={cert.id}>
+                <h3 className="text-base font-bold text-[#1F2937]">
+                  {cert.name}
+                </h3>
+                <p className="text-sm text-[#0891B2] mt-1">
+                  {cert.issuer}
+                </p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  {cert.date}
+                  {cert.credentialId && ` • Credential ID: ${cert.credentialId}`}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Custom Sections */}
+      {customSections && customSections.length > 0 && customSections.some(s => s.title) && (
+        <>
+          {customSections
+            .filter(s => s.title)
+            .sort((a, b) => a.order - b.order)
+            .map(section => (
+              <div key={section.id} className="mb-8">
+                <h2 className="text-lg font-bold text-[#1E40AF] uppercase tracking-wider mb-2 pb-2 border-b-2 border-[#0891B2]">
+                  {section.title}
+                </h2>
+                <div className="mt-3 text-sm text-[#1F2937] leading-relaxed">
+                  {section.content.split('\n').filter(line => line.trim()).map((line, i) => {
+                    const cleanLine = line.trim();
+                    if (cleanLine.startsWith('-') || cleanLine.startsWith('•')) {
+                      return (
+                        <div key={i} className="flex items-start mb-1">
+                          <span className="text-[#0891B2] mr-2">•</span>
+                          <span>{cleanLine.replace(/^[-•]\s*/, '')}</span>
+                        </div>
+                      );
+                    }
+                    return <p key={i} className="mb-2">{cleanLine}</p>;
+                  })}
+                </div>
+              </div>
+            ))}
+        </>
+      )}
+
+      {/* References Section */}
+      {references && references.length > 0 && references.some(r => r.name) && (
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-[#1E40AF] uppercase tracking-wider mb-2 pb-2 border-b-2 border-[#0891B2]">
+            References
+          </h2>
+          <div className="mt-4 space-y-4">
+            {references.filter(r => r.name).map(ref => (
+              <div key={ref.id}>
+                <h3 className="text-base font-bold text-[#1F2937]">
+                  {ref.name}
+                </h3>
+                <p className="text-sm text-[#0891B2] mt-1">
+                  {ref.title} at {ref.company}
+                </p>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  Relationship: {ref.relationship}
+                </p>
+                {(ref.phone || ref.email) && (
+                  <p className="text-xs text-gray-600 mt-0.5">
+                    {ref.phone && `Phone: ${ref.phone}`}
+                    {ref.phone && ref.email && ' • '}
+                    {ref.email && `Email: ${ref.email}`}
+                  </p>
+                )}
               </div>
             ))}
           </div>

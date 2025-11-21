@@ -32,12 +32,41 @@ export interface Skill {
   name: string;
 }
 
+export interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  credentialId?: string;
+}
+
+export interface Reference {
+  id: string;
+  name: string;
+  title: string;
+  company: string;
+  relationship: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface CustomSection {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+}
+
 export interface ResumeData {
   personalDetails: PersonalDetails;
   summary: string;
   experience: Experience[];
   education: Education[];
   skills: Skill[];
+  skillsLabel?: string; // Optional custom label for skills section
+  certifications?: Certification[];
+  references?: Reference[];
+  customSections?: CustomSection[];
 }
 
 export interface ResumeVersion {

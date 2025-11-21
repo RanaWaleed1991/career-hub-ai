@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ResumeData, Experience, Education, Skill } from '../types';
+import type { ResumeData, Experience, Education, Skill, Certification, Reference, CustomSection } from '../types';
 import AIAssistButton from './AIAssistButton';
 import { PlusCircleIcon, MinusCircleIcon, TipIcon, UserCircleIcon } from './icons';
 
@@ -99,6 +99,78 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ resumeData, setResumeData, onEn
         }
       }));
   }
+
+  // Certification handlers
+  const addCertification = () => {
+    setResumeData(prev => ({
+      ...prev,
+      certifications: [...(prev.certifications || []), { id: Date.now().toString(), name: '', issuer: '', date: '', credentialId: '' }],
+    }));
+  };
+
+  const removeCertification = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      certifications: (prev.certifications || []).filter(cert => cert.id !== id),
+    }));
+  };
+
+  // Reference handlers
+  const addReference = () => {
+    setResumeData(prev => ({
+      ...prev,
+      references: [...(prev.references || []), { id: Date.now().toString(), name: '', title: '', company: '', relationship: '', phone: '', email: '' }],
+    }));
+  };
+
+  const removeReference = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      references: (prev.references || []).filter(ref => ref.id !== id),
+    }));
+  };
+
+  // Custom section handlers
+  const addCustomSection = () => {
+    const newOrder = (resumeData.customSections || []).length;
+    setResumeData(prev => ({
+      ...prev,
+      customSections: [...(prev.customSections || []), { id: Date.now().toString(), title: '', content: '', order: newOrder }],
+    }));
+  };
+
+  const removeCustomSection = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      customSections: (prev.customSections || []).filter(section => section.id !== id),
+    }));
+  };
+
+  const moveCustomSectionUp = (index: number) => {
+    if (index === 0) return;
+    setResumeData(prev => {
+      const sections = [...(prev.customSections || [])];
+      [sections[index - 1], sections[index]] = [sections[index], sections[index - 1]];
+      // Update order values
+      sections.forEach((section, idx) => {
+        section.order = idx;
+      });
+      return { ...prev, customSections: sections };
+    });
+  };
+
+  const moveCustomSectionDown = (index: number) => {
+    if (!resumeData.customSections || index === resumeData.customSections.length - 1) return;
+    setResumeData(prev => {
+      const sections = [...(prev.customSections || [])];
+      [sections[index], sections[index + 1]] = [sections[index + 1], sections[index]];
+      // Update order values
+      sections.forEach((section, idx) => {
+        section.order = idx;
+      });
+      return { ...prev, customSections: sections };
+    });
+  };
 
   const inputClass = "mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500";
   const labelClass = "block text-sm font-medium text-slate-700";
@@ -266,6 +338,23 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ resumeData, setResumeData, onEn
       {/* Skills */}
       <fieldset className="opacity-0 slide-in-up" style={{ animationDelay: '500ms' }}>
         <legend className="text-xl font-semibold text-slate-800 border-b border-slate-300 pb-2 w-full mb-4">Skills</legend>
+
+        {/* Skills Label Customization */}
+        <div className="mb-4">
+          <label className={labelClass}>Skills Section Label (optional)</label>
+          <select
+            value={resumeData.skillsLabel || 'Skills'}
+            onChange={(e) => setResumeData(prev => ({ ...prev, skillsLabel: e.target.value }))}
+            className={inputClass}
+          >
+            <option value="Skills">Skills</option>
+            <option value="Technical Skills">Technical Skills</option>
+            <option value="Core Competencies">Core Competencies</option>
+            <option value="Key Skills">Key Skills</option>
+            <option value="Professional Skills">Professional Skills</option>
+          </select>
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
             {resumeData.skills.map((skill, index) => (
             <div key={skill.id} className="relative">
@@ -279,6 +368,135 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ resumeData, setResumeData, onEn
          <button type="button" onClick={addSkill} className="mt-4 flex items-center space-x-2 text-indigo-600 font-medium hover:text-indigo-800">
           <PlusCircleIcon />
           <span>Add Skill</span>
+        </button>
+      </fieldset>
+
+      {/* Certifications */}
+      <fieldset className="space-y-4 opacity-0 slide-in-up" style={{ animationDelay: '600ms' }}>
+        <legend className="text-xl font-semibold text-slate-800 border-b border-slate-300 pb-2 w-full">Certifications (Optional)</legend>
+        {(resumeData.certifications || []).map((cert, index) => (
+          <div key={cert.id} className="p-4 border border-slate-200 rounded-lg space-y-4 bg-white relative shadow-sm hover:shadow-md transition-shadow">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Certification Name</label>
+                <input type="text" value={cert.name} onChange={handleChange<Certification>('certifications', index, 'name')} className={inputClass} placeholder="e.g. AWS Certified Solutions Architect" />
+              </div>
+              <div>
+                <label className={labelClass}>Issuing Organization</label>
+                <input type="text" value={cert.issuer} onChange={handleChange<Certification>('certifications', index, 'issuer')} className={inputClass} placeholder="e.g. Amazon Web Services" />
+              </div>
+              <div>
+                <label className={labelClass}>Date Obtained</label>
+                <input type="text" value={cert.date} onChange={handleChange<Certification>('certifications', index, 'date')} className={inputClass} placeholder="e.g. 2023 or June 2023" />
+              </div>
+              <div>
+                <label className={labelClass}>Credential ID (optional)</label>
+                <input type="text" value={cert.credentialId || ''} onChange={handleChange<Certification>('certifications', index, 'credentialId')} className={inputClass} placeholder="e.g. ABC123XYZ" />
+              </div>
+            </div>
+            <button type="button" onClick={() => removeCertification(cert.id)} className="absolute -top-2 -right-2 text-red-500 hover:text-red-700">
+              <MinusCircleIcon />
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={addCertification} className="flex items-center space-x-2 text-indigo-600 font-medium hover:text-indigo-800">
+          <PlusCircleIcon />
+          <span>Add Certification</span>
+        </button>
+      </fieldset>
+
+      {/* References */}
+      <fieldset className="space-y-4 opacity-0 slide-in-up" style={{ animationDelay: '700ms' }}>
+        <legend className="text-xl font-semibold text-slate-800 border-b border-slate-300 pb-2 w-full">References (Optional)</legend>
+        <div className="text-sm text-slate-500 mb-4 p-2 bg-slate-100 rounded-md">
+          <TipIcon className="w-5 h-5 mr-2 inline text-slate-400" />
+          Typically 2-3 professional references. Leave blank if you prefer "References available upon request"
+        </div>
+        {(resumeData.references || []).map((ref, index) => (
+          <div key={ref.id} className="p-4 border border-slate-200 rounded-lg space-y-4 bg-white relative shadow-sm hover:shadow-md transition-shadow">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className={labelClass}>Full Name</label>
+                <input type="text" value={ref.name} onChange={handleChange<Reference>('references', index, 'name')} className={inputClass} placeholder="e.g. John Smith" />
+              </div>
+              <div>
+                <label className={labelClass}>Job Title</label>
+                <input type="text" value={ref.title} onChange={handleChange<Reference>('references', index, 'title')} className={inputClass} placeholder="e.g. Senior Manager" />
+              </div>
+              <div>
+                <label className={labelClass}>Company</label>
+                <input type="text" value={ref.company} onChange={handleChange<Reference>('references', index, 'company')} className={inputClass} placeholder="e.g. Tech Corp" />
+              </div>
+              <div>
+                <label className={labelClass}>Relationship</label>
+                <input type="text" value={ref.relationship} onChange={handleChange<Reference>('references', index, 'relationship')} className={inputClass} placeholder="e.g. Direct Supervisor" />
+              </div>
+              <div>
+                <label className={labelClass}>Phone (optional)</label>
+                <input type="tel" value={ref.phone || ''} onChange={handleChange<Reference>('references', index, 'phone')} className={inputClass} placeholder="e.g. (555) 123-4567" />
+              </div>
+              <div>
+                <label className={labelClass}>Email (optional)</label>
+                <input type="email" value={ref.email || ''} onChange={handleChange<Reference>('references', index, 'email')} className={inputClass} placeholder="e.g. john.smith@company.com" />
+              </div>
+            </div>
+            <button type="button" onClick={() => removeReference(ref.id)} className="absolute -top-2 -right-2 text-red-500 hover:text-red-700">
+              <MinusCircleIcon />
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={addReference} className="flex items-center space-x-2 text-indigo-600 font-medium hover:text-indigo-800">
+          <PlusCircleIcon />
+          <span>Add Reference</span>
+        </button>
+      </fieldset>
+
+      {/* Custom Sections */}
+      <fieldset className="space-y-4 opacity-0 slide-in-up" style={{ animationDelay: '800ms' }}>
+        <legend className="text-xl font-semibold text-slate-800 border-b border-slate-300 pb-2 w-full">Custom Sections (Optional)</legend>
+        <div className="text-sm text-slate-500 mb-4 p-2 bg-slate-100 rounded-md">
+          <TipIcon className="w-5 h-5 mr-2 inline text-slate-400" />
+          Add custom sections like Languages, Publications, Volunteer Work, Awards, etc.
+        </div>
+        {(resumeData.customSections || []).map((section, index) => (
+          <div key={section.id} className="p-4 border border-slate-200 rounded-lg space-y-4 bg-white relative shadow-sm hover:shadow-md transition-shadow">
+            <div className="space-y-4">
+              <div>
+                <label className={labelClass}>Section Heading</label>
+                <input type="text" value={section.title} onChange={handleChange<CustomSection>('customSections', index, 'title')} className={inputClass} placeholder="e.g. Languages, Publications, Volunteer Work" />
+              </div>
+              <div>
+                <label className={labelClass}>Content</label>
+                <textarea rows={4} value={section.content} onChange={handleChange<CustomSection>('customSections', index, 'content')} className={inputClass} placeholder="Enter content here. Use bullet points by starting lines with - or •" />
+              </div>
+            </div>
+            {/* Move up/down buttons */}
+            <div className="flex gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => moveCustomSectionUp(index)}
+                disabled={index === 0}
+                className="text-sm px-3 py-1 bg-slate-100 text-slate-600 rounded hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ↑ Move Up
+              </button>
+              <button
+                type="button"
+                onClick={() => moveCustomSectionDown(index)}
+                disabled={index === (resumeData.customSections || []).length - 1}
+                className="text-sm px-3 py-1 bg-slate-100 text-slate-600 rounded hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ↓ Move Down
+              </button>
+            </div>
+            <button type="button" onClick={() => removeCustomSection(section.id)} className="absolute -top-2 -right-2 text-red-500 hover:text-red-700">
+              <MinusCircleIcon />
+            </button>
+          </div>
+        ))}
+        <button type="button" onClick={addCustomSection} className="flex items-center space-x-2 text-indigo-600 font-medium hover:text-indigo-800">
+          <PlusCircleIcon />
+          <span>Add Custom Section</span>
         </button>
       </fieldset>
     </div>

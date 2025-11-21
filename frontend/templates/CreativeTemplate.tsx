@@ -3,7 +3,7 @@ import type { ResumeData } from '../types';
 import { EnvelopeIcon, PhoneIcon, MapPinIcon, GlobeAltIcon, LinkedinIcon, UserCircleIcon } from '../components/icons';
 
 const CreativeTemplate: React.FC<{ data: ResumeData; showWatermark?: boolean; }> = ({ data, showWatermark = false }) => {
-    const { personalDetails, summary, experience, education, skills } = data;
+    const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
     const SidebarSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
         <div>
@@ -46,6 +46,34 @@ const CreativeTemplate: React.FC<{ data: ResumeData; showWatermark?: boolean; }>
                          {personalDetails.linkedin && <li className="flex items-center"><LinkedinIcon className="w-4 h-4 mr-2" /><a href={personalDetails.linkedin} className="hover:underline">LinkedIn</a></li>}
                     </ul>
                 </SidebarSection>
+
+                {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
+                    <SidebarSection title="CERTIFICATIONS">
+                        {certifications.filter(c => c.name).map(cert => (
+                            <div key={cert.id} className="mb-3 text-sm">
+                                <p className="font-bold">{cert.name}</p>
+                                <p>{cert.issuer}</p>
+                                <p className="text-xs opacity-80">{cert.date}</p>
+                                {cert.credentialId && <p className="text-xs opacity-70">ID: {cert.credentialId}</p>}
+                            </div>
+                        ))}
+                    </SidebarSection>
+                )}
+
+                {references && references.length > 0 && references.some(r => r.name) && (
+                    <SidebarSection title="REFERENCES">
+                        {references.filter(r => r.name).map(ref => (
+                            <div key={ref.id} className="mb-3 text-sm">
+                                <p className="font-bold">{ref.name}</p>
+                                <p>{ref.title}</p>
+                                <p>{ref.company}</p>
+                                <p className="text-xs opacity-80">{ref.relationship}</p>
+                                {ref.phone && <p className="text-xs opacity-70">{ref.phone}</p>}
+                                {ref.email && <p className="text-xs opacity-70 break-words">{ref.email}</p>}
+                            </div>
+                        ))}
+                    </SidebarSection>
+                )}
             </div>
 
             {/* Main Content */}
@@ -85,11 +113,40 @@ const CreativeTemplate: React.FC<{ data: ResumeData; showWatermark?: boolean; }>
                         ))}
                     </MainSection>
 
-                    <MainSection title="SKILLS">
-                        <ul className="list-disc list-inside grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
-                             {skills.map(skill => skill.name && <li key={skill.id}>{skill.name}</li>)}
-                        </ul>
-                    </MainSection>
+                    {skills.length > 0 && skills.some(s => s.name) && (
+                        <MainSection title={(skillsLabel || 'SKILLS').toUpperCase()}>
+                            <ul className="list-disc list-inside grid grid-cols-2 gap-x-8 gap-y-1 text-sm">
+                                 {skills.filter(s => s.name).map(skill => <li key={skill.id}>{skill.name}</li>)}
+                            </ul>
+                        </MainSection>
+                    )}
+
+                    {/* Custom Sections */}
+                    {customSections && customSections.length > 0 && customSections.some(s => s.title) && (
+                        <>
+                            {customSections
+                                .filter(s => s.title)
+                                .sort((a, b) => a.order - b.order)
+                                .map(section => (
+                                    <MainSection key={section.id} title={section.title.toUpperCase()}>
+                                        <div className="text-sm">
+                                            {section.content.split('\n').filter(line => line.trim()).map((line, i) => {
+                                                const cleanLine = line.trim();
+                                                if (cleanLine.startsWith('-') || cleanLine.startsWith('•')) {
+                                                    return (
+                                                        <div key={i} className="flex items-start mb-1">
+                                                            <span className="mr-2">•</span>
+                                                            <span>{cleanLine.replace(/^[-•]\s*/, '')}</span>
+                                                        </div>
+                                                    );
+                                                }
+                                                return <p key={i} className="mb-2">{cleanLine}</p>;
+                                            })}
+                                        </div>
+                                    </MainSection>
+                                ))}
+                        </>
+                    )}
 
                     {showWatermark && (
                         <div className="text-center mt-10">

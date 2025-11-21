@@ -32,6 +32,10 @@ const initialResumeData: ResumeData = {
   experience: [],
   education: [],
   skills: [],
+  skillsLabel: 'Skills',
+  certifications: [],
+  references: [],
+  customSections: [],
 };
 
 const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setActionToRetry, setPage, openTailorModal }) => {
