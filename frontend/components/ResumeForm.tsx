@@ -110,7 +110,7 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ resumeData, setResumeData, onEn
         <legend className="text-xl font-semibold text-slate-800 border-b border-slate-300 pb-2 w-full">Personal Details</legend>
         
         <div>
-            <label className={labelClass}>Photo (optional for Creative & Elegant templates)</label>
+            <label className={labelClass}>Photo (optional for Creative & Professional templates)</label>
             <div className="mt-1 flex items-center space-x-4">
                 <span className="inline-block h-20 w-20 rounded-full overflow-hidden bg-gray-100 border">
                     {resumeData.personalDetails.photo ? (
