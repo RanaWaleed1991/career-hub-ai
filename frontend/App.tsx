@@ -71,9 +71,6 @@ const AppContent: React.FC = () => {
   // Redirect admin users to admin page on initial login (only once)
   // Redirect authenticated users to dashboard if on landing page
   useEffect(() => {
-    // Define public pages that guests can access
-    const publicPages: Page[] = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses', 'coverLetter'];
-
     if (user && isAdmin && !hasRedirectedAdmin.current) {
       setPage('admin');
       hasRedirectedAdmin.current = true;
@@ -83,10 +80,7 @@ const AppContent: React.FC = () => {
     } else if (!user) {
       // Reset redirect flag when user logs out
       hasRedirectedAdmin.current = false;
-      // If user logs out or is guest, redirect to landing ONLY if on protected page
-      if (!publicPages.includes(page)) {
-        setPage('landing');
-      }
+      // Don't redirect guests - let App.tsx render guards handle auth
     }
   }, [user, isAdmin, page]);
 
