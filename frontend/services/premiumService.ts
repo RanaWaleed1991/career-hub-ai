@@ -63,6 +63,7 @@ export const getSubscription = async (): Promise<Subscription | null> => {
     const response = await fetch(`${API_URL}/api/subscriptions/current`, {
       method: 'GET',
       headers,
+      cache: 'no-store', // Prevent browser caching to avoid showing wrong user's data
     });
 
     if (!response.ok) {
