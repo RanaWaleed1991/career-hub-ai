@@ -99,6 +99,9 @@ const AppContent: React.FC = () => {
     try {
       await logout();
       console.log('✅ Logout successful');
+      // Redirect to landing page after logout
+      setPage('landing');
+      console.log('🔴 Redirected to landing page');
     } catch (error) {
       console.error('❌ Logout error:', error);
     }
@@ -195,6 +198,14 @@ const AppContent: React.FC = () => {
   if (!user && page === 'landing') {
     return (
       <div className="h-screen w-screen bg-slate-50 flex flex-col">
+        {tailorModalState.isOpen && (
+          <>
+            {console.log('🟣 Rendering TailorResumeModal (guest landing), isOpen:', tailorModalState.isOpen)}
+            <Suspense fallback={null}>
+              <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
+            </Suspense>
+          </>
+        )}
         <main className="flex-grow overflow-y-auto relative">
           <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={false} isAdmin={false} />
         </main>
