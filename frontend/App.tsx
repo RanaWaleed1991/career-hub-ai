@@ -95,7 +95,13 @@ const AppContent: React.FC = () => {
   }, [user?.email]);
 
   const handleLogout = async () => {
-    await logout();
+    console.log('🔴 handleLogout called');
+    try {
+      await logout();
+      console.log('✅ Logout successful');
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+    }
   };
 
   const triggerPremiumFlow = () => {
@@ -144,7 +150,9 @@ const AppContent: React.FC = () => {
   };
 
   const openTailorModal = (initialText?: string) => {
+    console.log('🟢 openTailorModal called, initialText:', initialText);
     setTailorModalState({ isOpen: true, initialText });
+    console.log('🟢 tailorModalState updated to isOpen: true');
   };
 
   // Define modal props early so it can be used in all returns
@@ -264,9 +272,12 @@ const AppContent: React.FC = () => {
   return (
     <div className="h-screen w-screen bg-slate-50 flex flex-col">
       {tailorModalState.isOpen && (
-        <Suspense fallback={null}>
-          <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
-        </Suspense>
+        <>
+          {console.log('🟣 Rendering TailorResumeModal, isOpen:', tailorModalState.isOpen)}
+          <Suspense fallback={null}>
+            <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
+          </Suspense>
+        </>
       )}
       {showWelcomeModal && <WelcomeModal onClose={handleCloseWelcomeModal} />}
       {showPremiumModal && (
