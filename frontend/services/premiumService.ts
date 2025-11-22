@@ -51,6 +51,13 @@ const getAuthHeaders = async (): Promise<HeadersInit> => {
  */
 export const getSubscription = async (): Promise<Subscription | null> => {
   try {
+    // Check if user is authenticated first (avoid 401 errors for guest users)
+    const token = await getAccessToken();
+    if (!token) {
+      // Guest user - return null immediately without making API call
+      return null;
+    }
+
     const headers = await getAuthHeaders();
 
     const response = await fetch(`${API_URL}/api/subscriptions/current`, {

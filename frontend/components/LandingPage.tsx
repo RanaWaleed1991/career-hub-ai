@@ -122,26 +122,26 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
     setPage('builder');
   };
 
-  const handleFeatureClick = (page: Page | 'tailor') => {
+  const handleFeatureClick = async (page: Page | 'tailor') => {
     // Navigate to feature page - App.tsx will handle auth for protected routes
     if (page === 'tailor') {
       openTailorModal();
     } else if (page === 'tracker') {
-        if (canAccessApplicationTracker()) {
+        if (await canAccessApplicationTracker()) {
             setPage('tracker');
         } else {
             setActionToRetry(() => () => setPage('tracker'));
             triggerPremiumFlow();
         }
     } else if (page === 'analyser') {
-        if (canAnalyzeResume()) {
+        if (await canAnalyzeResume()) {
             setPage('analyser');
         } else {
             setActionToRetry(() => setPage('analyser'));
             triggerPremiumFlow();
         }
     } else if (page === 'versions') {
-        if (canAccessVersionHistory()) {
+        if (await canAccessVersionHistory()) {
             setPage('versions');
         } else {
             setActionToRetry(() => () => setPage('versions'));
