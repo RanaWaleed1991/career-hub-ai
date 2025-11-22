@@ -11,6 +11,7 @@ interface LandingPageProps {
   triggerPremiumFlow: () => void;
   setActionToRetry: (action: (() => void) | null) => void;
   openTailorModal: () => void;
+  isAuthenticated?: boolean; // Optional - indicates if user is logged in
 }
 
 const baseFeatures = [
@@ -113,10 +114,16 @@ const FeatureCard: React.FC<{ feature: typeof baseFeatures[0]; onClick: () => vo
   </button>
 );
 
-const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, setActionToRetry, openTailorModal }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, setActionToRetry, openTailorModal, isAuthenticated = false }) => {
   const features = isAdmin() ? [...baseFeatures, adminFeature].filter(f => f.page !== 'versions') : baseFeatures; // temp hide versions from admin
 
+  const handleGetStartedClick = () => {
+    // Go to builder - if not authenticated, App.tsx will show auth page
+    setPage('builder');
+  };
+
   const handleFeatureClick = (page: Page | 'tailor') => {
+    // Navigate to feature page - App.tsx will handle auth for protected routes
     if (page === 'tailor') {
       openTailorModal();
     } else if (page === 'tracker') {
@@ -159,11 +166,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
                 Leverage the power of Gemini AI to build a resume that opens doors. Explore curated jobs, courses, and track your career progress all in one place.
               </p>
               <button
-                onClick={() => setPage('builder')}
+                onClick={handleGetStartedClick}
                 className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 text-lg opacity-0 fade-in"
                 style={{ animationDelay: '500ms' }}
               >
-                Start Building My Resume
+                {isAuthenticated ? 'Start Building My Resume' : 'Get Started - Sign Up Free'}
               </button>
             </div>
         </div>

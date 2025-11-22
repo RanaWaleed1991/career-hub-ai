@@ -40,7 +40,7 @@ const LoadingFallback: React.FC = () => (
 
 const AppContent: React.FC = () => {
   const { user, loading, logout, isAdmin } = useAuth();
-  const [page, setPage] = useState<Page>('dashboard');
+  const [page, setPage] = useState<Page>('landing'); // Start with landing page
   const hasRedirectedAdmin = useRef(false);
 
   // State for premium features modals
@@ -69,15 +69,23 @@ const AppContent: React.FC = () => {
   }, [user]);
 
   // Redirect admin users to admin page on initial login (only once)
+  // Redirect authenticated users to dashboard if on landing page
   useEffect(() => {
     if (user && isAdmin && !hasRedirectedAdmin.current) {
       setPage('admin');
       hasRedirectedAdmin.current = true;
+    } else if (user && page === 'landing') {
+      // If user is logged in and on landing page, go to dashboard
+      setPage('dashboard');
     } else if (!user) {
       // Reset redirect flag when user logs out
       hasRedirectedAdmin.current = false;
+      // If user logs out, go back to landing page
+      if (page !== 'privacy' && page !== 'terms' && page !== 'landing') {
+        setPage('landing');
+      }
     }
-  }, [user, isAdmin]);
+  }, [user, isAdmin, page]);
 
   // Check if welcome message should be shown for the user
   useEffect(() => {
@@ -142,6 +150,12 @@ const AppContent: React.FC = () => {
     setTailorModalState({ isOpen: true, initialText });
   };
 
+  // Define modal props early so it can be used in all returns
+  const modalProps = {
+      triggerPremiumFlow,
+      setActionToRetry
+  };
+
   // Show loading spinner while checking authentication
   if (loading) {
     return (
@@ -154,12 +168,12 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Show auth page if not authenticated (except for public pages)
-  if (!user && page !== 'privacy' && page !== 'terms') {
-    return <AuthPage setPage={setPage} />;
-  }
+  // If not authenticated and trying to access protected pages, show landing page
+  // Public pages (landing, privacy, terms, builder) are accessible without auth
+  const publicPages = ['landing', 'privacy', 'terms', 'builder'];
+  const isPublicPage = publicPages.includes(page);
 
-  // If not authenticated but viewing public pages, render without header
+  // If not authenticated but viewing public pages, render them
   if (!user && (page === 'privacy' || page === 'terms')) {
     return (
       <div className="h-screen w-screen bg-slate-50 flex flex-col">
@@ -172,10 +186,37 @@ const AppContent: React.FC = () => {
     );
   }
 
-  const modalProps = {
-      triggerPremiumFlow,
-      setActionToRetry
-  };
+  // If not authenticated and on landing page, show landing page with proper auth indication
+  if (!user && page === 'landing') {
+    return (
+      <div className="h-screen w-screen bg-slate-50 flex flex-col">
+        <main className="flex-grow overflow-y-auto relative">
+          <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={false} />
+        </main>
+      </div>
+    );
+  }
+
+  // If not authenticated and on builder page, show builder in guest mode
+  if (!user && page === 'builder') {
+    return (
+      <div className="h-screen w-screen bg-slate-50 flex flex-col">
+        <Suspense fallback={<LoadingFallback />}>
+          <ResumeBuilder
+            {...modalProps}
+            setPage={setPage}
+            openTailorModal={openTailorModal}
+            isGuestMode={true}
+          />
+        </Suspense>
+      </div>
+    );
+  }
+
+  // If not authenticated and trying to access protected pages, show auth page
+  if (!user && !isPublicPage) {
+    return <AuthPage setPage={setPage} />;
+  }
 
   const renderPage = () => {
     switch (page) {
@@ -216,7 +257,7 @@ const AppContent: React.FC = () => {
         return <TermsOfService />;
       case 'landing':
       default:
-        return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} />;
+        return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={!!user} />;
     }
   };
 
