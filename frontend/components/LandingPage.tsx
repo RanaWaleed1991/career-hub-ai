@@ -123,32 +123,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
     setPage('builder');
   };
 
-  const handleFeatureClick = async (page: Page | 'tailor') => {
+  const handleFeatureClick = (page: Page | 'tailor') => {
     // Navigate to feature page - App.tsx will handle auth for protected routes
     if (page === 'tailor') {
       openTailorModal();
-    } else if (page === 'tracker' || page === 'analyser' || page === 'versions') {
-      // These features require authentication (free trial or premium)
-      if (!isAuthenticated) {
-        // Guest user - prompt to sign up
-        setActionToRetry(() => () => setPage(page as Page));
-        setPage('builder'); // Redirect to builder which will show auth prompt
-      } else {
-        // Authenticated user - check if they have access
-        if (page === 'tracker' && await canAccessApplicationTracker()) {
-          setPage('tracker');
-        } else if (page === 'analyser' && await canAnalyzeResume()) {
-          setPage('analyser');
-        } else if (page === 'versions' && await canAccessVersionHistory()) {
-          setPage('versions');
-        } else {
-          // User doesn't have access - trigger premium flow
-          setActionToRetry(() => () => setPage(page as Page));
-          triggerPremiumFlow();
-        }
-      }
     } else {
-      // Public pages - navigate directly
+      // Navigate to the page - App.tsx handles authentication and access control
       setPage(page as Page);
     }
   };
