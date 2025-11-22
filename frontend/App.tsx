@@ -99,6 +99,9 @@ const AppContent: React.FC = () => {
     try {
       await logout();
       console.log('✅ Logout successful');
+      // Redirect to landing page after logout
+      setPage('landing');
+      console.log('🔴 Redirected to landing page');
     } catch (error) {
       console.error('❌ Logout error:', error);
     }
