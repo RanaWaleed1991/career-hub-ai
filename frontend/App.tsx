@@ -217,7 +217,15 @@ const AppContent: React.FC = () => {
   if (!user && page === 'builder') {
     return (
       <div className="h-screen w-screen bg-slate-50 flex flex-col">
-        <Header onGoToHome={() => setPage('landing')} onLogout={handleLogout} page={page} />
+        {tailorModalState.isOpen && (
+          <>
+            {console.log('🟣 Rendering TailorResumeModal (guest builder), isOpen:', tailorModalState.isOpen)}
+            <Suspense fallback={null}>
+              <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
+            </Suspense>
+          </>
+        )}
+        <Header onGoToHome={() => setPage('landing')} onLogout={handleLogout} page={page} showLogout={false} />
         <main className="flex-grow overflow-y-auto relative">
           <Suspense fallback={<LoadingFallback />}>
             <ResumeBuilder
