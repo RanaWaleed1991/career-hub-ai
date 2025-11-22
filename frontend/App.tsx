@@ -191,7 +191,7 @@ const AppContent: React.FC = () => {
     return (
       <div className="h-screen w-screen bg-slate-50 flex flex-col">
         <main className="flex-grow overflow-y-auto relative">
-          <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={false} />
+          <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={false} isAdmin={false} />
         </main>
       </div>
     );
@@ -257,7 +257,7 @@ const AppContent: React.FC = () => {
         return <TermsOfService />;
       case 'landing':
       default:
-        return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={!!user} />;
+        return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={!!user} isAdmin={isAdmin} />;
     }
   };
 
