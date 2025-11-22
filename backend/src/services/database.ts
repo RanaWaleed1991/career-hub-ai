@@ -758,21 +758,42 @@ export const courseDb = {
   async delete(courseId: string) {
     if (!supabase) throw new Error('Database not configured');
 
+    console.log(`🗑️ Deleting course ${courseId} - Step 1: Deleting enrollments...`);
+
     // First delete related enrollments to avoid foreign key constraint errors
-    const { error: enrollmentError } = await supabase
+    const { error: enrollmentError, count: enrollmentCount } = await supabase
       .from('course_enrollments')
       .delete()
-      .eq('course_id', courseId);
+      .eq('course_id', courseId)
+      .select('*', { count: 'exact', head: true });
 
-    if (enrollmentError) throw enrollmentError;
+    if (enrollmentError) {
+      console.error('❌ Error deleting enrollments:', enrollmentError);
+      throw enrollmentError;
+    }
+
+    console.log(`✅ Deleted ${enrollmentCount || 0} enrollments for course ${courseId}`);
 
     // Then delete the course
-    const { error } = await supabase
+    console.log(`🗑️ Deleting course ${courseId} - Step 2: Deleting course...`);
+
+    const { error, data } = await supabase
       .from('courses')
       .delete()
-      .eq('id', courseId);
+      .eq('id', courseId)
+      .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Error deleting course:', error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn(`⚠️ No course found with ID ${courseId} (already deleted?)`);
+    } else {
+      console.log(`✅ Course ${courseId} deleted successfully`);
+    }
+
     return { success: true };
   },
 
