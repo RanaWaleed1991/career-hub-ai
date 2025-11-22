@@ -145,14 +145,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
               <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-3xl mx-auto opacity-0 fade-in" style={{ animationDelay: '300ms' }}>
                 Leverage the power of Gemini AI to build a resume that opens doors. Explore curated jobs, courses, and track your career progress all in one place.
               </p>
-              <button
-                type="button"
-                onClick={handleGetStartedClick}
-                className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 text-lg opacity-0 fade-in"
-                style={{ animationDelay: '500ms' }}
-              >
-                {isAuthenticated ? 'Start Building My Resume' : 'Get Started - Sign Up Free'}
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 fade-in" style={{ animationDelay: '500ms' }}>
+                <button
+                  type="button"
+                  onClick={handleGetStartedClick}
+                  className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 text-lg"
+                >
+                  {isAuthenticated ? 'Start Building My Resume' : 'Get Started - Sign Up Free'}
+                </button>
+                {!isAuthenticated && (
+                  <button
+                    type="button"
+                    onClick={() => setPage('dashboard')}
+                    className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-white text-indigo-600 hover:bg-slate-50 focus:ring-indigo-500 text-lg border-2 border-indigo-600"
+                  >
+                    Already have an account? Sign In
+                  </button>
+                )}
+              </div>
             </div>
         </div>
 
@@ -209,7 +219,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
 
             {/* Copyright */}
             <div className="text-center mt-4 text-xs text-slate-500">
-              © {new Date().getFullYear()} Career Hub AI. ABN: 11 770 610 482. All rights reserved.
+              © {new Date().getFullYear()} Career Hub AI. All rights reserved.
             </div>
           </div>
         </footer>
