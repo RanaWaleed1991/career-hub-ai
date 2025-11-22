@@ -72,7 +72,7 @@ const AppContent: React.FC = () => {
   // Redirect authenticated users to dashboard if on landing page
   useEffect(() => {
     // Define public pages that guests can access
-    const publicPages: Page[] = ['landing', 'privacy', 'terms', 'builder'];
+    const publicPages: Page[] = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses'];
 
     if (user && isAdmin && !hasRedirectedAdmin.current) {
       setPage('admin');
@@ -172,8 +172,8 @@ const AppContent: React.FC = () => {
   }
 
   // If not authenticated and trying to access protected pages, show landing page
-  // Public pages (landing, privacy, terms, builder) are accessible without auth
-  const publicPages = ['landing', 'privacy', 'terms', 'builder'];
+  // Public pages (landing, privacy, terms, builder, jobs, courses) are accessible without auth
+  const publicPages = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses'];
   const isPublicPage = publicPages.includes(page);
 
   // If not authenticated but viewing public pages, render them
@@ -284,7 +284,7 @@ const AppContent: React.FC = () => {
           onUpgrade={handleUpgradeFromExpired}
         />
       )}
-      <Header onGoToHome={() => setPage('dashboard')} onLogout={handleLogout} page={page} />
+      <Header onGoToHome={() => setPage(user ? 'dashboard' : 'landing')} onLogout={handleLogout} page={page} />
       <main className="flex-grow overflow-y-auto relative fade-in">
         <Suspense fallback={<LoadingFallback />}>
           {renderPage()}
