@@ -93,6 +93,7 @@ const adminFeature = {
 
 const FeatureCard: React.FC<{ feature: typeof baseFeatures[0]; onClick: () => void; isLocked: boolean; index: number }> = ({ feature, onClick, isLocked, index }) => (
   <button
+    type="button"
     onClick={onClick}
     className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-left w-full flex flex-col relative opacity-0 slide-in-up"
     style={{ animationDelay: `${index * 100}ms` }}
@@ -166,6 +167,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
                 Leverage the power of Gemini AI to build a resume that opens doors. Explore curated jobs, courses, and track your career progress all in one place.
               </p>
               <button
+                type="button"
                 onClick={handleGetStartedClick}
                 className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 text-lg opacity-0 fade-in"
                 style={{ animationDelay: '500ms' }}
@@ -210,6 +212,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
             {/* Legal Links */}
             <div className="flex justify-center items-center space-x-6 text-sm text-slate-600">
               <button
+                type="button"
                 onClick={() => setPage('privacy')}
                 className="hover:text-indigo-600 transition-colors hover:underline"
               >
@@ -217,6 +220,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
               </button>
               <span className="text-slate-400">•</span>
               <button
+                type="button"
                 onClick={() => setPage('terms')}
                 className="hover:text-indigo-600 transition-colors hover:underline"
               >
