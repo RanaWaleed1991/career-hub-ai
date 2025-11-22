@@ -72,7 +72,7 @@ const AppContent: React.FC = () => {
   // Redirect authenticated users to dashboard if on landing page
   useEffect(() => {
     // Define public pages that guests can access
-    const publicPages: Page[] = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses'];
+    const publicPages: Page[] = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses', 'coverLetter'];
 
     if (user && isAdmin && !hasRedirectedAdmin.current) {
       setPage('admin');
@@ -172,8 +172,8 @@ const AppContent: React.FC = () => {
   }
 
   // If not authenticated and trying to access protected pages, show landing page
-  // Public pages (landing, privacy, terms, builder, jobs, courses) are accessible without auth
-  const publicPages = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses'];
+  // Public pages (landing, privacy, terms, builder, jobs, courses, coverLetter) are accessible without auth
+  const publicPages = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses', 'coverLetter'];
   const isPublicPage = publicPages.includes(page);
 
   // If not authenticated but viewing public pages, render them
@@ -204,14 +204,17 @@ const AppContent: React.FC = () => {
   if (!user && page === 'builder') {
     return (
       <div className="h-screen w-screen bg-slate-50 flex flex-col">
-        <Suspense fallback={<LoadingFallback />}>
-          <ResumeBuilder
-            {...modalProps}
-            setPage={setPage}
-            openTailorModal={openTailorModal}
-            isGuestMode={true}
-          />
-        </Suspense>
+        <Header onGoToHome={() => setPage('landing')} onLogout={handleLogout} page={page} />
+        <main className="flex-grow overflow-y-auto relative">
+          <Suspense fallback={<LoadingFallback />}>
+            <ResumeBuilder
+              {...modalProps}
+              setPage={setPage}
+              openTailorModal={openTailorModal}
+              isGuestMode={true}
+            />
+          </Suspense>
+        </main>
       </div>
     );
   }

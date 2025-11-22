@@ -127,29 +127,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
     // Navigate to feature page - App.tsx will handle auth for protected routes
     if (page === 'tailor') {
       openTailorModal();
-    } else if (page === 'tracker') {
-        if (await canAccessApplicationTracker()) {
-            setPage('tracker');
+    } else if (page === 'tracker' || page === 'analyser' || page === 'versions') {
+      // These features require authentication (free trial or premium)
+      if (!isAuthenticated) {
+        // Guest user - prompt to sign up
+        setActionToRetry(() => () => setPage(page as Page));
+        setPage('builder'); // Redirect to builder which will show auth prompt
+      } else {
+        // Authenticated user - check if they have access
+        if (page === 'tracker' && await canAccessApplicationTracker()) {
+          setPage('tracker');
+        } else if (page === 'analyser' && await canAnalyzeResume()) {
+          setPage('analyser');
+        } else if (page === 'versions' && await canAccessVersionHistory()) {
+          setPage('versions');
         } else {
-            setActionToRetry(() => () => setPage('tracker'));
-            triggerPremiumFlow();
+          // User doesn't have access - trigger premium flow
+          setActionToRetry(() => () => setPage(page as Page));
+          triggerPremiumFlow();
         }
-    } else if (page === 'analyser') {
-        if (await canAnalyzeResume()) {
-            setPage('analyser');
-        } else {
-            setActionToRetry(() => setPage('analyser'));
-            triggerPremiumFlow();
-        }
-    } else if (page === 'versions') {
-        if (await canAccessVersionHistory()) {
-            setPage('versions');
-        } else {
-            setActionToRetry(() => () => setPage('versions'));
-            triggerPremiumFlow();
-        }
-    }
-     else {
+      }
+    } else {
+      // Public pages - navigate directly
       setPage(page as Page);
     }
   };
