@@ -172,10 +172,15 @@ router.delete('/admin/:id', authMiddleware, adminMiddleware, deleteCourseSchema,
 
     const { id } = req.params;
 
+    console.log(`🗑️ Admin ${req.user?.email} attempting to delete course ID: ${id}`);
+
     await courseDb.delete(id);
+
+    console.log(`✅ Course ${id} deleted successfully by admin ${req.user?.email}`);
 
     res.status(200).json({ message: 'Course deleted successfully' });
   } catch (error) {
+    console.error('❌ Error deleting course:', error);
     const message = handleDatabaseError(error, 'delete course');
     res.status(500).json({ error: message });
   }
