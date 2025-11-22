@@ -229,6 +229,7 @@ const AppContent: React.FC = () => {
         <main className="flex-grow overflow-y-auto relative">
           <Suspense fallback={<LoadingFallback />}>
             <ResumeBuilder
+              key="guest-builder"
               {...modalProps}
               setPage={setPage}
               openTailorModal={openTailorModal}
@@ -250,7 +251,7 @@ const AppContent: React.FC = () => {
       case 'dashboard':
         return <Dashboard setPage={setPage} openTailorModal={() => openTailorModal()} />;
       case 'builder':
-        return <ResumeBuilder {...modalProps} setPage={setPage} openTailorModal={openTailorModal}/>;
+        return <ResumeBuilder key={user?.id || 'guest'} {...modalProps} setPage={setPage} openTailorModal={openTailorModal}/>;
       case 'analyser':
         return <ResumeAnalyserPage {...modalProps} />;
       case 'courses':
@@ -311,7 +312,7 @@ const AppContent: React.FC = () => {
           onUpgrade={handleUpgradeFromExpired}
         />
       )}
-      <Header onGoToHome={() => setPage(user ? 'dashboard' : 'landing')} onLogout={handleLogout} page={page} />
+      <Header onGoToHome={() => setPage(user ? 'dashboard' : 'landing')} onLogout={handleLogout} page={page} showLogout={!!user} />
       <main className="flex-grow overflow-y-auto relative fade-in">
         <Suspense fallback={<LoadingFallback />}>
           {renderPage()}
