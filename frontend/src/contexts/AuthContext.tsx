@@ -9,6 +9,7 @@ import {
   signInWithOAuth,
   getAccessToken,
 } from '../../services/userService';
+import { migrateGuestDataToAccount } from '../../utils/guestMigration';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -90,6 +91,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
       setUser(newUser);
+
+      // Migrate guest data to new account (if any exists)
+      try {
+        await migrateGuestDataToAccount();
+        console.log('Guest data migration completed');
+      } catch (migrationError) {
+        console.error('Guest data migration failed (non-fatal):', migrationError);
+        // Don't fail signup if migration fails - user can rebuild resume
+      }
+
       return { error: null };
     } finally {
       setLoading(false);

@@ -15,6 +15,7 @@ interface ResumeBuilderProps {
   setActionToRetry: (action: (() => void) | null) => void;
   setPage: (page: Page) => void;
   openTailorModal: (initialText: string) => void;
+  isGuestMode?: boolean; // If true, user is not authenticated - use localStorage
 }
 
 const initialResumeData: ResumeData = {
@@ -38,21 +39,54 @@ const initialResumeData: ResumeData = {
   customSections: [],
 };
 
-const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setActionToRetry, setPage, openTailorModal }) => {
+// Guest mode localStorage keys
+const GUEST_RESUME_KEY = 'career_hub_guest_resume';
+const GUEST_TEMPLATE_KEY = 'career_hub_guest_template';
+
+// Guest mode localStorage helpers
+const loadGuestResume = (): ResumeData => {
+  const saved = localStorage.getItem(GUEST_RESUME_KEY);
+  return saved ? JSON.parse(saved) : initialResumeData;
+};
+
+const saveGuestResume = (data: ResumeData) => {
+  localStorage.setItem(GUEST_RESUME_KEY, JSON.stringify(data));
+};
+
+const loadGuestTemplate = (): TemplateType => {
+  const saved = localStorage.getItem(GUEST_TEMPLATE_KEY);
+  return (saved as TemplateType) || 'australian';
+};
+
+const saveGuestTemplate = (template: TemplateType) => {
+  localStorage.setItem(GUEST_TEMPLATE_KEY, template);
+};
+
+const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setActionToRetry, setPage, openTailorModal, isGuestMode = false }) => {
   const [resumeData, setResumeData] = useState<ResumeData>(initialResumeData);
   const [template, setTemplate] = useState<TemplateType>('australian');
   const [isAiLoading, setIsAiLoading] = useState<{ field: string; index?: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLoadModal, setShowLoadModal] = useState(false);
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
   // Load resume data on mount
   useEffect(() => {
     const loadResume = async () => {
       try {
         setIsLoading(true);
-        const data = await getLatestResume();
-        setResumeData(data);
+        if (isGuestMode) {
+          // Guest mode - load from localStorage
+          const guestData = loadGuestResume();
+          const guestTemplate = loadGuestTemplate();
+          setResumeData(guestData);
+          setTemplate(guestTemplate);
+        } else {
+          // Authenticated - load from database
+          const data = await getLatestResume();
+          setResumeData(data);
+        }
       } catch (err) {
         console.error('Failed to load resume:', err);
         setError('Failed to load resume data');
@@ -62,7 +96,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
     };
 
     loadResume();
-  }, []);
+  }, [isGuestMode]);
 
   // Auto-save resume data on change
   useEffect(() => {
@@ -70,17 +104,36 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
 
     const debounceSave = setTimeout(async () => {
       try {
-        await saveResume(resumeData);
+        if (isGuestMode) {
+          // Guest mode - save to localStorage
+          saveGuestResume(resumeData);
+        } else {
+          // Authenticated - save to database
+          await saveResume(resumeData);
+        }
       } catch (err) {
         console.error('Failed to save resume:', err);
       }
     }, 500); // Debounce to avoid excessive writes
 
     return () => clearTimeout(debounceSave);
-  }, [resumeData, isLoading]);
+  }, [resumeData, isLoading, isGuestMode]);
+
+  // Auto-save template selection
+  useEffect(() => {
+    if (isGuestMode) {
+      saveGuestTemplate(template);
+    }
+  }, [template, isGuestMode]);
 
   const handleEnhance = async (field: 'summary' | 'experience', text: string, index?: number) => {
     try {
+      // Guest mode - prompt signup before AI usage
+      if (isGuestMode) {
+        setShowSignupPrompt(true);
+        return;
+      }
+
       const canUse = await canUseAIImprovement();
       if (!canUse) {
         setActionToRetry(() => () => handleEnhance(field, text, index));
@@ -139,7 +192,62 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
           <p>{error}</p>
         </div>
       )}
+
+      {/* Signup Prompt Modal for Guest Mode */}
+      {showSignupPrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-xl">
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">
+              Sign Up to Continue
+            </h2>
+            <p className="text-slate-600 mb-6">
+              Create a free account to use AI features, download your resume, and access all Career Hub AI tools.
+            </p>
+            <div className="space-y-3">
+              <button
+                onClick={() => {
+                  // Save current work to localStorage before redirecting
+                  saveGuestResume(resumeData);
+                  saveGuestTemplate(template);
+                  // Navigate to dashboard which will trigger auth page for non-authenticated users
+                  setPage('dashboard');
+                }}
+                className="w-full py-3 px-6 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+              >
+                Start Free Trial - Sign Up
+              </button>
+              <button
+                onClick={() => setShowSignupPrompt(false)}
+                className="w-full py-3 px-6 bg-slate-100 text-slate-700 font-semibold rounded-lg hover:bg-slate-200 transition-colors"
+              >
+                Continue as Guest
+              </button>
+            </div>
+            <p className="text-xs text-slate-500 mt-4 text-center">
+              Your work is automatically saved in your browser
+            </p>
+          </div>
+        </div>
+      )}
+
       {showLoadModal && <LoadVersionModal onClose={() => setShowLoadModal(false)} onLoad={handleLoadVersion} />}
+
+      {/* Guest Mode Header */}
+      {isGuestMode && (
+        <div className="bg-indigo-600 text-white px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-bold">Career Hub AI</h1>
+            <span className="text-xs bg-indigo-700 px-2 py-1 rounded">Guest Mode</span>
+          </div>
+          <button
+            onClick={() => setShowSignupPrompt(true)}
+            className="px-4 py-2 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-indigo-50 transition-colors text-sm"
+          >
+            Sign Up / Login
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 h-full overflow-hidden">
         <div className="overflow-y-auto">
           <ResumeForm
@@ -159,6 +267,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
             setPage={setPage}
             openTailorModal={openTailorModal}
             openLoadModal={() => setShowLoadModal(true)}
+            isGuestMode={isGuestMode}
+            onSignupPrompt={() => setShowSignupPrompt(true)}
           />
         </div>
       </div>

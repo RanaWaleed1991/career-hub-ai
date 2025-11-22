@@ -169,8 +169,8 @@ const AppContent: React.FC = () => {
   }
 
   // If not authenticated and trying to access protected pages, show landing page
-  // Public pages (landing, privacy, terms) are accessible without auth
-  const publicPages = ['landing', 'privacy', 'terms'];
+  // Public pages (landing, privacy, terms, builder) are accessible without auth
+  const publicPages = ['landing', 'privacy', 'terms', 'builder'];
   const isPublicPage = publicPages.includes(page);
 
   // If not authenticated but viewing public pages, render them
@@ -193,6 +193,22 @@ const AppContent: React.FC = () => {
         <main className="flex-grow overflow-y-auto relative">
           <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={false} />
         </main>
+      </div>
+    );
+  }
+
+  // If not authenticated and on builder page, show builder in guest mode
+  if (!user && page === 'builder') {
+    return (
+      <div className="h-screen w-screen bg-slate-50 flex flex-col">
+        <Suspense fallback={<LoadingFallback />}>
+          <ResumeBuilder
+            {...modalProps}
+            setPage={setPage}
+            openTailorModal={openTailorModal}
+            isGuestMode={true}
+          />
+        </Suspense>
       </div>
     );
   }

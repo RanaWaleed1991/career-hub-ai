@@ -20,11 +20,14 @@ interface ResumePreviewProps {
   setPage: (page: Page) => void;
   openTailorModal: (initialText: string) => void;
   openLoadModal: () => void;
+  isGuestMode?: boolean; // If true, show signup prompt on download
+  onSignupPrompt?: () => void; // Callback to show signup modal
 }
 
 const ResumePreview: React.FC<ResumePreviewProps> = ({
   resumeData, template, setTemplate, triggerPremiumFlow,
-  setActionToRetry, setPage, openTailorModal, openLoadModal
+  setActionToRetry, setPage, openTailorModal, openLoadModal,
+  isGuestMode = false, onSignupPrompt
 }) => {
   const [showWatermark, setShowWatermark] = useState(true);
 
@@ -57,6 +60,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   };
 
   const handlePrintClick = async () => {
+    // Guest mode - prompt signup before download
+    if (isGuestMode) {
+      if (onSignupPrompt) {
+        onSignupPrompt();
+      }
+      return;
+    }
+
     const canUse = await canDownloadResume();
     if (!canUse) {
       setActionToRetry(() => handlePrintClick);
