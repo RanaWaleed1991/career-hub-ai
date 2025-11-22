@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import type { Page } from '../types';
 import { DocumentTextIcon, BriefcaseIcon, BookOpenIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, Cog6ToothIcon, FacebookIcon, ChartBarIcon, DocumentChartBarIcon } from './icons';
 import TailorResumeModal from './TailorResumeModal';
-import { isAdmin } from '../services/userService';
 import { canAccessApplicationTracker, canAccessVersionHistory, canAnalyzeResume } from '../services/premiumService';
 
 interface LandingPageProps {
@@ -12,6 +11,7 @@ interface LandingPageProps {
   setActionToRetry: (action: (() => void) | null) => void;
   openTailorModal: () => void;
   isAuthenticated?: boolean; // Optional - indicates if user is logged in
+  isAdmin?: boolean; // Optional - indicates if user is admin
 }
 
 const baseFeatures = [
@@ -114,8 +114,8 @@ const FeatureCard: React.FC<{ feature: typeof baseFeatures[0]; onClick: () => vo
   </button>
 );
 
-const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, setActionToRetry, openTailorModal, isAuthenticated = false }) => {
-  const features = isAdmin() ? [...baseFeatures, adminFeature].filter(f => f.page !== 'versions') : baseFeatures; // temp hide versions from admin
+const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, setActionToRetry, openTailorModal, isAuthenticated = false, isAdmin = false }) => {
+  const features = isAdmin ? [...baseFeatures, adminFeature].filter(f => f.page !== 'versions') : baseFeatures; // temp hide versions from admin
 
   const handleGetStartedClick = () => {
     // Go to builder - if not authenticated, App.tsx will show auth page
@@ -181,7 +181,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
               <h2 className="text-3xl font-bold text-slate-800 text-center mb-10 fade-in opacity-0" style={{ animationDelay: '600ms' }}>Your Complete Career Toolkit</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                   {features.map((feature, index) => {
-                      const isLocked = feature.isPremium && !isAdmin();
+                      const isLocked = feature.isPremium && !isAdmin;
                       return (
                          <FeatureCard key={feature.page} feature={feature} onClick={() => handleFeatureClick(feature.page as Page | 'tailor')} isLocked={isLocked} index={index}/>
                       )
