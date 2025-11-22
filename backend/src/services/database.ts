@@ -758,6 +758,15 @@ export const courseDb = {
   async delete(courseId: string) {
     if (!supabase) throw new Error('Database not configured');
 
+    // First delete related enrollments to avoid foreign key constraint errors
+    const { error: enrollmentError } = await supabase
+      .from('course_enrollments')
+      .delete()
+      .eq('course_id', courseId);
+
+    if (enrollmentError) throw enrollmentError;
+
+    // Then delete the course
     const { error } = await supabase
       .from('courses')
       .delete()

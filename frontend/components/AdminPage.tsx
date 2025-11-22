@@ -381,7 +381,16 @@ const AdminPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div><label className={labelClass}>Category</label><input type="text" value={courseCategory} onChange={e => setCourseCategory(e.target.value)} className={inputClass} disabled={isSubmittingCourse} placeholder="e.g., Programming, Design, Business" /></div>
+                <div>
+                  <label className={labelClass}>Category</label>
+                  <select value={courseCategory} onChange={e => setCourseCategory(e.target.value)} className={inputClass} disabled={isSubmittingCourse}>
+                    <option value="">Select a category (optional)</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Accounting">Accounting</option>
+                    <option value="Resume & Interview">Resume & Interview</option>
+                    <option value="Personal Development">Personal Development</option>
+                  </select>
+                </div>
 
                 <div><label className={labelClass}>Video/Course URL</label><input type="url" value={courseVideoUrl} onChange={e => setCourseVideoUrl(e.target.value)} className={inputClass} required disabled={isSubmittingCourse} placeholder="YouTube or course platform URL" /></div>
 
