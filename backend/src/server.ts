@@ -7,7 +7,7 @@
 import { env } from './config/env.js';
 import { validateEnv } from './config/validateEnv.js';
 import { performSecurityChecks, logSecurityFeatures } from './utils/securityChecks.js';
-import { app } from './app.js';
+import app from './app.js';
 
 // Validate environment variables at startup
 validateEnv();

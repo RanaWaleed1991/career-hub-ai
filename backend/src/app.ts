@@ -130,3 +130,6 @@ app.use((req, res) => {
 // Error logging and handling
 app.use(errorLogger);
 app.use(errorHandler);
+
+// Export app as default for Vercel serverless
+export default app;
