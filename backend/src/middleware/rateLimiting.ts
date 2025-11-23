@@ -1,6 +1,19 @@
 import rateLimit from 'express-rate-limit';
 
 /**
+ * Get client IP from request, handling proxy headers (Vercel, etc.)
+ */
+const getClientIp = (req: any): string => {
+  // In Vercel/proxy environments, use X-Forwarded-For or Forwarded headers
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) {
+    // X-Forwarded-For can be a comma-separated list, take the first IP
+    return typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : forwarded[0];
+  }
+  return req.ip || req.connection.remoteAddress || '127.0.0.1';
+};
+
+/**
  * General API rate limiter
  * Applies to most API endpoints
  * 100 requests per 15 minutes per IP
@@ -14,6 +27,8 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   // Skip in test mode AND development mode
   skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
+  // Custom key generator for Vercel/proxy environments
+  keyGenerator: getClientIp,
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many requests',
@@ -37,6 +52,7 @@ export const aiLimiter = rateLimit({
   legacyHeaders: false,
   // Skip in test mode AND development mode
   skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
+  keyGenerator: getClientIp,
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many AI requests',
@@ -61,6 +77,7 @@ export const authLimiter = rateLimit({
   skipSuccessfulRequests: true, // Don't count successful requests
   // Skip in test mode AND development mode
   skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
+  keyGenerator: getClientIp,
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many authentication attempts',
@@ -84,6 +101,7 @@ export const paymentLimiter = rateLimit({
   legacyHeaders: false,
   // Skip in test mode AND development mode
   skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
+  keyGenerator: getClientIp,
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many payment requests',
@@ -107,6 +125,7 @@ export const strictLimiter = rateLimit({
   legacyHeaders: false,
   // Skip in test mode AND development mode
   skip: (req) => process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development',
+  keyGenerator: getClientIp,
   handler: (req, res) => {
     res.status(429).json({
       error: 'Rate limit exceeded',
