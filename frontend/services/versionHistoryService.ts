@@ -76,13 +76,23 @@ class VersionHistoryService {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Please log in');
 
+      // Get the active resume to link the version to it
+      const activeResume = await getActiveResume();
+      if (!activeResume || !activeResume.id) {
+        throw new Error('No active resume found. Please save your resume first.');
+      }
+
       const response = await fetch(`${API_URL}/api/versions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, content }),
+        body: JSON.stringify({
+          resumeId: activeResume.id,
+          versionData: content,
+          versionName: name,
+        }),
       });
 
       if (!response.ok) {
@@ -91,11 +101,11 @@ class VersionHistoryService {
 
       const data = await response.json();
       return {
-        id: data.id,
-        name: data.name || name,
-        content: data.content,
-        createdAt: data.created_at,
-        updatedAt: data.updated_at,
+        id: data.version.id,
+        name: data.version.name || name,
+        content: data.version.data,
+        createdAt: data.version.created_at,
+        updatedAt: data.version.updated_at,
       };
     } catch (error) {
       console.error('VersionHistoryService: Save error:', error);
