@@ -10,28 +10,77 @@ interface VersionHistoryPageProps {
 
 const VersionHistoryPage: React.FC<VersionHistoryPageProps> = ({ setPage }) => {
     const [versions, setVersions] = useState<ResumeVersion[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         loadVersions();
     }, []);
 
-    const loadVersions = () => {
-        setVersions(getVersions());
+    const loadVersions = async () => {
+        try {
+            console.log('VersionHistoryPage: Loading versions...');
+            setLoading(true);
+            setError(null);
+            const versionsList = await getVersions();
+            console.log('VersionHistoryPage: Loaded', versionsList.length, 'versions');
+            setVersions(versionsList);
+        } catch (err) {
+            console.error('VersionHistoryPage: Error:', err);
+            setError(err instanceof Error ? err.message : 'Failed to load versions');
+        } finally {
+            setLoading(false);
+        }
     }
 
-    const handleDelete = (id: string, name: string) => {
+    const handleDelete = async (id: string, name: string) => {
         if (window.confirm(`Are you sure you want to delete the version "${name}"?`)) {
-            deleteVersion(id);
-            loadVersions();
+            try {
+                await deleteVersion(id);
+                await loadVersions();
+            } catch (err) {
+                console.error('Failed to delete version:', err);
+            }
         }
     };
-    
-    const handleLoad = (version: ResumeVersion) => {
+
+    const handleLoad = async (version: ResumeVersion) => {
         if(window.confirm(`This will replace the current content in the Resume Builder with the version "${version.name}". Continue?`)) {
-            saveResume(version.data); // This makes it the "latest" resume
-            setPage('builder');
+            try {
+                await saveResume(version.data); // This makes it the "latest" resume
+                setPage('builder');
+            } catch (err) {
+                console.error('Failed to load version:', err);
+            }
         }
     };
+
+    if (loading) {
+        return (
+            <div className="p-8 bg-slate-50 h-full overflow-y-auto">
+                <div className="text-center">
+                    <p className="text-slate-600">Loading your resume versions...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="p-8 bg-slate-50 h-full overflow-y-auto">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-red-600 mb-4">Error Loading Versions</h2>
+                    <p className="text-slate-600 mb-4">{error}</p>
+                    <button
+                        onClick={loadVersions}
+                        className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8 bg-slate-50 h-full overflow-y-auto">
@@ -41,7 +90,7 @@ const VersionHistoryPage: React.FC<VersionHistoryPageProps> = ({ setPage }) => {
                     Manage and load previously saved versions of your resume. You can save new versions from the Resume Builder.
                 </p>
             </div>
-            
+
             {versions.length > 0 ? (
                 <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg border border-slate-200">
                     <ul className="space-y-4">
@@ -52,14 +101,14 @@ const VersionHistoryPage: React.FC<VersionHistoryPageProps> = ({ setPage }) => {
                                     <p className="text-sm text-slate-500">Saved on: {new Date(version.createdAt).toLocaleString()}</p>
                                 </div>
                                 <div className="flex items-center space-x-2 self-end sm:self-center">
-                                    <button 
+                                    <button
                                         onClick={() => handleLoad(version)}
                                         className="px-3 py-1.5 bg-indigo-600 text-white text-sm font-semibold rounded-md hover:bg-indigo-700"
                                     >
                                         Load into Builder
                                     </button>
-                                     <button 
-                                        onClick={() => handleDelete(version.id, version.name)} 
+                                     <button
+                                        onClick={() => handleDelete(version.id, version.name)}
                                         className="text-red-500 hover:text-red-700 p-1.5 rounded-full hover:bg-red-100"
                                         title="Delete Version"
                                     >

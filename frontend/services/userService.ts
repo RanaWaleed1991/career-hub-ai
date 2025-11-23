@@ -7,10 +7,12 @@ export interface AuthUser {
   id: string;
   email: string;
   fullName?: string;
+  role: 'user' | 'admin';
 }
 
 /**
  * Sign up a new user with email and password
+ * Calls backend API to ensure welcome email is sent
  */
 export const signup = async (
   email: string,
@@ -18,22 +20,38 @@ export const signup = async (
   fullName?: string
 ): Promise<{ user: AuthUser | null; error: string | null }> => {
   try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName || '',
-        },
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+    // Call backend API instead of Supabase directly to trigger welcome email
+    const response = await fetch(`${API_URL}/api/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        email,
+        password,
+        fullName: fullName || '',
+      }),
     });
 
-    if (error) {
-      return { user: null, error: error.message };
+    const data = await response.json();
+
+    if (!response.ok) {
+      return { user: null, error: data.error || 'Signup failed' };
     }
 
+    // Backend returns { user, session }
     if (!data.user) {
       return { user: null, error: 'Failed to create user' };
+    }
+
+    // Set the session in Supabase client for immediate authentication
+    if (data.session) {
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
     }
 
     return {
@@ -41,10 +59,12 @@ export const signup = async (
         id: data.user.id,
         email: data.user.email || email,
         fullName: data.user.user_metadata?.full_name,
+        role: (data.user.user_metadata?.role as 'user' | 'admin') || 'user',
       },
       error: null,
     };
   } catch (error) {
+    console.error('Signup error:', error);
     return { user: null, error: 'Signup failed. Please try again.' };
   }
 };
@@ -75,6 +95,7 @@ export const login = async (
         id: data.user.id,
         email: data.user.email || email,
         fullName: data.user.user_metadata?.full_name,
+        role: (data.user.user_metadata?.role as 'user' | 'admin') || 'user',
       },
       error: null,
     };
@@ -117,6 +138,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       id: user.id,
       email: user.email || '',
       fullName: user.user_metadata?.full_name,
+      role: (user.user_metadata?.role as 'user' | 'admin') || 'user',
     };
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -159,8 +181,8 @@ export const getAccessToken = async (): Promise<string | null> => {
  * Check if the current user is an administrator
  */
 export const isAdmin = async (): Promise<boolean> => {
-  const email = await getCurrentUserEmail();
-  return email === ADMIN_EMAIL;
+  const user = await getCurrentUser();
+  return user?.role === 'admin';
 };
 
 /**
@@ -197,6 +219,7 @@ export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => 
         id: session.user.id,
         email: session.user.email || '',
         fullName: session.user.user_metadata?.full_name,
+        role: (session.user.user_metadata?.role as 'user' | 'admin') || 'user',
       });
     } else {
       callback(null);

@@ -9,10 +9,12 @@ import {
   signInWithOAuth,
   getAccessToken,
 } from '../../services/userService';
+import { migrateGuestDataToAccount } from '../../utils/guestMigration';
 
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  isAdmin: boolean;
   login: (email: string, password: string) => Promise<{ error: string | null }>;
   signup: (email: string, password: string, fullName?: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
@@ -71,6 +73,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
       setUser(loggedInUser);
+
+      // Migrate guest data to account (if any exists)
+      try {
+        await migrateGuestDataToAccount();
+        console.log('Guest data migration completed');
+      } catch (migrationError) {
+        console.error('Guest data migration failed (non-fatal):', migrationError);
+        // Don't fail login if migration fails
+      }
+
       return { error: null };
     } finally {
       setLoading(false);
@@ -89,6 +101,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       }
       setUser(newUser);
+
+      // Migrate guest data to new account (if any exists)
+      try {
+        await migrateGuestDataToAccount();
+        console.log('Guest data migration completed');
+      } catch (migrationError) {
+        console.error('Guest data migration failed (non-fatal):', migrationError);
+        // Don't fail signup if migration fails - user can rebuild resume
+      }
+
       return { error: null };
     } finally {
       setLoading(false);
@@ -120,6 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value: AuthContextType = {
     user,
     loading,
+    isAdmin: user?.role === 'admin',
     login,
     signup,
     logout,

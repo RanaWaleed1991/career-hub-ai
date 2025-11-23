@@ -2,62 +2,84 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircleIcon, MinusCircleIcon } from './icons';
 import type { Application, ApplicationStatus } from '../types';
-
-const APP_TRACKER_KEY = 'career_hub_app_tracker';
+import {
+  getApplications,
+  createApplication,
+  updateApplicationStatus,
+  deleteApplication
+} from '../services/applicationService';
 
 const ApplicationTrackerPage: React.FC = () => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [company, setCompany] = useState('');
   const [role, setRole] = useState('');
   const [dateApplied, setDateApplied] = useState(new Date().toISOString().split('T')[0]); // YYYY-MM-DD
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    try {
-      const savedApps = localStorage.getItem(APP_TRACKER_KEY);
-      if (savedApps) {
-        setApplications(JSON.parse(savedApps));
-      }
-    } catch (e) {
-      console.error("Failed to load applications from localStorage", e);
-    }
+    loadApplications();
   }, []);
 
-  const saveApplications = (apps: Application[]) => {
-    localStorage.setItem(APP_TRACKER_KEY, JSON.stringify(apps));
-    setApplications(apps);
+  const loadApplications = async () => {
+    try {
+      setLoading(true);
+      const apps = await getApplications();
+      setApplications(apps);
+      setError(null);
+    } catch (e) {
+      console.error("Failed to load applications", e);
+      setError("Failed to load applications. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleAddApplication = (e: React.FormEvent) => {
+  const handleAddApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!company || !role) return;
-    
-    const newApp: Application = {
-      id: Date.now().toString(),
-      company,
-      role,
-      status: 'Applied',
-      dateApplied,
-      notes: ''
-    };
-    
-    saveApplications([newApp, ...applications]);
-    
-    // Reset form
-    setCompany('');
-    setRole('');
-    setDateApplied(new Date().toISOString().split('T')[0]);
+
+    try {
+      const newApp = await createApplication(company, role, dateApplied);
+      if (newApp) {
+        setApplications([newApp, ...applications]);
+
+        // Reset form
+        setCompany('');
+        setRole('');
+        setDateApplied(new Date().toISOString().split('T')[0]);
+        setError(null);
+      }
+    } catch (err) {
+      console.error('Failed to add application:', err);
+      setError('Failed to add application. Please try again.');
+    }
   };
 
-  const handleUpdateStatus = (id: string, newStatus: ApplicationStatus) => {
-    const updatedApps = applications.map(app => 
-      app.id === id ? { ...app, status: newStatus } : app
-    );
-    saveApplications(updatedApps);
+  const handleUpdateStatus = async (id: string, newStatus: ApplicationStatus) => {
+    try {
+      await updateApplicationStatus(id, newStatus);
+      const updatedApps = applications.map(app =>
+        app.id === id ? { ...app, status: newStatus } : app
+      );
+      setApplications(updatedApps);
+      setError(null);
+    } catch (err) {
+      console.error('Failed to update application:', err);
+      setError('Failed to update application status. Please try again.');
+    }
   };
-  
-  const handleDeleteApplication = (id: string) => {
+
+  const handleDeleteApplication = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this application entry?')) {
-        saveApplications(applications.filter(app => app.id !== id));
+      try {
+        await deleteApplication(id);
+        setApplications(applications.filter(app => app.id !== id));
+        setError(null);
+      } catch (err) {
+        console.error('Failed to delete application:', err);
+        setError('Failed to delete application. Please try again.');
+      }
     }
   };
 
@@ -76,7 +98,14 @@ const ApplicationTrackerPage: React.FC = () => {
   return (
     <div className="p-8 bg-slate-50 h-full overflow-y-auto">
       <h2 className="text-3xl font-bold text-slate-800 mb-8 border-b pb-4">Application Tracker</h2>
-      
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          {error}
+        </div>
+      )}
+
       {/* Add Application Form */}
       <div className="mb-10 p-6 bg-white rounded-lg shadow-lg border border-slate-200">
         <h3 className="text-xl font-semibold mb-4 text-slate-800">Add New Application</h3>
@@ -102,7 +131,10 @@ const ApplicationTrackerPage: React.FC = () => {
 
       {/* Applications Table */}
       <div className="bg-white rounded-lg shadow-lg border border-slate-200 overflow-x-auto">
-        <table className="w-full text-sm text-left text-slate-500">
+        {loading ? (
+          <div className="text-center py-12 text-slate-500">Loading applications...</div>
+        ) : (
+          <table className="w-full text-sm text-left text-slate-500">
             <thead className="text-xs text-slate-700 uppercase bg-slate-100">
                 <tr>
                     <th scope="col" className="px-6 py-3">Company</th>
@@ -119,8 +151,8 @@ const ApplicationTrackerPage: React.FC = () => {
                         <td className="px-6 py-4">{app.role}</td>
                         <td className="px-6 py-4">{new Date(app.dateApplied).toLocaleDateString()}</td>
                         <td className="px-6 py-4">
-                            <select 
-                                value={app.status} 
+                            <select
+                                value={app.status}
                                 onChange={e => handleUpdateStatus(app.id, e.target.value as ApplicationStatus)}
                                 className={`text-xs font-semibold p-1.5 rounded-md border-0 focus:ring-2 focus:ring-indigo-400 ${getStatusColor(app.status)}`}
                             >
@@ -135,13 +167,14 @@ const ApplicationTrackerPage: React.FC = () => {
                         </td>
                     </tr>
                 ))}
-                 {applications.length === 0 && (
+                 {applications.length === 0 && !loading && (
                     <tr>
                         <td colSpan={5} className="text-center py-12 text-slate-500">You haven't tracked any applications yet.</td>
                     </tr>
                 )}
             </tbody>
-        </table>
+          </table>
+        )}
       </div>
     </div>
   );

@@ -1,43 +1,28 @@
-import express from 'express';
+/**
+ * Server Entry Point
+ *
+ * Starts the Express server and performs environment validation
+ */
+
 import { env } from './config/env.js';
-import { corsMiddleware } from './middleware/cors.js';
-import geminiRoutes from './routes/gemini.js';
-import authRoutes from './routes/auth.js';
-import resumesRoutes from './routes/resumes.js';
-import versionsRoutes from './routes/versions.js';
-import applicationsRoutes from './routes/applications.js';
-import subscriptionsRoutes from './routes/subscriptions.js';
+import { validateEnv } from './config/validateEnv.js';
+import { performSecurityChecks, logSecurityFeatures } from './utils/securityChecks.js';
+import { app } from './app.js';
 
-const app = express();
+// Validate environment variables at startup
+validateEnv();
 
-// Middleware
-app.use(corsMiddleware);
-app.use(express.json({ limit: '10mb' })); // Increased limit for resume uploads
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Perform security checks
+const securityStatus = performSecurityChecks();
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// Exit if critical security issues found
+if (!securityStatus.secure) {
+  console.error('❌ Critical security issues detected. Server will not start.');
+  process.exit(1);
+}
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/gemini', geminiRoutes);
-app.use('/api/resumes', resumesRoutes);
-app.use('/api/versions', versionsRoutes);
-app.use('/api/applications', applicationsRoutes);
-app.use('/api/subscriptions', subscriptionsRoutes);
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
-
-// Error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Server error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
+// Log enabled security features
+logSecurityFeatures();
 
 // Start server
 app.listen(env.PORT, () => {
@@ -53,5 +38,14 @@ app.listen(env.PORT, () => {
     console.log('⚠️  WARNING: Supabase is not configured. Authentication will not work.');
     console.log('   Add SUPABASE_URL and SUPABASE_SERVICE_KEY to backend/.env');
     console.log('   See SUPABASE_SETUP.md for setup instructions.');
+  }
+
+  // Check Stripe configuration
+  const stripeConfigured = env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET;
+  console.log(`💳 Stripe Payments configured: ${stripeConfigured ? '✓' : '✗'}`);
+
+  if (!stripeConfigured) {
+    console.log('⚠️  WARNING: Stripe is not configured. Payments will not work.');
+    console.log('   Add STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, and STRIPE_PUBLISHABLE_KEY to backend/.env');
   }
 });

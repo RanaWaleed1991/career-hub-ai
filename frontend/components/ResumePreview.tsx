@@ -1,18 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Page, ResumeData, TemplateType } from '../types';
 import ClassicTemplate from '../templates/ClassicTemplate';
 import ModernTemplate from '../templates/ModernTemplate';
 import AustralianTemplate from '../templates/AustralianTemplate';
-import CreativeTemplate from '../templates/CreativeTemplate';
-import ElegantTemplate from '../templates/ATSTemplate'; // ATSTemplate file is repurposed as ElegantTemplate
+import PictureTemplate from '../templates/PictureTemplate';
+import ATSTemplate from '../templates/ATSTemplate';
+import MinimalTemplate from '../templates/MinimalTemplate';
 import { PrintIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, DocumentTextIcon, DownloadIcon } from './icons';
-import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory } from '../services/premiumService';
+import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory, canSaveVersion, useVersionSave, hasPremium } from '../services/premiumService';
 import { saveVersion } from '../services/versionHistoryService';
 import { resumeDataToText } from '../utils/resumeUtils';
-
-// Declare the htmlToDocx global variable provided by the script in index.html
-declare const htmlToDocx: any;
-
 
 interface ResumePreviewProps {
   resumeData: ResumeData;
@@ -23,13 +20,24 @@ interface ResumePreviewProps {
   setPage: (page: Page) => void;
   openTailorModal: (initialText: string) => void;
   openLoadModal: () => void;
+  isGuestMode?: boolean; // If true, show signup prompt on download
+  onSignupPrompt?: () => void; // Callback to show signup modal
 }
 
-const ResumePreview: React.FC<ResumePreviewProps> = ({ 
-  resumeData, template, setTemplate, triggerPremiumFlow, 
-  setActionToRetry, setPage, openTailorModal, openLoadModal 
+const ResumePreview: React.FC<ResumePreviewProps> = ({
+  resumeData, template, setTemplate, triggerPremiumFlow,
+  setActionToRetry, setPage, openTailorModal, openLoadModal,
+  isGuestMode = false, onSignupPrompt
 }) => {
-  const showWatermark = shouldShowWatermark();
+  const [showWatermark, setShowWatermark] = useState(true);
+
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+      const isPremium = await hasPremium();
+      setShowWatermark(!isPremium); // Show watermark only for non-premium users
+    };
+    checkPremiumStatus();
+  }, []);
 
   const getTemplateComponent = () => {
     const props = { data: resumeData, showWatermark };
@@ -40,92 +48,74 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         return <ModernTemplate {...props} />;
       case 'australian':
         return <AustralianTemplate {...props} />;
-      case 'creative':
-        return <CreativeTemplate {...props} />;
-      case 'elegant':
-        return <ElegantTemplate {...props} />;
+      case 'picture':
+        return <PictureTemplate {...props} />;
+      case 'ats':
+        return <ATSTemplate {...props} />;
+      case 'minimal':
+        return <MinimalTemplate {...props} />;
       default:
         return <AustralianTemplate {...props} />;
     }
   };
 
-  const handlePrintClick = () => {
-    if (canDownloadResume()) {
-      useResumeDownload();
-      window.print();
-    } else {
-      setActionToRetry(() => () => {
-        if (canDownloadResume()) {
-          useResumeDownload();
-          window.print();
-        }
-      });
-      triggerPremiumFlow();
+  const handlePrintClick = async () => {
+    // Guest mode - prompt signup before download
+    if (isGuestMode) {
+      if (onSignupPrompt) {
+        onSignupPrompt();
+      }
+      return;
     }
-  };
 
-  const handleWordDownload = async () => {
-    if (!canDownloadResume()) {
-      setActionToRetry(() => handleWordDownload);
+    const canUse = await canDownloadResume();
+    if (!canUse) {
+      setActionToRetry(() => handlePrintClick);
       triggerPremiumFlow();
       return;
     }
 
-    useResumeDownload();
-    
-    const element = document.getElementById('resume-preview-content');
-    if (element) {
-      const content = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>Resume</title>
-          <style>
-            body { font-family: Arial, sans-serif; font-size: 10pt; }
-            h1, h2, h3 { color: #333; }
-            ul { list-style-type: disc; margin-left: 20px; }
-          </style>
-        </head>
-        <body>
-          ${element.innerHTML}
-        </body>
-        </html>
-      `;
-      
-      try {
-        const fileBuffer = await htmlToDocx.asBlob(content);
+    // Check if user has premium - skip confirmation for premium users
+    const isPremium = await hasPremium();
 
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(fileBuffer);
-        link.download = `${resumeData.personalDetails.fullName || 'Resume'}.docx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-        
-      } catch (error) {
-        console.error("Error generating DOCX file:", error);
-        alert("Sorry, there was an error creating the Word document.");
+    if (isPremium) {
+      // Premium users: direct download without confirmation
+      window.print();
+    } else {
+      // Free users: confirm before using credit
+      const confirmed = window.confirm('This will use 1 download credit. Continue to print/save as PDF?');
+      if (confirmed) {
+        await useResumeDownload();
+        window.print();
       }
     }
   };
 
-  const handleSaveVersion = () => {
-    if (!canAccessVersionHistory()) {
+
+  const handleSaveVersion = async () => {
+    const canSave = await canSaveVersion();
+    if (!canSave) {
+        alert('You have reached the limit of 3 free resume versions. Upgrade to save unlimited versions.');
         setActionToRetry(() => handleSaveVersion);
         triggerPremiumFlow();
         return;
     }
     const name = prompt("Enter a name for this resume version:", `Version ${new Date().toLocaleString()}`);
     if (name) {
-        saveVersion(name, resumeData);
-        alert(`Version "${name}" saved!`);
+        try {
+            await saveVersion(name, resumeData);
+            await useVersionSave(); // Track usage
+            alert(`Version "${name}" saved!`);
+        } catch (err) {
+            console.error('Failed to save version:', err);
+            alert('Failed to save version. Please try again.');
+        }
     }
   };
 
-  const handleLoadVersion = () => {
-    if (!canAccessVersionHistory()) {
+  const handleLoadVersion = async () => {
+    const canAccess = await canAccessVersionHistory();
+    if (!canAccess) {
         setActionToRetry(() => handleLoadVersion);
         triggerPremiumFlow();
         return;
@@ -159,15 +149,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                     <button onClick={() => setTemplate('classic')} className={`${templateButtonClass} rounded-l-md ${template === 'classic' ? activeClass : inactiveClass}`}>Classic</button>
                     <button onClick={() => setTemplate('modern')} className={`${templateButtonClass} ${template === 'modern' ? activeClass : inactiveClass}`}>Modern</button>
                     <button onClick={() => setTemplate('australian')} className={`${templateButtonClass} ${template === 'australian' ? activeClass : inactiveClass}`}>Australian</button>
-                    <button onClick={() => setTemplate('creative')} className={`${templateButtonClass} ${template === 'creative' ? activeClass : inactiveClass}`}>Creative</button>
-                    <button onClick={() => setTemplate('elegant')} className={`${templateButtonClass} rounded-r-md ${template === 'elegant' ? activeClass : inactiveClass}`}>Elegant</button>
+                    <button onClick={() => setTemplate('picture')} className={`${templateButtonClass} ${template === 'picture' ? activeClass : inactiveClass}`}>Picture</button>
+                    <button onClick={() => setTemplate('ats')} className={`${templateButtonClass} ${template === 'ats' ? activeClass : inactiveClass}`}>ATS</button>
+                    <button onClick={() => setTemplate('minimal')} className={`${templateButtonClass} rounded-r-md ${template === 'minimal' ? activeClass : inactiveClass}`}>Minimal</button>
                 </div>
             </div>
             <div className="flex space-x-2">
-              <button onClick={handleWordDownload} className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm">
-                  <DocumentTextIcon className="w-4 h-4"/>
-                  <span>Word</span>
-              </button>
               <button onClick={handlePrintClick} className="flex items-center space-x-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm">
                   <PrintIcon className="w-4 h-4"/>
                   <span>PDF</span>
@@ -219,7 +206,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           }
           @page {
             size: A4;
-            margin: 20mm;
+            margin: 0.5cm;
           }
         `}
       </style>

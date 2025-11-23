@@ -80,6 +80,7 @@ export const getLatestResume = async (): Promise<ResumeData> => {
     const response = await fetch(`${API_URL}/api/resumes/active`, {
       method: 'GET',
       headers,
+      cache: 'no-store', // Prevent browser caching to avoid showing wrong user's data
     });
 
     if (!response.ok) {
@@ -118,6 +119,7 @@ export const getActiveResume = async (): Promise<any> => {
     const response = await fetch(`${API_URL}/api/resumes/active`, {
       method: 'GET',
       headers,
+      cache: 'no-store', // Prevent browser caching to avoid showing wrong user's data
     });
 
     if (!response.ok) {
@@ -145,6 +147,7 @@ export const getAllResumes = async (): Promise<any[]> => {
     const response = await fetch(`${API_URL}/api/resumes`, {
       method: 'GET',
       headers,
+      cache: 'no-store', // Prevent browser caching to avoid showing wrong user's data
     });
 
     if (!response.ok) {

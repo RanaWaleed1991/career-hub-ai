@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import type { Page } from '../types';
 import { DocumentTextIcon, BriefcaseIcon, BookOpenIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, Cog6ToothIcon, FacebookIcon, ChartBarIcon, DocumentChartBarIcon } from './icons';
 import TailorResumeModal from './TailorResumeModal';
-import { isAdmin } from '../services/userService';
 import { canAccessApplicationTracker, canAccessVersionHistory, canAnalyzeResume } from '../services/premiumService';
 
 interface LandingPageProps {
@@ -11,6 +10,8 @@ interface LandingPageProps {
   triggerPremiumFlow: () => void;
   setActionToRetry: (action: (() => void) | null) => void;
   openTailorModal: () => void;
+  isAuthenticated?: boolean; // Optional - indicates if user is logged in
+  isAdmin?: boolean; // Optional - indicates if user is admin
 }
 
 const baseFeatures = [
@@ -92,6 +93,7 @@ const adminFeature = {
 
 const FeatureCard: React.FC<{ feature: typeof baseFeatures[0]; onClick: () => void; isLocked: boolean; index: number }> = ({ feature, onClick, isLocked, index }) => (
   <button
+    type="button"
     onClick={onClick}
     className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-left w-full flex flex-col relative opacity-0 slide-in-up"
     style={{ animationDelay: `${index * 100}ms` }}
@@ -113,35 +115,20 @@ const FeatureCard: React.FC<{ feature: typeof baseFeatures[0]; onClick: () => vo
   </button>
 );
 
-const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, setActionToRetry, openTailorModal }) => {
-  const features = isAdmin() ? [...baseFeatures, adminFeature].filter(f => f.page !== 'versions') : baseFeatures; // temp hide versions from admin
+const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, setActionToRetry, openTailorModal, isAuthenticated = false, isAdmin = false }) => {
+  const features = isAdmin ? [...baseFeatures, adminFeature].filter(f => f.page !== 'versions') : baseFeatures; // temp hide versions from admin
+
+  const handleGetStartedClick = () => {
+    // Go to builder - if not authenticated, App.tsx will show auth page
+    setPage('builder');
+  };
 
   const handleFeatureClick = (page: Page | 'tailor') => {
+    // Navigate to feature page - App.tsx will handle auth for protected routes
     if (page === 'tailor') {
       openTailorModal();
-    } else if (page === 'tracker') {
-        if (canAccessApplicationTracker()) {
-            setPage('tracker');
-        } else {
-            setActionToRetry(() => () => setPage('tracker'));
-            triggerPremiumFlow();
-        }
-    } else if (page === 'analyser') {
-        if (canAnalyzeResume()) {
-            setPage('analyser');
-        } else {
-            setActionToRetry(() => setPage('analyser'));
-            triggerPremiumFlow();
-        }
-    } else if (page === 'versions') {
-        if (canAccessVersionHistory()) {
-            setPage('versions');
-        } else {
-            setActionToRetry(() => () => setPage('versions'));
-            triggerPremiumFlow();
-        }
-    }
-     else {
+    } else {
+      // Navigate to the page - App.tsx handles authentication and access control
       setPage(page as Page);
     }
   };
@@ -158,13 +145,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
               <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-3xl mx-auto opacity-0 fade-in" style={{ animationDelay: '300ms' }}>
                 Leverage the power of Gemini AI to build a resume that opens doors. Explore curated jobs, courses, and track your career progress all in one place.
               </p>
-              <button
-                onClick={() => setPage('builder')}
-                className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 text-lg opacity-0 fade-in"
-                style={{ animationDelay: '500ms' }}
-              >
-                Start Building My Resume
-              </button>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 fade-in" style={{ animationDelay: '500ms' }}>
+                <button
+                  type="button"
+                  onClick={handleGetStartedClick}
+                  className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 text-lg"
+                >
+                  {isAuthenticated ? 'Start Building My Resume' : 'Get Started - Sign Up Free'}
+                </button>
+                {!isAuthenticated && (
+                  <button
+                    type="button"
+                    onClick={() => setPage('dashboard')}
+                    className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-white text-indigo-600 hover:bg-slate-50 focus:ring-indigo-500 text-lg border-2 border-indigo-600"
+                  >
+                    Already have an account? Sign In
+                  </button>
+                )}
+              </div>
             </div>
         </div>
 
@@ -174,7 +172,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
               <h2 className="text-3xl font-bold text-slate-800 text-center mb-10 fade-in opacity-0" style={{ animationDelay: '600ms' }}>Your Complete Career Toolkit</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                   {features.map((feature, index) => {
-                      const isLocked = feature.isPremium && !isAdmin();
+                      const isLocked = feature.isPremium && !isAdmin;
                       return (
                          <FeatureCard key={feature.page} feature={feature} onClick={() => handleFeatureClick(feature.page as Page | 'tailor')} isLocked={isLocked} index={index}/>
                       )
@@ -185,17 +183,44 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
 
         {/* Footer Section */}
         <footer className="w-full bg-slate-100 border-t border-slate-200 mt-auto py-6 px-4">
-          <div className="max-w-6xl mx-auto text-center">
-            <a 
-              href="#" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 text-slate-600 hover:text-blue-600 transition-colors group"
-              aria-label="Follow us on Facebook"
-            >
-              <FacebookIcon className="w-6 h-6 text-[#1877F2] group-hover:scale-110 transition-transform" />
-              <span className="font-medium">Follow us on Facebook</span>
-            </a>
+          <div className="max-w-6xl mx-auto">
+            {/* Social Media */}
+            <div className="text-center mb-4">
+              <a
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-2 text-slate-600 hover:text-blue-600 transition-colors group"
+                aria-label="Follow us on Facebook"
+              >
+                <FacebookIcon className="w-6 h-6 text-[#1877F2] group-hover:scale-110 transition-transform" />
+                <span className="font-medium">Follow us on Facebook</span>
+              </a>
+            </div>
+
+            {/* Legal Links */}
+            <div className="flex justify-center items-center space-x-6 text-sm text-slate-600">
+              <button
+                type="button"
+                onClick={() => setPage('privacy')}
+                className="hover:text-indigo-600 transition-colors hover:underline"
+              >
+                Privacy Policy
+              </button>
+              <span className="text-slate-400">•</span>
+              <button
+                type="button"
+                onClick={() => setPage('terms')}
+                className="hover:text-indigo-600 transition-colors hover:underline"
+              >
+                Terms of Service
+              </button>
+            </div>
+
+            {/* Copyright */}
+            <div className="text-center mt-4 text-xs text-slate-500">
+              © {new Date().getFullYear()} Career Hub AI. All rights reserved.
+            </div>
           </div>
         </footer>
       </div>

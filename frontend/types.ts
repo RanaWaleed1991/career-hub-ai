@@ -32,12 +32,41 @@ export interface Skill {
   name: string;
 }
 
+export interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  credentialId?: string;
+}
+
+export interface Reference {
+  id: string;
+  name: string;
+  title: string;
+  company: string;
+  relationship: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface CustomSection {
+  id: string;
+  title: string;
+  content: string;
+  order: number;
+}
+
 export interface ResumeData {
   personalDetails: PersonalDetails;
   summary: string;
   experience: Experience[];
   education: Education[];
   skills: Skill[];
+  skillsLabel?: string; // Optional custom label for skills section
+  certifications?: Certification[];
+  references?: Reference[];
+  customSections?: CustomSection[];
 }
 
 export interface ResumeVersion {
@@ -47,9 +76,9 @@ export interface ResumeVersion {
   data: ResumeData;
 }
 
-export type TemplateType = 'classic' | 'modern' | 'australian' | 'creative' | 'elegant';
+export type TemplateType = 'classic' | 'modern' | 'australian' | 'picture' | 'ats' | 'minimal';
 
-export type Page = 'landing' | 'builder' | 'courses' | 'jobs' | 'coverLetter' | 'admin' | 'tracker' | 'versions' | 'analyser' | 'dashboard';
+export type Page = 'landing' | 'builder' | 'courses' | 'jobs' | 'coverLetter' | 'admin' | 'tracker' | 'versions' | 'analyser' | 'dashboard' | 'paymentSuccess' | 'paymentCancel' | 'pricing' | 'subscription' | 'privacy' | 'terms';
 
 export interface ResumeAnalysisResult {
   atsScore: number;
@@ -71,17 +100,31 @@ export interface Job {
   location: string;
   description: string;
   category: JobCategory;
+  external_id?: string;
+  external_url?: string;
+  salary_min?: number;
+  salary_max?: number;
+  source?: 'manual' | 'adzuna';
+  posted_date?: string;
 }
 
 export type CourseType = 'free' | 'paid';
+export type CourseLevel = 'beginner' | 'intermediate' | 'advanced';
 
 export interface Course {
   id: string;
   title: string;
   provider: string;
   description: string;
-  link: string;
+  video_url: string;
   type: CourseType;
+  thumbnail_url?: string;
+  duration?: string;
+  level?: CourseLevel;
+  category?: string;
+  affiliate_link?: string;
+  enrollment_count?: number;
+  is_featured?: boolean;
 }
 
 export type ApplicationStatus = 'Applied' | 'Interviewing' | 'Offer' | 'Rejected';

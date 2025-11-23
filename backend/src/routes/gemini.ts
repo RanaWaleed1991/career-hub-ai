@@ -1,7 +1,27 @@
+// Ensure Promise.withResolvers polyfill is available before importing @google/genai
+if (typeof Promise.withResolvers === 'undefined') {
+  (Promise as any).withResolvers = function <T>() {
+    let resolve!: (value: T | PromiseLike<T>) => void;
+    let reject!: (reason?: any) => void;
+    const promise = new Promise<T>((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+}
+
 import { Router, Request, Response } from 'express';
 import { GoogleGenAI, Type } from '@google/genai';
 import { env } from '../config/env.js';
 import { authMiddleware } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import {
+  enhanceSummarySchema,
+  analyzeResumeSchema,
+  generateCoverLetterSchema,
+  tailorResumeSchema,
+} from '../validators/schemas.js';
 
 const router = Router();
 
@@ -130,17 +150,9 @@ const resumeAnalysisSchema = {
 };
 
 // POST /api/gemini/enhance-summary
-router.post('/enhance-summary', authMiddleware, async (req: Request, res: Response) => {
+router.post('/enhance-summary', authMiddleware, enhanceSummarySchema, validate, async (req: Request, res: Response) => {
   try {
     const { text, section } = req.body;
-
-    if (!text || !text.trim()) {
-      return res.status(400).json({ error: 'Text is required' });
-    }
-
-    if (!section || !['summary', 'experience'].includes(section)) {
-      return res.status(400).json({ error: 'Section must be either "summary" or "experience"' });
-    }
 
     const prompt = PROMPT_TEMPLATES[section].replace('{TEXT}', text);
 
@@ -158,22 +170,9 @@ router.post('/enhance-summary', authMiddleware, async (req: Request, res: Respon
 });
 
 // POST /api/gemini/generate-cover-letter
-router.post('/generate-cover-letter', authMiddleware, async (req: Request, res: Response) => {
+router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema, validate, async (req: Request, res: Response) => {
   try {
     const { resumeText, jobTitle, company, jobDescription } = req.body;
-
-    if (!resumeText || !resumeText.trim()) {
-      return res.status(400).json({ error: 'Resume text is required' });
-    }
-    if (!jobTitle || !jobTitle.trim()) {
-      return res.status(400).json({ error: 'Job title is required' });
-    }
-    if (!company || !company.trim()) {
-      return res.status(400).json({ error: 'Company name is required' });
-    }
-    if (!jobDescription || !jobDescription.trim()) {
-      return res.status(400).json({ error: 'Job description is required' });
-    }
 
     const prompt = PROMPT_TEMPLATES['coverLetter']
       .replace('{RESUME}', resumeText)
@@ -195,13 +194,9 @@ router.post('/generate-cover-letter', authMiddleware, async (req: Request, res: 
 });
 
 // POST /api/gemini/analyze-resume
-router.post('/analyze-resume', authMiddleware, async (req: Request, res: Response) => {
+router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, async (req: Request, res: Response) => {
   try {
     const { resumeText } = req.body;
-
-    if (!resumeText || !resumeText.trim()) {
-      return res.status(400).json({ error: 'Resume text is required' });
-    }
 
     const prompt = PROMPT_TEMPLATES['resumeAnalysis'].replace('{RESUME_TEXT}', resumeText);
 
@@ -224,16 +219,9 @@ router.post('/analyze-resume', authMiddleware, async (req: Request, res: Respons
 });
 
 // POST /api/gemini/tailor-resume
-router.post('/tailor-resume', authMiddleware, async (req: Request, res: Response) => {
+router.post('/tailor-resume', authMiddleware, tailorResumeSchema, validate, async (req: Request, res: Response) => {
   try {
     const { resumeText, jobDescription } = req.body;
-
-    if (!resumeText || !resumeText.trim()) {
-      return res.status(400).json({ error: 'Resume text is required' });
-    }
-    if (!jobDescription || !jobDescription.trim()) {
-      return res.status(400).json({ error: 'Job description is required' });
-    }
 
     const prompt = PROMPT_TEMPLATES['tailor']
       .replace('{RESUME}', resumeText)

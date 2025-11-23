@@ -188,7 +188,7 @@ export const versionDb = {
         user_id: userId,
         resume_id: resumeId,
         data: versionData,
-        version_name: versionName,
+        name: versionName,
       })
       .select()
       .single();
@@ -297,7 +297,7 @@ export const applicationDb = {
       .from('applications')
       .select('*')
       .eq('user_id', userId)
-      .order('applied_date', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
@@ -381,18 +381,41 @@ export const subscriptionDb = {
   async upsert(userId: string, subscriptionData: any) {
     if (!supabase) throw new Error('Database not configured');
 
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .upsert({
-        user_id: userId,
-        ...subscriptionData,
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+    // Check if subscription exists
+    const existing = await this.getCurrent(userId);
 
-    if (error) throw error;
-    return data;
+    if (existing) {
+      // Update existing record, ensuring plan is never null
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .update({
+          plan: existing.plan || 'free', // Ensure plan is set if it was null
+          ...subscriptionData,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } else {
+      // Create new record with all required fields
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: userId,
+          plan: 'free', // Default plan for new subscriptions
+          status: 'active',
+          ...subscriptionData,
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
   },
 
   /**
@@ -401,6 +424,33 @@ export const subscriptionDb = {
   async updateFeatureUsage(userId: string, featureUpdates: any) {
     if (!supabase) throw new Error('Database not configured');
 
+    // First, check if subscription exists
+    const { data: existingSub } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    // If no subscription exists, create one with the feature updates
+    if (!existingSub) {
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .insert({
+          user_id: userId,
+          plan: 'free',
+          status: 'active',
+          ...featureUpdates,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    }
+
+    // Otherwise, update the existing subscription
     const { data, error } = await supabase
       .from('subscriptions')
       .update({
@@ -413,5 +463,411 @@ export const subscriptionDb = {
 
     if (error) throw error;
     return data;
+  },
+};
+
+/**
+ * Database service for jobs (admin-managed content)
+ */
+export const jobDb = {
+  /**
+   * Get all jobs
+   */
+  async getAll() {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Get active jobs only (for public display)
+   */
+  async getActive() {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Get jobs by category
+   */
+  async getByCategory(category: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .select('*')
+      .eq('category', category)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Create a new job (admin only)
+   */
+  async create(jobData: {
+    title: string;
+    company: string;
+    location: string;
+    description: string;
+    category: string;
+    external_id?: string;
+    external_url?: string;
+    salary_min?: number;
+    salary_max?: number;
+    source?: 'manual' | 'adzuna';
+    posted_date?: string;
+  }) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert({
+        ...jobData,
+        status: 'active',
+        source: jobData.source || 'manual',
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Bulk create jobs (for syncing from external sources)
+   */
+  async bulkCreate(jobs: Array<{
+    title: string;
+    company: string;
+    location: string;
+    description: string;
+    category: string;
+    external_id?: string;
+    external_url?: string;
+    salary_min?: number;
+    salary_max?: number;
+    source?: 'manual' | 'adzuna';
+    posted_date?: string;
+  }>) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const jobsWithDefaults = jobs.map(job => ({
+      ...job,
+      status: 'active',
+      source: job.source || 'manual',
+    }));
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .insert(jobsWithDefaults)
+      .select();
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Delete jobs by source (for cleanup before re-sync)
+   */
+  async deleteBySource(source: 'manual' | 'adzuna') {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { error } = await supabase
+      .from('jobs')
+      .delete()
+      .eq('source', source);
+
+    if (error) throw error;
+    return { success: true };
+  },
+
+  /**
+   * Update a job (admin only)
+   */
+  async update(jobId: string, jobData: {
+    title?: string;
+    company?: string;
+    location?: string;
+    description?: string;
+    category?: string;
+    status?: string;
+  }) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('jobs')
+      .update(jobData)
+      .eq('id', jobId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Delete a job (admin only)
+   */
+  async delete(jobId: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { error } = await supabase
+      .from('jobs')
+      .delete()
+      .eq('id', jobId);
+
+    if (error) throw error;
+    return { success: true };
+  },
+};
+
+/**
+ * Database service for courses (admin-managed content)
+ */
+export const courseDb = {
+  /**
+   * Get all courses
+   */
+  async getAll() {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Get published courses only (for public display)
+   */
+  async getPublished() {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('status', 'published')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Get courses by type
+   */
+  async getByType(type: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('courses')
+      .select('*')
+      .eq('type', type)
+      .eq('status', 'published')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Create a new course (admin only)
+   */
+  async create(courseData: {
+    title: string;
+    provider: string;
+    description: string;
+    video_url: string;
+    type: string;
+    thumbnail_url?: string;
+    duration?: string;
+    level?: 'beginner' | 'intermediate' | 'advanced';
+    category?: string;
+    affiliate_link?: string;
+  }) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('courses')
+      .insert({
+        ...courseData,
+        status: 'published',
+        enrollment_count: 0,
+        is_featured: false,
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Update a course (admin only)
+   */
+  async update(courseId: string, courseData: {
+    title?: string;
+    provider?: string;
+    description?: string;
+    video_url?: string;
+    type?: string;
+    status?: string;
+    thumbnail_url?: string;
+    duration?: string;
+    level?: 'beginner' | 'intermediate' | 'advanced';
+    category?: string;
+    affiliate_link?: string;
+    is_featured?: boolean;
+  }) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('courses')
+      .update(courseData)
+      .eq('id', courseId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Delete a course (admin only)
+   */
+  async delete(courseId: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    console.log(`🗑️ Deleting course ${courseId} - Step 1: Deleting enrollments...`);
+
+    // First delete related enrollments to avoid foreign key constraint errors
+    const { error: enrollmentError, count: enrollmentCount } = await supabase
+      .from('course_enrollments')
+      .delete()
+      .eq('course_id', courseId)
+      .select('*', { count: 'exact', head: true });
+
+    if (enrollmentError) {
+      console.error('❌ Error deleting enrollments:', enrollmentError);
+      throw enrollmentError;
+    }
+
+    console.log(`✅ Deleted ${enrollmentCount || 0} enrollments for course ${courseId}`);
+
+    // Then delete the course
+    console.log(`🗑️ Deleting course ${courseId} - Step 2: Deleting course...`);
+
+    const { error, data } = await supabase
+      .from('courses')
+      .delete()
+      .eq('id', courseId)
+      .select();
+
+    if (error) {
+      console.error('❌ Error deleting course:', error);
+      throw error;
+    }
+
+    if (!data || data.length === 0) {
+      console.warn(`⚠️ No course found with ID ${courseId} (already deleted?)`);
+    } else {
+      console.log(`✅ Course ${courseId} deleted successfully`);
+    }
+
+    return { success: true };
+  },
+
+  /**
+   * Enroll user in a course (track enrollment)
+   */
+  async enroll(userId: string, courseId: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    // Insert enrollment (ignore if already enrolled due to unique constraint)
+    const { data, error } = await supabase
+      .from('course_enrollments')
+      .insert({
+        user_id: userId,
+        course_id: courseId,
+      })
+      .select()
+      .single();
+
+    // Increment enrollment count
+    await supabase
+      .from('courses')
+      .update({ enrollment_count: supabase.rpc('increment', { column: 'enrollment_count' }) })
+      .eq('id', courseId);
+
+    if (error && error.code !== '23505') throw error; // Ignore duplicate enrollment errors
+    return data;
+  },
+
+  /**
+   * Get user's enrollments
+   */
+  async getUserEnrollments(userId: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('course_enrollments')
+      .select(`
+        *,
+        courses (*)
+      `)
+      .eq('user_id', userId)
+      .order('enrolled_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Increment enrollment count for a course
+   */
+  async incrementEnrollmentCount(courseId: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase.rpc('increment_enrollment_count', {
+      course_id: courseId,
+    });
+
+    if (error) {
+      // Fallback: manual increment
+      const { data: course } = await supabase
+        .from('courses')
+        .select('enrollment_count')
+        .eq('id', courseId)
+        .single();
+
+      if (course) {
+        await supabase
+          .from('courses')
+          .update({ enrollment_count: (course.enrollment_count || 0) + 1 })
+          .eq('id', courseId);
+      }
+    }
+
+    return { success: true };
   },
 };

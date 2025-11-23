@@ -9,9 +9,21 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build:frontend": "cd frontend && npm run build",
     "build:backend": "cd backend && npm run build",
-    "build": "npm run build:backend && npm run build:frontend"
+    "build": "npm run build:backend && npm run build:frontend",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:auth": "playwright test tests/e2e/specs/01-auth",
+    "test:e2e:jobs": "playwright test tests/e2e/specs/02-jobs",
+    "test:e2e:courses": "playwright test tests/e2e/specs/03-courses",
+    "test:e2e:admin": "playwright test tests/e2e/specs/04-admin",
+    "test:e2e:report": "playwright show-report"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "@playwright/test": "^1.56.1",
+    "@types/compression": "^1.8.1",
+    "concurrently": "^8.2.2",
+    "dotenv": "^17.2.3"
   }
 }

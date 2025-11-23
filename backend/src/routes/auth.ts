@@ -1,6 +1,14 @@
 import express, { Request, Response } from 'express';
 import { supabase } from '../config/supabase.js';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { signupSchema, loginSchema } from '../validators/schemas.js';
+import {
+  recordFailedLogin,
+  isAccountLocked,
+  clearLoginAttempts,
+} from '../utils/loginAttempts.js';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -19,31 +27,43 @@ const ensureSupabaseConfigured = (res: Response): boolean => {
  * POST /api/auth/signup
  * Register a new user with email and password
  */
-router.post('/signup', async (req: Request, res: Response): Promise<void> => {
+router.post('/signup', signupSchema, validate, async (req: Request, res: Response): Promise<void> => {
   try {
     if (!ensureSupabaseConfigured(res)) return;
 
     const { email, password, fullName } = req.body;
-
-    if (!email || !password) {
-      res.status(400).json({ error: 'Email and password are required' });
-      return;
-    }
+    // Normalize email: trim whitespace and lowercase
+    const normalizedEmail = email.trim().toLowerCase();
 
     // Create user with Supabase Auth
+    // In test mode, auto-confirm emails to prevent bounce warnings
     const { data, error } = await supabase!.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         data: {
           full_name: fullName || '',
         },
+        emailRedirectTo: process.env.NODE_ENV === 'test' ? undefined : `${process.env.FRONTEND_URL}/auth/callback`,
       },
     });
 
     if (error) {
       res.status(400).json({ error: error.message });
       return;
+    }
+
+    // Send welcome email (don't wait for it, send async)
+    if (data.user?.email) {
+      sendWelcomeEmail(data.user.email, fullName || data.user.email)
+        .then(result => {
+          if (result.success) {
+            console.log(`✅ Welcome email sent to: ${data.user.email}`);
+          } else {
+            console.error(`❌ Failed to send welcome email: ${result.error}`);
+          }
+        })
+        .catch(err => console.error('Welcome email error:', err));
     }
 
     res.status(201).json({
@@ -59,27 +79,49 @@ router.post('/signup', async (req: Request, res: Response): Promise<void> => {
 /**
  * POST /api/auth/login
  * Login with email and password
+ * Includes account lockout protection against brute force attacks
  */
-router.post('/login', async (req: Request, res: Response): Promise<void> => {
+router.post('/login', loginSchema, validate, async (req: Request, res: Response): Promise<void> => {
   try {
     if (!ensureSupabaseConfigured(res)) return;
 
     const { email, password } = req.body;
+    const normalizedEmail = email.toLowerCase().trim();
 
-    if (!email || !password) {
-      res.status(400).json({ error: 'Email and password are required' });
+    // Check if account is locked due to failed attempts
+    const lockStatus = isAccountLocked(normalizedEmail);
+    if (lockStatus.isLocked) {
+      console.warn(`🔒 Locked account login attempt: ${normalizedEmail}`);
+      res.status(429).json({
+        error: lockStatus.message,
+        lockedUntil: lockStatus.lockedUntil,
+        remainingAttempts: 0,
+      });
       return;
     }
 
+    // Attempt Supabase authentication
     const { data, error } = await supabase!.auth.signInWithPassword({
-      email,
+      email: normalizedEmail,
       password,
     });
 
     if (error) {
-      res.status(401).json({ error: error.message });
+      // Record failed login attempt
+      const attemptStatus = recordFailedLogin(normalizedEmail);
+
+      res.status(401).json({
+        error: attemptStatus.message,
+        remainingAttempts: attemptStatus.remainingAttempts,
+        lockedUntil: attemptStatus.lockedUntil,
+      });
       return;
     }
+
+    // Successful login - clear any failed attempts
+    clearLoginAttempts(normalizedEmail);
+
+    console.log(`✅ User logged in: ${normalizedEmail} (ID: ${data.user.id})`);
 
     res.status(200).json({
       user: data.user,
@@ -123,10 +165,10 @@ router.post('/logout', authMiddleware, async (req: AuthRequest, res: Response): 
 });
 
 /**
- * GET /api/auth/user
+ * GET /api/auth/user (and /api/auth/me)
  * Get current authenticated user info (requires auth)
  */
-router.get('/user', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+const getCurrentUser = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     if (!ensureSupabaseConfigured(res)) return;
 
@@ -144,18 +186,20 @@ router.get('/user', authMiddleware, async (req: AuthRequest, res: Response): Pro
     }
 
     res.status(200).json({
-      user: {
-        id: data.user.id,
-        email: data.user.email,
-        fullName: data.user.user_metadata?.full_name || '',
-        createdAt: data.user.created_at,
-      },
+      id: data.user.id,
+      email: data.user.email,
+      fullName: data.user.user_metadata?.full_name || '',
+      createdAt: data.user.created_at,
     });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user info' });
   }
-});
+};
+
+// Register the same handler for both /user and /me endpoints
+router.get('/user', authMiddleware, getCurrentUser);
+router.get('/me', authMiddleware, getCurrentUser);
 
 /**
  * POST /api/auth/google
@@ -208,6 +252,171 @@ router.post('/facebook', async (req: Request, res: Response): Promise<void> => {
   } catch (error) {
     console.error('Facebook OAuth error:', error);
     res.status(500).json({ error: 'Failed to initiate Facebook sign-in' });
+  }
+});
+
+/**
+ * POST /api/auth/password-reset/request
+ * Request password reset email
+ * Sends email with reset link to user using SendGrid
+ */
+router.post('/password-reset/request', async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!ensureSupabaseConfigured(res)) return;
+
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ error: 'Email is required' });
+      return;
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Check if user exists (but don't reveal this to client for security)
+    const { data: authUser } = await supabase!.auth.admin.listUsers();
+    const user = authUser?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
+
+    if (user) {
+      // Generate password reset link using Supabase
+      const { data, error } = await supabase!.auth.admin.generateLink({
+        type: 'recovery',
+        email: normalizedEmail,
+      });
+
+      if (!error && data.properties?.action_link) {
+        // Extract token from Supabase's action link
+        const actionLink = data.properties.action_link;
+        const tokenMatch = actionLink.match(/token=([^&]+)/);
+        const resetToken = tokenMatch ? tokenMatch[1] : '';
+
+        // Send custom password reset email via SendGrid
+        const emailResult = await sendPasswordResetEmail(
+          normalizedEmail,
+          resetToken,
+          user.user_metadata?.full_name || user.email || 'there'
+        );
+
+        if (emailResult.success) {
+          console.log(`✅ Custom password reset email sent to: ${normalizedEmail}`);
+        } else {
+          console.error(`❌ Failed to send password reset email: ${emailResult.error}`);
+          // Fall back to Supabase's email if custom email fails
+          await supabase!.auth.resetPasswordForEmail(normalizedEmail, {
+            redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
+          });
+        }
+      } else {
+        console.error('Failed to generate reset link:', error?.message);
+      }
+    }
+
+    // Always return success message (don't reveal if email exists for security)
+    res.status(200).json({
+      message: 'If an account exists with that email, a password reset link has been sent.',
+    });
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    res.status(500).json({ error: 'Failed to process password reset request' });
+  }
+});
+
+/**
+ * POST /api/auth/password-change
+ * Change password for authenticated user
+ * Requires valid session
+ */
+router.post('/password-change', authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!ensureSupabaseConfigured(res)) return;
+
+    const { newPassword } = req.body;
+
+    if (!newPassword) {
+      res.status(400).json({ error: 'New password is required' });
+      return;
+    }
+
+    // Validate password strength (basic check)
+    if (newPassword.length < 8) {
+      res.status(400).json({ error: 'Password must be at least 8 characters long' });
+      return;
+    }
+
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(newPassword)) {
+      res.status(400).json({
+        error: 'Password must contain at least one uppercase letter, one lowercase letter, and one number',
+      });
+      return;
+    }
+
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.substring(7);
+
+    if (!token) {
+      res.status(401).json({ error: 'No authentication token provided' });
+      return;
+    }
+
+    // Update password using Supabase
+    const { error } = await supabase!.auth.admin.updateUserById(req.user!.id, {
+      password: newPassword,
+    });
+
+    if (error) {
+      console.error('Password change error:', error.message);
+      res.status(400).json({ error: error.message });
+      return;
+    }
+
+    console.log(`🔐 Password changed for user: ${req.user?.email} (ID: ${req.user?.id})`);
+
+    res.status(200).json({
+      message: 'Password changed successfully. Please log in with your new password.',
+    });
+  } catch (error) {
+    console.error('Password change error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+});
+
+/**
+ * POST /api/auth/refresh
+ * Refresh access token using refresh token
+ * Supabase handles token refresh automatically on client-side,
+ * but this endpoint provides server-side refresh capability
+ */
+router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!ensureSupabaseConfigured(res)) return;
+
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      res.status(400).json({ error: 'Refresh token is required' });
+      return;
+    }
+
+    // Refresh session with Supabase
+    const { data, error } = await supabase!.auth.refreshSession({
+      refresh_token: refreshToken,
+    });
+
+    if (error || !data.session) {
+      console.warn('Token refresh failed:', error?.message);
+      res.status(401).json({ error: 'Invalid or expired refresh token' });
+      return;
+    }
+
+    console.log(`🔄 Token refreshed for user: ${data.user?.email}`);
+
+    res.status(200).json({
+      session: data.session,
+      user: data.user,
+    });
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({ error: 'Failed to refresh token' });
   }
 });
 

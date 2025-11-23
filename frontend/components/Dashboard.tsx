@@ -4,9 +4,13 @@ import type { Page, ResumeData, Application } from '../types';
 import ProgressTracker from './ProgressTracker';
 import TrialStatus from './TrialStatus';
 import { getLatestResume } from '../services/resumeService';
-import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon } from './icons';
-
-const APP_TRACKER_KEY = 'career_hub_app_tracker';
+import { getApplications } from '../services/applicationService';
+import { getVersions } from '../services/versionHistoryService';
+import { hasPremium } from '../services/premiumService';
+import { createPortalSession } from '../src/services/payments';
+import { getAccessToken } from '../services/userService';
+import { useAuth } from '../src/contexts/AuthContext';
+import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon, CogIcon } from './icons';
 
 interface DashboardProps {
     setPage: (page: Page) => void;
@@ -14,9 +18,13 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
+    const { isAdmin } = useAuth();
     const [resumeData, setResumeData] = useState<ResumeData | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
+    const [versionCount, setVersionCount] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [isPremium, setIsPremium] = useState(false);
+    const [isLoadingPortal, setIsLoadingPortal] = useState(false);
 
     useEffect(() => {
         const loadData = async () => {
@@ -25,10 +33,17 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                 const resume = await getLatestResume();
                 setResumeData(resume);
 
-                const savedApps = localStorage.getItem(APP_TRACKER_KEY);
-                if (savedApps) {
-                    setApplications(JSON.parse(savedApps));
-                }
+                // Fetch applications from API instead of localStorage
+                const apps = await getApplications();
+                setApplications(apps);
+
+                // Fetch version count
+                const versions = await getVersions();
+                setVersionCount(versions.length);
+
+                // Check if user has premium
+                const premium = await hasPremium();
+                setIsPremium(premium);
             } catch (e) {
                 console.error("Failed to load dashboard data", e);
             } finally {
@@ -38,6 +53,25 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
 
         loadData();
     }, []);
+
+    const handleManageSubscription = async () => {
+        try {
+            setIsLoadingPortal(true);
+            const token = await getAccessToken();
+            if (!token) {
+                alert('Please log in to manage your subscription');
+                return;
+            }
+
+            const { portalUrl } = await createPortalSession(token);
+            window.location.href = portalUrl;
+        } catch (error) {
+            console.error('Failed to open customer portal:', error);
+            alert('Failed to open subscription management. Please try again.');
+        } finally {
+            setIsLoadingPortal(false);
+        }
+    };
 
     const applicationSummary = {
         applied: applications.filter(a => a.status === 'Applied').length,
@@ -54,6 +88,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
         { title: "Find Jobs", page: 'jobs', icon: BriefcaseIcon },
         { title: "Explore Courses", page: 'courses', icon: BookOpenIcon },
         { title: "Resume Analyser", page: 'analyser', icon: DocumentChartBarIcon },
+        ...(isAdmin ? [{ title: "Admin Panel", page: 'admin', icon: CogIcon }] : []),
     ]
 
     return (
@@ -105,6 +140,21 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                 {/* Sidebar */}
                 <div className="space-y-8">
                     <TrialStatus />
+
+                    {/* Manage Subscription Button - Only show for premium users */}
+                    {isPremium && (
+                        <div className="opacity-0 slide-in-up" style={{ animationDelay: `350ms` }}>
+                            <button
+                                onClick={handleManageSubscription}
+                                disabled={isLoadingPortal}
+                                className="w-full bg-white p-4 rounded-xl shadow-lg border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 text-indigo-600 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <CogIcon className="w-5 h-5" />
+                                {isLoadingPortal ? 'Opening...' : 'Manage Subscription'}
+                            </button>
+                        </div>
+                    )}
+
                     <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 opacity-0 slide-in-up" style={{ animationDelay: `400ms` }}>
                         <h3 className="text-xl font-semibold text-slate-800 mb-4">Application Summary</h3>
                         <div className="space-y-3">
@@ -123,12 +173,19 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                     </div>
                      <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 opacity-0 slide-in-up" style={{ animationDelay: `500ms` }}>
                         <h3 className="text-xl font-semibold text-slate-800 mb-4">My Resume Versions</h3>
-                        <div className="text-center py-4 text-slate-500 text-sm">
-                            <p>This feature is coming soon!</p>
-                            <p>Save and compare different resume versions.</p>
+                        <div className="text-center py-4">
+                            <div className="text-4xl font-bold text-indigo-600 mb-2">{versionCount}</div>
+                            <p className="text-slate-600 text-sm">
+                                {versionCount === 0 ? 'No versions saved yet' :
+                                 versionCount === 1 ? 'Version saved' :
+                                 'Versions saved'}
+                            </p>
+                            <p className="text-slate-500 text-xs mt-2">
+                                Free tier: Up to 3 versions
+                            </p>
                         </div>
                          <button onClick={() => setPage('versions')} className="mt-2 w-full text-center px-4 py-2 bg-slate-200 text-slate-800 text-sm font-semibold rounded-md hover:bg-slate-300 transition-colors">
-                            Learn More
+                            Manage Versions
                         </button>
                     </div>
                 </div>

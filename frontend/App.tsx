@@ -1,28 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
-import ResumeBuilder from './components/ResumeBuilder';
-import CoursesPage from './components/CoursesPage';
-import CoverLetterBuilder from './components/CoverLetterBuilder';
-import JobsPage from './components/JobsPage';
 import AuthPage from './components/AuthPage';
-import AdminPage from './components/AdminPage';
-import ApplicationTrackerPage from './components/ApplicationTrackerPage';
-import VersionHistoryPage from './components/VersionHistoryPage';
-import ResumeAnalyserPage from './components/ResumeAnalyserPage';
 import PremiumModal from './components/PremiumModal';
 import WelcomeModal from './components/WelcomeModal';
 import SubscriptionExpiredModal from './components/SubscriptionExpiredModal';
-import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFlag } from './services/premiumService';
+import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFlag, getSubscription } from './services/premiumService';
 import type { Page } from './types';
 import Dashboard from './components/Dashboard';
-import TailorResumeModal from './components/TailorResumeModal';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 
+// Lazy load heavy components to reduce initial bundle size
+// These will be loaded on-demand when user navigates to them
+const ResumeBuilder = lazy(() => import('./components/ResumeBuilder'));
+const ResumeAnalyserPage = lazy(() => import('./components/ResumeAnalyserPage'));
+const AdminPage = lazy(() => import('./components/AdminPage'));
+const CoursesPage = lazy(() => import('./components/CoursesPage'));
+const JobsPage = lazy(() => import('./components/JobsPage'));
+const CoverLetterBuilder = lazy(() => import('./components/CoverLetterBuilder'));
+const ApplicationTrackerPage = lazy(() => import('./components/ApplicationTrackerPage'));
+const VersionHistoryPage = lazy(() => import('./components/VersionHistoryPage'));
+const PricingPage = lazy(() => import('./src/components/payments/PricingPage').then(m => ({ default: m.PricingPage })));
+const SubscriptionManagement = lazy(() => import('./src/components/payments/SubscriptionManagement').then(m => ({ default: m.SubscriptionManagement })));
+const PaymentSuccess = lazy(() => import('./components/PaymentSuccess'));
+const PaymentCancel = lazy(() => import('./components/PaymentCancel'));
+const TailorResumeModal = lazy(() => import('./components/TailorResumeModal'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./components/TermsOfService'));
+
+// Loading fallback component for lazy-loaded routes
+const LoadingFallback: React.FC = () => (
+  <div className="h-full w-full flex items-center justify-center bg-slate-50">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <p className="mt-4 text-gray-600">Loading...</p>
+    </div>
+  </div>
+);
 
 const AppContent: React.FC = () => {
-  const { user, loading, logout } = useAuth();
-  const [page, setPage] = useState<Page>('dashboard');
+  const { user, loading, logout, isAdmin } = useAuth();
+  const [page, setPage] = useState<Page>('landing'); // Start with landing page
+  const hasRedirectedAdmin = useRef(false);
 
   // State for premium features modals
   const [showPremiumModal, setShowPremiumModal] = useState(false);
@@ -35,6 +54,36 @@ const AppContent: React.FC = () => {
   // State for Tailor Modal
   const [tailorModalState, setTailorModalState] = useState<{isOpen: boolean, initialText?: string}>({isOpen: false});
 
+  // State for current subscription plan
+  const [currentPlan, setCurrentPlan] = useState<Plan>('free');
+
+  // Fetch current subscription plan
+  useEffect(() => {
+    if (user) {
+      getSubscription().then((sub) => {
+        if (sub) {
+          setCurrentPlan(sub.plan);
+        }
+      });
+    }
+  }, [user]);
+
+  // Redirect admin users to admin page on initial login (only once)
+  // Redirect authenticated users to dashboard if on landing page
+  useEffect(() => {
+    if (user && isAdmin && !hasRedirectedAdmin.current) {
+      setPage('admin');
+      hasRedirectedAdmin.current = true;
+    } else if (user && page === 'landing') {
+      // If user is logged in and on landing page, go to dashboard
+      setPage('dashboard');
+    } else if (!user) {
+      // Reset redirect flag when user logs out
+      hasRedirectedAdmin.current = false;
+      // Don't redirect guests - let App.tsx render guards handle auth
+    }
+  }, [user, isAdmin, page]);
+
   // Check if welcome message should be shown for the user
   useEffect(() => {
     if (user?.email) {
@@ -46,14 +95,24 @@ const AppContent: React.FC = () => {
   }, [user?.email]);
 
   const handleLogout = async () => {
-    await logout();
+    console.log('🔴 handleLogout called');
+    try {
+      await logout();
+      console.log('✅ Logout successful');
+      // Redirect to landing page after logout
+      setPage('landing');
+      console.log('🔴 Redirected to landing page');
+    } catch (error) {
+      console.error('❌ Logout error:', error);
+    }
   };
 
   const triggerPremiumFlow = () => {
     if (hasSubscriptionExpired()) {
         setShowExpiredModal(true);
     } else {
-        setShowPremiumModal(true);
+        // Redirect to pricing page for Stripe checkout
+        setPage('pricing');
     }
   };
 
@@ -89,11 +148,20 @@ const AppContent: React.FC = () => {
   const handleUpgradeFromExpired = () => {
     setShowExpiredModal(false);
     clearExpiredSubscriptionFlag();
-    setShowPremiumModal(true);
+    // Redirect to pricing page for Stripe checkout
+    setPage('pricing');
   };
 
   const openTailorModal = (initialText?: string) => {
+    console.log('🟢 openTailorModal called, initialText:', initialText);
     setTailorModalState({ isOpen: true, initialText });
+    console.log('🟢 tailorModalState updated to isOpen: true');
+  };
+
+  // Define modal props early so it can be used in all returns
+  const modalProps = {
+      triggerPremiumFlow,
+      setActionToRetry
   };
 
   // Show loading spinner while checking authentication
@@ -108,22 +176,82 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Show auth page if not authenticated
-  if (!user) {
-    return <AuthPage />;
+  // If not authenticated and trying to access protected pages, show landing page
+  // Public pages (landing, privacy, terms, builder, jobs, courses, coverLetter) are accessible without auth
+  const publicPages = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses', 'coverLetter'];
+  const isPublicPage = publicPages.includes(page);
+
+  // If not authenticated but viewing public pages, render them
+  if (!user && (page === 'privacy' || page === 'terms')) {
+    return (
+      <div className="h-screen w-screen bg-slate-50 flex flex-col">
+        <main className="flex-grow overflow-y-auto relative">
+          <Suspense fallback={<LoadingFallback />}>
+            {page === 'privacy' ? <PrivacyPolicy /> : <TermsOfService />}
+          </Suspense>
+        </main>
+      </div>
+    );
   }
 
-  const modalProps = {
-      triggerPremiumFlow,
-      setActionToRetry
-  };
+  // If not authenticated and on landing page, show landing page with proper auth indication
+  if (!user && page === 'landing') {
+    return (
+      <div className="h-screen w-screen bg-slate-50 flex flex-col">
+        {tailorModalState.isOpen && (
+          <>
+            {console.log('🟣 Rendering TailorResumeModal (guest landing), isOpen:', tailorModalState.isOpen)}
+            <Suspense fallback={null}>
+              <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
+            </Suspense>
+          </>
+        )}
+        <main className="flex-grow overflow-y-auto relative">
+          <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={false} isAdmin={false} />
+        </main>
+      </div>
+    );
+  }
+
+  // If not authenticated and on builder page, show builder in guest mode
+  if (!user && page === 'builder') {
+    return (
+      <div className="h-screen w-screen bg-slate-50 flex flex-col">
+        {tailorModalState.isOpen && (
+          <>
+            {console.log('🟣 Rendering TailorResumeModal (guest builder), isOpen:', tailorModalState.isOpen)}
+            <Suspense fallback={null}>
+              <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
+            </Suspense>
+          </>
+        )}
+        <Header onGoToHome={() => setPage('landing')} onLogout={handleLogout} page={page} showLogout={false} />
+        <main className="flex-grow overflow-y-auto relative">
+          <Suspense fallback={<LoadingFallback />}>
+            <ResumeBuilder
+              key="guest-builder"
+              {...modalProps}
+              setPage={setPage}
+              openTailorModal={openTailorModal}
+              isGuestMode={true}
+            />
+          </Suspense>
+        </main>
+      </div>
+    );
+  }
+
+  // If not authenticated and trying to access protected pages, show auth page
+  if (!user && !isPublicPage) {
+    return <AuthPage setPage={setPage} />;
+  }
 
   const renderPage = () => {
     switch (page) {
       case 'dashboard':
         return <Dashboard setPage={setPage} openTailorModal={() => openTailorModal()} />;
       case 'builder':
-        return <ResumeBuilder {...modalProps} setPage={setPage} openTailorModal={openTailorModal}/>;
+        return <ResumeBuilder key={user?.id || 'guest'} {...modalProps} setPage={setPage} openTailorModal={openTailorModal}/>;
       case 'analyser':
         return <ResumeAnalyserPage {...modalProps} />;
       case 'courses':
@@ -137,16 +265,40 @@ const AppContent: React.FC = () => {
       case 'versions':
         return <VersionHistoryPage setPage={setPage} />;
       case 'admin':
+        // Protect admin route - only allow access if user is admin
+        if (!isAdmin) {
+          setPage('dashboard');
+          return <Dashboard setPage={setPage} openTailorModal={() => openTailorModal()} />;
+        }
         return <AdminPage />;
+      case 'pricing':
+        return <PricingPage userToken={null} currentPlan={currentPlan} />;
+      case 'subscription':
+        return <SubscriptionManagement userToken={null} />;
+      case 'paymentSuccess':
+        return <PaymentSuccess setPage={setPage} />;
+      case 'paymentCancel':
+        return <PaymentCancel setPage={setPage} />;
+      case 'privacy':
+        return <PrivacyPolicy />;
+      case 'terms':
+        return <TermsOfService />;
       case 'landing':
       default:
-        return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} />;
+        return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={!!user} isAdmin={isAdmin} />;
     }
   };
 
   return (
     <div className="h-screen w-screen bg-slate-50 flex flex-col">
-      {tailorModalState.isOpen && <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />}
+      {tailorModalState.isOpen && (
+        <>
+          {console.log('🟣 Rendering TailorResumeModal, isOpen:', tailorModalState.isOpen)}
+          <Suspense fallback={null}>
+            <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
+          </Suspense>
+        </>
+      )}
       {showWelcomeModal && <WelcomeModal onClose={handleCloseWelcomeModal} />}
       {showPremiumModal && (
         <PremiumModal
@@ -160,9 +312,11 @@ const AppContent: React.FC = () => {
           onUpgrade={handleUpgradeFromExpired}
         />
       )}
-      <Header onGoToHome={() => setPage('dashboard')} onLogout={handleLogout} page={page} />
-      <main className="flex-grow overflow-hidden relative fade-in">
-        {renderPage()}
+      <Header onGoToHome={() => setPage(user ? 'dashboard' : 'landing')} onLogout={handleLogout} page={page} showLogout={!!user} />
+      <main className="flex-grow overflow-y-auto relative fade-in">
+        <Suspense fallback={<LoadingFallback />}>
+          {renderPage()}
+        </Suspense>
       </main>
     </div>
   );

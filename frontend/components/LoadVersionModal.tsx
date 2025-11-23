@@ -9,9 +9,21 @@ interface LoadVersionModalProps {
 
 const LoadVersionModal: React.FC<LoadVersionModalProps> = ({ onClose, onLoad }) => {
   const [versions, setVersions] = useState<ResumeVersion[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setVersions(getVersions());
+    const loadVersions = async () => {
+      try {
+        setLoading(true);
+        const versionsList = await getVersions();
+        setVersions(versionsList);
+      } catch (error) {
+        console.error('Failed to load versions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadVersions();
   }, []);
 
   return (
@@ -31,7 +43,12 @@ const LoadVersionModal: React.FC<LoadVersionModalProps> = ({ onClose, onLoad }) 
         </div>
 
         <div className="p-6 overflow-y-auto">
-          {versions.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+              <p className="text-slate-500 text-sm">Loading versions...</p>
+            </div>
+          ) : versions.length > 0 ? (
             <ul className="space-y-3">
               {versions.map(version => (
                 <li key={version.id} className="p-3 border rounded-md flex justify-between items-center bg-slate-50 hover:bg-slate-100 transition-colors">
@@ -49,7 +66,7 @@ const LoadVersionModal: React.FC<LoadVersionModalProps> = ({ onClose, onLoad }) 
               ))}
             </ul>
           ) : (
-            <p className="text-center text-slate-500 py-8">No saved versions found.</p>
+            <p className="text-center text-slate-500 py-8">No saved versions found. Save a version from the Resume Builder to get started.</p>
           )}
         </div>
         

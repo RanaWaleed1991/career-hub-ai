@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { GoogleIcon, FacebookIcon } from './icons';
 import { useAuth } from '../src/contexts/AuthContext';
+import type { Page } from '../types';
 
-const AuthPage: React.FC = () => {
+interface AuthPageProps {
+  setPage: (page: Page) => void;
+}
+
+const AuthPage: React.FC<AuthPageProps> = ({ setPage }) => {
   const { login, signup, signInWithGoogle, signInWithFacebook } = useAuth();
 
   const [isLoginView, setIsLoginView] = useState(true);
@@ -85,6 +90,18 @@ const AuthPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Back button */}
+      <button
+        type="button"
+        onClick={() => setPage('landing')}
+        className="absolute top-4 left-4 flex items-center space-x-2 text-slate-600 hover:text-indigo-600 transition-colors px-4 py-2 rounded-lg hover:bg-white/50"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+        </svg>
+        <span className="font-medium">Back to Home</span>
+      </button>
+
       <div className="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200 fade-in">
         <div className="p-8">
           <div className="text-center mb-6">
@@ -236,6 +253,28 @@ const AuthPage: React.FC = () => {
             >
               {isLoginView ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
+          </div>
+
+          {/* Legal Links Footer */}
+          <div className="mt-8 pt-6 border-t border-slate-200">
+            <div className="flex justify-center items-center space-x-4 text-xs text-slate-500">
+              <button
+                onClick={() => setPage('privacy')}
+                className="hover:text-indigo-600 transition-colors hover:underline"
+              >
+                Privacy Policy
+              </button>
+              <span>•</span>
+              <button
+                onClick={() => setPage('terms')}
+                className="hover:text-indigo-600 transition-colors hover:underline"
+              >
+                Terms of Service
+              </button>
+            </div>
+            <div className="text-center mt-2 text-xs text-slate-400">
+              © {new Date().getFullYear()} Career Hub AI
+            </div>
           </div>
         </div>
       </div>
