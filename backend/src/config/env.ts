@@ -11,18 +11,23 @@ const __dirname = dirname(__filename);
 const isTestMode = process.env.NODE_ENV === 'test';
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Determine which .env file to load
-const envFileName = isProduction ? '.env.production' : '.env';
-const envPath = join(__dirname, '../../', envFileName);
+// Only try to load .env files if not in Vercel serverless (where env vars are injected)
+const isVercel = process.env.VERCEL === '1';
 
-dotenv.config({
-  path: envPath,
-  override: isTestMode // Force override in test mode
-});
+if (!isVercel) {
+  // Determine which .env file to load
+  const envFileName = isProduction ? '.env.production' : '.env';
+  const envPath = join(__dirname, '../../', envFileName);
 
-// Restore NODE_ENV if it was overwritten during test mode
-if (isTestMode) {
-  process.env.NODE_ENV = 'test';
+  dotenv.config({
+    path: envPath,
+    override: isTestMode // Force override in test mode
+  });
+
+  // Restore NODE_ENV if it was overwritten during test mode
+  if (isTestMode) {
+    process.env.NODE_ENV = 'test';
+  }
 }
 
 interface EnvConfig {
