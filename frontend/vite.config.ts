@@ -27,29 +27,11 @@ export default defineConfig({
     // Rollup options for optimal code splitting
     rollupOptions: {
       output: {
-        // Manual chunks for better code splitting
-        manualChunks: (id) => {
-          // Vendor chunk for node_modules
-          if (id.includes('node_modules')) {
-            // Separate PDF.js into its own chunk (it's huge - 1MB+)
-            if (id.includes('pdfjs-dist')) {
-              return 'pdfjs';
-            }
-            // Separate React libraries
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor';
-            }
-            // Separate Supabase
-            if (id.includes('@supabase')) {
-              return 'supabase';
-            }
-            // Separate Google Genai
-            if (id.includes('@google/genai')) {
-              return 'genai';
-            }
-            // Everything else in vendor chunk
-            return 'vendor';
-          }
+        // Simplified manual chunks - only split large vendors
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'pdfjs': ['pdfjs-dist'],
+          'supabase': ['@supabase/supabase-js'],
         },
         // Asset file names for better caching
         assetFileNames: (assetInfo) => {
