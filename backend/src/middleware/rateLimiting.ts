@@ -18,7 +18,7 @@ export const generalLimiter = rateLimit({
     res.status(429).json({
       error: 'Too many requests',
       message: 'You have exceeded the 100 requests in 15 minutes limit.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime! / 1000),
+      retryAfter: Math.ceil((req.rateLimit?.resetTime as unknown as number ?? Date.now()) / 1000),
     });
   },
 });
@@ -41,7 +41,7 @@ export const aiLimiter = rateLimit({
     res.status(429).json({
       error: 'Too many AI requests',
       message: 'You have exceeded the 500 AI requests per hour limit.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime! / 1000),
+      retryAfter: Math.ceil((req.rateLimit?.resetTime as unknown as number ?? Date.now()) / 1000),
     });
   },
 });
@@ -65,7 +65,7 @@ export const authLimiter = rateLimit({
     res.status(429).json({
       error: 'Too many authentication attempts',
       message: 'You have exceeded the 5 login attempts in 15 minutes limit.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime! / 1000),
+      retryAfter: Math.ceil((req.rateLimit?.resetTime as unknown as number ?? Date.now()) / 1000),
     });
   },
 });
@@ -88,7 +88,7 @@ export const paymentLimiter = rateLimit({
     res.status(429).json({
       error: 'Too many payment requests',
       message: 'You have exceeded the 10 payment requests per hour limit.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime! / 1000),
+      retryAfter: Math.ceil((req.rateLimit?.resetTime as unknown as number ?? Date.now()) / 1000),
     });
   },
 });
@@ -111,7 +111,7 @@ export const strictLimiter = rateLimit({
     res.status(429).json({
       error: 'Rate limit exceeded',
       message: 'You have exceeded the rate limit for this endpoint.',
-      retryAfter: Math.ceil(req.rateLimit.resetTime! / 1000),
+      retryAfter: Math.ceil((req.rateLimit?.resetTime as unknown as number ?? Date.now()) / 1000),
     });
   },
 });

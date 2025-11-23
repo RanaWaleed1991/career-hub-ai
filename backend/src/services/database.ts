@@ -765,7 +765,7 @@ export const courseDb = {
       .from('course_enrollments')
       .delete()
       .eq('course_id', courseId)
-      .select('*', { count: 'exact', head: true });
+      .select('*');
 
     if (enrollmentError) {
       console.error('❌ Error deleting enrollments:', enrollmentError);

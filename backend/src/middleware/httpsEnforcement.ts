@@ -88,9 +88,10 @@ export function requireHttps(req: Request, res: Response, next: NextFunction): v
 
   if (!isSecure) {
     console.error(`❌ HTTPS required: ${req.method} ${req.path} from ${req.ip}`);
-    return res.status(403).json({
+    res.status(403).json({
       error: 'HTTPS required for this endpoint',
     });
+    return;
   }
 
   next();

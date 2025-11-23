@@ -121,15 +121,15 @@ export async function getSubscriptionStatus(userId: string) {
   // If user has a Stripe subscription, fetch latest data
   if (subscription.stripe_subscription_id && stripe) {
     try {
-      const stripeSubscription = await stripe.subscriptions.retrieve(
+      const stripeSubscription: Stripe.Subscription = await stripe.subscriptions.retrieve(
         subscription.stripe_subscription_id
       );
 
       return {
         plan: subscription.plan,
         status: stripeSubscription.status,
-        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
-        cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+        currentPeriodEnd: new Date((stripeSubscription as any).current_period_end * 1000),
+        cancelAtPeriodEnd: (stripeSubscription as any).cancel_at_period_end,
         stripeSubscriptionId: stripeSubscription.id,
       };
     } catch (error) {
@@ -141,8 +141,8 @@ export async function getSubscriptionStatus(userId: string) {
   return {
     plan: subscription.plan || 'free',
     status: subscription.status || 'active',
-    currentPeriodEnd: subscription.current_period_end,
-    cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+    currentPeriodEnd: (subscription as any).current_period_end,
+    cancelAtPeriodEnd: (subscription as any).cancel_at_period_end || false,
   };
 }
 
@@ -206,7 +206,7 @@ export async function handleCheckoutComplete(session: Stripe.Checkout.Session): 
 
   // Get subscription details
   const subscriptionId = session.subscription as string;
-  const stripeSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const stripeSubscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptionId);
 
   // Determine plan based on price ID
   let plan = 'free';
@@ -226,9 +226,9 @@ export async function handleCheckoutComplete(session: Stripe.Checkout.Session): 
     stripe_customer_id: session.customer as string,
     stripe_subscription_id: subscriptionId,
     stripe_price_id: priceId,
-    current_period_start: new Date(stripeSubscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(stripeSubscription.current_period_end * 1000).toISOString(),
-    cancel_at_period_end: stripeSubscription.cancel_at_period_end,
+    current_period_start: new Date((stripeSubscription as any).current_period_start * 1000).toISOString(),
+    current_period_end: new Date((stripeSubscription as any).current_period_end * 1000).toISOString(),
+    cancel_at_period_end: (stripeSubscription as any).cancel_at_period_end,
     // Reset usage counters on new subscription
     ai_enhancements_used: 0,
     downloads_used: 0,
@@ -243,7 +243,7 @@ export async function handleCheckoutComplete(session: Stripe.Checkout.Session): 
       if (authUser?.user?.email) {
         const userName = authUser.user.user_metadata?.full_name || authUser.user.email;
         const amount = stripeSubscription.items.data[0]?.price.unit_amount || 0;
-        const nextBillingDate = new Date(stripeSubscription.current_period_end * 1000);
+        const nextBillingDate = new Date((stripeSubscription as any).current_period_end * 1000);
 
         const emailResult = await sendPaymentConfirmationEmail(
           authUser.user.email,
@@ -296,13 +296,13 @@ export async function handleSubscriptionUpdate(
     status: subscription.status,
     stripe_subscription_id: subscription.id,
     stripe_price_id: priceId,
-    current_period_start: subscription.current_period_start
-      ? new Date(subscription.current_period_start * 1000).toISOString()
+    current_period_start: (subscription as any).current_period_start
+      ? new Date((subscription as any).current_period_start * 1000).toISOString()
       : null,
-    current_period_end: subscription.current_period_end
-      ? new Date(subscription.current_period_end * 1000).toISOString()
+    current_period_end: (subscription as any).current_period_end
+      ? new Date((subscription as any).current_period_end * 1000).toISOString()
       : null,
-    cancel_at_period_end: subscription.cancel_at_period_end,
+    cancel_at_period_end: (subscription as any).cancel_at_period_end,
   });
 }
 
@@ -336,8 +336,8 @@ export async function handleSubscriptionDelete(
       if (authUser?.user?.email) {
         const userName = authUser.user.user_metadata?.full_name || authUser.user.email;
         // Use the current period end as the expiry date (user retains access until then)
-        const expiryDate = subscription.current_period_end
-          ? new Date(subscription.current_period_end * 1000)
+        const expiryDate = (subscription as any).current_period_end
+          ? new Date((subscription as any).current_period_end * 1000)
           : new Date();
 
         const emailResult = await sendSubscriptionCancelledEmail(
@@ -364,10 +364,10 @@ export async function handleSubscriptionDelete(
  * Called by webhook when invoice.payment_succeeded
  */
 export async function handlePaymentSuccess(invoice: Stripe.Invoice): Promise<void> {
-  const subscriptionId = invoice.subscription as string;
+  const subscriptionId = (typeof (invoice as any).subscription === 'string' ? (invoice as any).subscription : (invoice as any).subscription?.id) as string;
   if (!subscriptionId || !stripe) return;
 
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptionId);
   const userId = subscription.metadata?.userId;
 
   if (!userId) {
@@ -378,8 +378,8 @@ export async function handlePaymentSuccess(invoice: Stripe.Invoice): Promise<voi
   // Update subscription status
   await subscriptionDb.upsert(userId, {
     status: 'active',
-    current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),
-    current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+    current_period_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+    current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
   });
 }
 
@@ -388,10 +388,10 @@ export async function handlePaymentSuccess(invoice: Stripe.Invoice): Promise<voi
  * Called by webhook when invoice.payment_failed
  */
 export async function handlePaymentFailure(invoice: Stripe.Invoice): Promise<void> {
-  const subscriptionId = invoice.subscription as string;
+  const subscriptionId = (typeof (invoice as any).subscription === 'string' ? (invoice as any).subscription : (invoice as any).subscription?.id) as string;
   if (!subscriptionId || !stripe) return;
 
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptionId);
   const userId = subscription.metadata?.userId;
 
   if (!userId) {
