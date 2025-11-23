@@ -23,16 +23,10 @@ export default defineConfig({
       },
     },
     // Chunk size warning limit
-    chunkSizeWarningLimit: 500,
-    // Rollup options for optimal code splitting
+    chunkSizeWarningLimit: 1000,
+    // Rollup options
     rollupOptions: {
       output: {
-        // Simplified manual chunks - only split large vendors
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'pdfjs': ['pdfjs-dist'],
-          'supabase': ['@supabase/supabase-js'],
-        },
         // Asset file names for better caching
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name?.split('.');
