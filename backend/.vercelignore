@@ -10,6 +10,4 @@ coverage
 .git
 .gitignore
 README.md
-src
-tsconfig.json
 jest.config.js
