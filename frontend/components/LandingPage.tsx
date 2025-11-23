@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import type { Page } from '../types';
 import { DocumentTextIcon, BriefcaseIcon, BookOpenIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, Cog6ToothIcon, FacebookIcon, ChartBarIcon, DocumentChartBarIcon } from './icons';
 import TailorResumeModal from './TailorResumeModal';
-import { canAccessApplicationTracker, canAccessVersionHistory, canAnalyzeResume } from '../services/premiumService';
 
 interface LandingPageProps {
   setPage: (page: Page) => void;
