@@ -55,10 +55,11 @@ router.post('/signup', signupSchema, validate, async (req: Request, res: Respons
 
     // Send welcome email (don't wait for it, send async)
     if (data.user?.email) {
-      sendWelcomeEmail(data.user.email, fullName || data.user.email)
+      const userEmail = data.user.email;
+      sendWelcomeEmail(userEmail, fullName || userEmail)
         .then(result => {
           if (result.success) {
-            console.log(`✅ Welcome email sent to: ${data.user.email}`);
+            console.log(`✅ Welcome email sent to: ${userEmail}`);
           } else {
             console.error(`❌ Failed to send welcome email: ${result.error}`);
           }

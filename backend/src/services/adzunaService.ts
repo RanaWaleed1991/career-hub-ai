@@ -37,7 +37,7 @@ export interface MappedJob {
   external_url: string;
   salary_min?: number;
   salary_max?: number;
-  source: string;
+  source: 'manual' | 'adzuna';
   posted_date: string;
 }
 
@@ -91,7 +91,7 @@ export class AdzunaService {
         throw new Error(`Adzuna API error: ${response.status} ${response.statusText}`);
       }
 
-      const data: AdzunaSearchResponse = await response.json();
+      const data = await response.json() as AdzunaSearchResponse;
       return data;
     } catch (error) {
       console.error('Failed to fetch jobs from Adzuna:', error);

@@ -161,7 +161,7 @@ router.post('/enhance-summary', authMiddleware, enhanceSummarySchema, validate, 
       contents: prompt,
     });
 
-    const enhancedText = response.text.trim();
+    const enhancedText = response.text?.trim() || '';
     res.json({ enhancedText });
   } catch (error) {
     console.error('Error calling Gemini API for enhance-summary:', error);
@@ -185,7 +185,7 @@ router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema,
       contents: prompt,
     });
 
-    const coverLetter = response.text.trim();
+    const coverLetter = response.text?.trim() || '';
     res.json({ coverLetter });
   } catch (error) {
     console.error('Error calling Gemini API for cover letter:', error);
@@ -209,7 +209,7 @@ router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, as
       },
     });
 
-    const jsonText = response.text.trim();
+    const jsonText = response.text?.trim() || '{}';
     const analysis = JSON.parse(jsonText);
     res.json({ analysis });
   } catch (error) {
@@ -232,7 +232,7 @@ router.post('/tailor-resume', authMiddleware, tailorResumeSchema, validate, asyn
       contents: prompt,
     });
 
-    const tailoredResume = response.text.trim();
+    const tailoredResume = response.text?.trim() || '';
     res.json({ tailoredResume });
   } catch (error) {
     console.error('Error calling Gemini API for tailoring:', error);
