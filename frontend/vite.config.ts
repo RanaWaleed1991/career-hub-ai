@@ -26,6 +26,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
     // Rollup options
     rollupOptions: {
+      // Disable tree-shaking to prevent export removal issues in production
+      treeshake: false,
       output: {
         // Asset file names for better caching
         assetFileNames: (assetInfo) => {
