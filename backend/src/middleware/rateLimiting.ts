@@ -49,12 +49,12 @@ export const aiLimiter = rateLimit({
 /**
  * Authentication rate limiter
  * Applies to login, registration, password reset
- * 5 attempts per 15 minutes per IP (prevent brute force)
+ * 10 attempts per 15 minutes per IP (prevent brute force while allowing legitimate retries)
  * Disabled in test mode to allow integration tests
  */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 auth attempts per windowMs
+  max: 10, // Limit each IP to 10 auth attempts per windowMs (increased from 5 for legitimate retries)
   message: 'Too many authentication attempts, please try again later.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -64,7 +64,7 @@ export const authLimiter = rateLimit({
   handler: (req, res) => {
     res.status(429).json({
       error: 'Too many authentication attempts',
-      message: 'You have exceeded the 5 login attempts in 15 minutes limit.',
+      message: 'You have exceeded the 10 login attempts in 15 minutes limit.',
       retryAfter: Math.ceil((req.rateLimit?.resetTime as unknown as number ?? Date.now()) / 1000),
     });
   },
