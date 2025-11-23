@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
-import PremiumModal from './components/PremiumModal';
 import WelcomeModal from './components/WelcomeModal';
 import SubscriptionExpiredModal from './components/SubscriptionExpiredModal';
 import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFlag, getSubscription } from './services/premiumService';
@@ -25,6 +24,7 @@ const SubscriptionManagement = lazy(() => import('./src/components/payments/Subs
 const PaymentSuccess = lazy(() => import('./components/PaymentSuccess'));
 const PaymentCancel = lazy(() => import('./components/PaymentCancel'));
 const TailorResumeModal = lazy(() => import('./components/TailorResumeModal'));
+const PremiumModal = lazy(() => import('./components/PremiumModal'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
 
