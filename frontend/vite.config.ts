@@ -13,15 +13,8 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    // Minification for smaller bundles
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Remove console.logs in production
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info'],
-      },
-    },
+    // Use esbuild for minification (preserves exports better than terser)
+    minify: 'esbuild',
     // Chunk size warning limit
     chunkSizeWarningLimit: 1000,
     // Rollup options
@@ -29,6 +22,8 @@ export default defineConfig({
       // Disable tree-shaking to prevent export removal issues in production
       treeshake: false,
       output: {
+        // Preserve module structure to avoid export issues
+        preserveModules: false,
         // Asset file names for better caching
         assetFileNames: (assetInfo) => {
           const info = assetInfo.name?.split('.');
