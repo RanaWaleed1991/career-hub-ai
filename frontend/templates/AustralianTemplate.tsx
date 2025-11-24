@@ -67,9 +67,9 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-16">
+        <div className="grid grid-cols-3 gap-8">
           {/* Main Content (2 cols) */}
-          <div className="col-span-2 flex flex-col gap-8" style={{ paddingRight: '16px' }}>
+          <div className="col-span-2 flex flex-col gap-8">
             {/* About Me / Summary */}
             {summary && (
               <section>

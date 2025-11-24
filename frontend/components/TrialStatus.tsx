@@ -101,8 +101,8 @@ const TrialStatus: React.FC = () => {
     { name: 'Resume Downloads', count: trialState.resumeDownloads, icon: DownloadIcon, unlimited: false },
     { name: 'Cover Letters', count: trialState.coverLetters, icon: EnvelopeIcon, unlimited: false },
     { name: 'Resume Analyses', count: trialState.resumeAnalyses, icon: DocumentChartBarIcon, unlimited: false },
-    { name: 'AI Enhancements', count: trialState.aiImprovements, icon: SparklesIcon, unlimited: true },
-    { name: 'Resume Tailoring', count: trialState.resumeTailoring, icon: ClipboardDocumentCheckIcon, unlimited: true },
+    { name: 'AI Enhancements', count: trialState.aiImprovements, icon: SparklesIcon, unlimited: false },
+    { name: 'Resume Tailoring', count: trialState.resumeTailoring, icon: ClipboardDocumentCheckIcon, unlimited: false },
   ];
 
   return (
