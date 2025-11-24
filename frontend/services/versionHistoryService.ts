@@ -117,7 +117,7 @@ class VersionHistoryService {
       const data = await response.json();
       return {
         id: data.version.id,
-        name: data.version.name || name,
+        name: data.version.version_name || name,
         content: data.version.data,
         createdAt: data.version.created_at,
         updatedAt: data.version.updated_at,
@@ -158,7 +158,7 @@ export const getVersions = async (): Promise<ResumeVersionType[]> => {
     // Map database format to frontend format
     return versions.map((v: any): ResumeVersionType => ({
       id: v.id,
-      name: v.name,
+      name: v.version_name || v.name || 'Untitled Version',
       createdAt: v.created_at,
       data: v.data,
     }));

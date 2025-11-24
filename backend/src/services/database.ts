@@ -188,7 +188,7 @@ export const versionDb = {
         user_id: userId,
         resume_id: resumeId,
         data: versionData,
-        name: versionName,
+        version_name: versionName,
       })
       .select()
       .single();
