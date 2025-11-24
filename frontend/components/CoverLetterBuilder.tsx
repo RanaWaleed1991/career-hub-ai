@@ -53,8 +53,12 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
     };
     
     const handleDownload = () => {
-        // The credit is consumed on generation, not download.
-        window.print();
+        // Show confirmation dialog before download
+        // Credit was already consumed on generation, but we confirm the download action
+        const confirmed = window.confirm('Ready to download your cover letter as PDF?');
+        if (confirmed) {
+            window.print();
+        }
     };
 
     const inputClass = "block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition";
@@ -120,7 +124,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                     <div className="space-y-4 opacity-0 slide-in-up" style={{ animationDelay: '200ms' }}>
                         <div className="flex justify-between items-center print:hidden">
                             <h3 className="text-xl font-semibold text-slate-800">Generated Letter</h3>
-                            <button 
+                            <button
                                 onClick={handleDownload}
                                 disabled={!generatedLetter}
                                 className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -129,13 +133,53 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                                 <span>Download PDF</span>
                             </button>
                         </div>
-                         <div id="cover-letter-content" className="bg-white p-6 border border-slate-300 rounded-md shadow-lg">
-                            <textarea 
-                                value={generatedLetter} 
-                                onChange={e => setGeneratedLetter(e.target.value)}
-                                className="w-full h-full min-h-[500px] p-2 border border-slate-200 rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-indigo-500 print:border-none print:shadow-none print:p-0 print:font-serif print:leading-relaxed"
-                                placeholder="Your generated cover letter will appear here..."
-                            />
+                        {generatedLetter && (
+                            <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 print:hidden">
+                                <div className="flex">
+                                    <div className="flex-shrink-0">
+                                        <svg className="h-5 w-5 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div className="ml-3">
+                                        <p className="text-sm text-blue-700">
+                                            <strong>Before downloading:</strong> The PDF will include a header with "[Your Name]", "[Your Email]", etc.
+                                            You can edit the letter text below to add your actual contact details at the top before downloading.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                         <div id="cover-letter-content" className="bg-white p-8 border border-slate-300 rounded-md shadow-lg print:border-none print:shadow-none">
+                            {generatedLetter ? (
+                                <div className="space-y-4">
+                                    {/* Contact header - visible only in print */}
+                                    <div className="hidden print:block mb-8">
+                                        <div className="text-sm space-y-1">
+                                            <div className="font-semibold text-base">[Your Name]</div>
+                                            <div>[Your Email] | [Your Phone]</div>
+                                            <div>[Your Address]</div>
+                                            <div className="mt-4">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Editable textarea for screen */}
+                                    <textarea
+                                        value={generatedLetter}
+                                        onChange={e => setGeneratedLetter(e.target.value)}
+                                        className="w-full min-h-[500px] p-4 border border-slate-200 rounded text-sm resize-none focus:outline-none focus:ring-1 focus:ring-indigo-500 print:hidden font-serif leading-relaxed"
+                                    />
+
+                                    {/* Formatted text for print - preserves line breaks and formatting */}
+                                    <div className="hidden print:block text-sm leading-relaxed whitespace-pre-wrap font-serif">
+                                        {generatedLetter}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="min-h-[500px] flex items-center justify-center text-slate-400">
+                                    Your generated cover letter will appear here...
+                                </div>
+                            )}
                          </div>
                     </div>
                 </div>
@@ -143,20 +187,15 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
 
             <style>{`
                 @media print {
+                    /* Hide everything except cover letter content */
                     body * {
                         visibility: hidden;
                     }
                     #cover-letter-content, #cover-letter-content * {
                         visibility: visible;
                     }
-                    #cover-letter-content textarea {
-                       resize: none;
-                       border: none !important;
-                       box-shadow: none !important;
-                       padding: 0 !important;
-                       overflow: visible;
-                       height: auto;
-                    }
+
+                    /* Position cover letter at top of page */
                     #cover-letter-content {
                         position: absolute;
                         left: 0;
@@ -165,8 +204,16 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         height: auto;
                         margin: 0;
                         padding: 0;
-                        border: none;
-                        box--shadow: none;
+                        border: none !important;
+                        box-shadow: none !important;
+                        background: white;
+                    }
+
+                    /* Ensure proper text rendering */
+                    #cover-letter-content .whitespace-pre-wrap {
+                        font-size: 11pt;
+                        line-height: 1.6;
+                        color: black;
                     }
                 }
                 @page {
