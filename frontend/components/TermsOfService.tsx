@@ -1,8 +1,17 @@
 import React from 'react';
 
-const TermsOfService: React.FC = () => {
+interface TermsOfServiceProps {
+  setPage?: (page: string) => void;
+}
+
+const TermsOfService: React.FC<TermsOfServiceProps> = ({ setPage }) => {
   const handleBack = () => {
-    window.history.back();
+    if (setPage) {
+      setPage('landing');
+    } else {
+      // Fallback to home page if setPage not available
+      window.location.href = '/';
+    }
   };
 
   return (

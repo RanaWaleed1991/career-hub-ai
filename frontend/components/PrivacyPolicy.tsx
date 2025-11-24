@@ -1,8 +1,17 @@
 import React from 'react';
 
-const PrivacyPolicy: React.FC = () => {
+interface PrivacyPolicyProps {
+  setPage?: (page: string) => void;
+}
+
+const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ setPage }) => {
   const handleBack = () => {
-    window.history.back();
+    if (setPage) {
+      setPage('landing');
+    } else {
+      // Fallback to home page if setPage not available
+      window.location.href = '/';
+    }
   };
 
   return (
