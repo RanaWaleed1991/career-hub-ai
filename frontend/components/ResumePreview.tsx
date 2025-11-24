@@ -83,7 +83,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       window.print();
     } else {
       // Free users: confirm before using credit
-      const confirmed = window.confirm('This will use 1 download credit. Continue to print/save as PDF?');
+      const confirmed = window.confirm('You will see a print preview next where you can download as PDF.\n\nThis will use 1 download credit. Continue?');
       if (confirmed) {
         await useResumeDownload();
         window.print();
@@ -185,60 +185,57 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       <style>
         {`
           @media print {
-            /* Hide everything in body except our resume content */
-            body > *:not(#resume-preview-content) {
-              display: none !important;
+            /* Hide everything except resume content - visibility approach works best with complex layouts */
+            body * {
+              visibility: hidden;
+            }
+            #resume-preview-content, #resume-preview-content * {
+              visibility: visible;
             }
 
-            /* Reset body to allow natural document flow */
-            body {
-              margin: 0 !important;
-              padding: 0 !important;
-              overflow: visible !important;
-            }
-
-            /* Make resume content the only visible element and allow natural multi-page flow */
+            /* Position resume and enable multi-page flow */
             #resume-preview-content {
-              display: block !important;
-              position: static !important;
-              width: 100% !important;
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
               height: auto !important;
               max-height: none !important;
+              min-height: auto !important;
               overflow: visible !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              border: none !important;
-              box-shadow: none !important;
-              border-radius: 0 !important;
+              margin: 0;
+              padding: 0;
+              border: none;
+              box-shadow: none;
+              border-radius: 0;
             }
 
-            /* Preserve background colors and styling in print */
+            /* Preserve background colors in print */
             * {
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
               color-adjust: exact !important;
             }
 
-            /* Prevent awkward page breaks */
+            /* Smart page break handling */
             h1, h2, h3, h4 {
               page-break-after: avoid !important;
               break-after: avoid !important;
             }
 
-            /* Try to keep content blocks together when possible */
-            section {
+            /* Keep sections together when possible, but allow breaks if needed */
+            section, .mb-6, .mb-4 {
               page-break-inside: avoid;
               break-inside: avoid;
             }
 
-            /* Allow natural page breaks for long content */
+            /* Orphan/widow control for better pagination */
             p, ul, ol {
               orphans: 2;
               widows: 2;
             }
           }
 
-          /* Page settings - A4 with margins */
           @page {
             size: A4;
             margin: 15mm;

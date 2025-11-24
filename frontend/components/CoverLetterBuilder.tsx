@@ -54,8 +54,8 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
     
     const handleDownload = () => {
         // Show confirmation dialog before download
-        // Credit was already consumed on generation, but we confirm the download action
-        const confirmed = window.confirm('Ready to download your cover letter as PDF?');
+        // Note: Credit was already consumed on generation, this just confirms download action
+        const confirmed = window.confirm('You will see a print preview next where you can download as PDF.\n\nReady to proceed?');
         if (confirmed) {
             window.print();
         }
@@ -143,26 +143,16 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                                     </div>
                                     <div className="ml-3">
                                         <p className="text-sm text-blue-700">
-                                            <strong>Tip:</strong> Edit the text in the box below to add your contact details at the top before downloading.
-                                            The PDF will automatically include a professional header with placeholders for your name, email, phone, and address.
+                                            <strong>Tip:</strong> Add your contact details (name, email, phone, address) at the top of the letter before downloading.
+                                            You can edit the text directly in the box below.
                                         </p>
                                     </div>
                                 </div>
                             </div>
                         )}
-                         <div id="cover-letter-content" className="bg-white p-8 border border-slate-300 rounded-md shadow-lg print:border-none print:shadow-none">
+                         <div id="cover-letter-content" className="bg-white p-8 border border-slate-300 rounded-md shadow-lg print:border-none print:shadow-none print:p-0">
                             {generatedLetter ? (
-                                <div className="space-y-4">
-                                    {/* Contact header - visible only in print */}
-                                    <div className="hidden print:block mb-8">
-                                        <div className="text-sm space-y-1">
-                                            <div className="font-semibold text-base">[Your Name]</div>
-                                            <div>[Your Email] | [Your Phone]</div>
-                                            <div>[Your Address]</div>
-                                            <div className="mt-4">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                                        </div>
-                                    </div>
-
+                                <>
                                     {/* Editable textarea for screen */}
                                     <textarea
                                         value={generatedLetter}
@@ -174,7 +164,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                                     <div className="hidden print:block text-sm leading-relaxed whitespace-pre-wrap font-serif">
                                         {generatedLetter}
                                     </div>
-                                </div>
+                                </>
                             ) : (
                                 <div className="min-h-[500px] flex items-center justify-center text-slate-400">
                                     Your generated cover letter will appear here...
@@ -195,30 +185,38 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         visibility: visible;
                     }
 
-                    /* Position cover letter at top of page */
+                    /* Position cover letter and enable multi-page flow */
                     #cover-letter-content {
                         position: absolute;
                         left: 0;
                         top: 0;
                         width: 100%;
-                        height: auto;
+                        height: auto !important;
+                        max-height: none !important;
+                        overflow: visible !important;
                         margin: 0;
-                        padding: 0;
+                        padding: 20mm !important;
                         border: none !important;
                         box-shadow: none !important;
                         background: white;
                     }
 
-                    /* Ensure proper text rendering */
+                    /* Proper text rendering for print */
                     #cover-letter-content .whitespace-pre-wrap {
                         font-size: 11pt;
                         line-height: 1.6;
                         color: black;
                     }
+
+                    /* Page break control */
+                    p {
+                        orphans: 2;
+                        widows: 2;
+                    }
                 }
                 @page {
                     size: A4;
-                    margin: 20mm;
+                    margin: 0;
                 }
             `}</style>
         </div>
