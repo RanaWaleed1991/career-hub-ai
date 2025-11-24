@@ -143,8 +143,8 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                                     </div>
                                     <div className="ml-3">
                                         <p className="text-sm text-blue-700">
-                                            <strong>Before downloading:</strong> The PDF will include a header with "[Your Name]", "[Your Email]", etc.
-                                            You can edit the letter text below to add your actual contact details at the top before downloading.
+                                            <strong>Tip:</strong> Edit the text in the box below to add your contact details at the top before downloading.
+                                            The PDF will automatically include a professional header with placeholders for your name, email, phone, and address.
                                         </p>
                                     </div>
                                 </div>
