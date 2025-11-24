@@ -78,9 +78,28 @@ class VersionHistoryService {
 
       // Get the active resume to link the version to it
       const activeResume = await getActiveResume();
+      console.log('📝 Active resume for version save:', {
+        hasResume: !!activeResume,
+        resumeId: activeResume?.id,
+        fullResume: activeResume,
+      });
+
       if (!activeResume || !activeResume.id) {
         throw new Error('No active resume found. Please save your resume first.');
       }
+
+      const requestPayload = {
+        resumeId: activeResume.id,
+        versionData: content,
+        versionName: name,
+      };
+
+      console.log('📤 Sending version save request:', {
+        url: `${API_URL}/api/versions`,
+        resumeId: requestPayload.resumeId,
+        versionName: requestPayload.versionName,
+        hasVersionData: !!requestPayload.versionData,
+      });
 
       const response = await fetch(`${API_URL}/api/versions`, {
         method: 'POST',
@@ -88,11 +107,7 @@ class VersionHistoryService {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          resumeId: activeResume.id,
-          versionData: content,
-          versionName: name,
-        }),
+        body: JSON.stringify(requestPayload),
       });
 
       if (!response.ok) {

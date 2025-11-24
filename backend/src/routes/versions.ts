@@ -21,14 +21,32 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
 
     const { resumeId, versionData, versionName } = req.body;
 
+    console.log('📝 Version save request:', {
+      userId: req.user.id,
+      resumeId,
+      versionName,
+      hasVersionData: !!versionData,
+      versionDataType: typeof versionData,
+    });
+
     if (!resumeId || !versionData || !versionName) {
+      console.error('❌ Missing required fields:', { resumeId: !!resumeId, versionData: !!versionData, versionName: !!versionName });
       res.status(400).json({ error: 'Resume ID, version data, and version name are required' });
       return;
     }
 
     const version = await versionDb.create(req.user.id, resumeId, versionData, versionName);
+    console.log('✅ Version saved successfully:', version.id);
     res.status(201).json({ version });
-  } catch (error) {
+  } catch (error: any) {
+    console.error('❌ Version save error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      statusCode: error.statusCode,
+      fullError: JSON.stringify(error, null, 2),
+    });
     const message = handleDatabaseError(error, 'save version');
     res.status(500).json({ error: message });
   }
