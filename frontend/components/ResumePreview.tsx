@@ -155,10 +155,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 </div>
             </div>
             <div className="flex space-x-2">
-              <button onClick={() => window.print()} className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm">
-                  <PrintIcon className="w-4 h-4"/>
-                  <span>Preview</span>
-              </button>
               <button onClick={handlePrintClick} className="flex items-center space-x-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm">
                   <DownloadIcon className="w-4 h-4"/>
                   <span>PDF</span>
@@ -189,28 +185,31 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       <style>
         {`
           @media print {
-            /* Hide everything except resume content */
-            body * {
-              visibility: hidden;
-            }
-            #resume-preview-content, #resume-preview-content * {
-              visibility: visible;
+            /* Hide everything in body except our resume content */
+            body > *:not(#resume-preview-content) {
+              display: none !important;
             }
 
-            /* Position resume at top of page and allow multi-page flow */
+            /* Reset body to allow natural document flow */
+            body {
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: visible !important;
+            }
+
+            /* Make resume content the only visible element and allow natural multi-page flow */
             #resume-preview-content {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 100%;
+              display: block !important;
+              position: static !important;
+              width: 100% !important;
               height: auto !important;
               max-height: none !important;
               overflow: visible !important;
-              margin: 0;
-              padding: 0;
-              border: none;
-              box-shadow: none;
-              transform: scale(1);
+              margin: 0 !important;
+              padding: 0 !important;
+              border: none !important;
+              box-shadow: none !important;
+              border-radius: 0 !important;
             }
 
             /* Preserve background colors and styling in print */
@@ -221,22 +220,28 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             }
 
             /* Prevent awkward page breaks */
-            h1, h2, h3 {
-              page-break-after: avoid;
-              break-after: avoid;
+            h1, h2, h3, h4 {
+              page-break-after: avoid !important;
+              break-after: avoid !important;
             }
 
-            /* Keep content blocks together when possible */
-            .mb-6, .mb-4, .mb-3 {
+            /* Try to keep content blocks together when possible */
+            section {
               page-break-inside: avoid;
               break-inside: avoid;
+            }
+
+            /* Allow natural page breaks for long content */
+            p, ul, ol {
+              orphans: 2;
+              widows: 2;
             }
           }
 
           /* Page settings - A4 with margins */
           @page {
             size: A4;
-            margin: 15mm 15mm 15mm 15mm;
+            margin: 15mm;
           }
         `}
       </style>
