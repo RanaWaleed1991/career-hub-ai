@@ -187,7 +187,7 @@ const AppContent: React.FC = () => {
       <div className="h-screen w-screen bg-slate-50 flex flex-col">
         <main className="flex-grow overflow-y-auto relative">
           <Suspense fallback={<LoadingFallback />}>
-            {page === 'privacy' ? <PrivacyPolicy /> : <TermsOfService />}
+            {page === 'privacy' ? <PrivacyPolicy setPage={setPage} /> : <TermsOfService setPage={setPage} />}
           </Suspense>
         </main>
       </div>
@@ -280,9 +280,9 @@ const AppContent: React.FC = () => {
       case 'paymentCancel':
         return <PaymentCancel setPage={setPage} />;
       case 'privacy':
-        return <PrivacyPolicy />;
+        return <PrivacyPolicy setPage={setPage} />;
       case 'terms':
-        return <TermsOfService />;
+        return <TermsOfService setPage={setPage} />;
       case 'landing':
       default:
         return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={!!user} isAdmin={isAdmin} />;
