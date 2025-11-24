@@ -185,11 +185,8 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         visibility: visible;
                     }
 
-                    /* Position cover letter and enable multi-page flow */
+                    /* Enable natural multi-page flow */
                     #cover-letter-content {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
                         width: 100%;
                         height: auto !important;
                         max-height: none !important;
