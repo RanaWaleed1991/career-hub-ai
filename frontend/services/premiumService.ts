@@ -177,8 +177,8 @@ export const getFreeTrialState = async (): Promise<FreeTrial | null> => {
   const remaining = {
     resumeDownloads: Math.max(0, 3 - (sub.downloads_used || 0)),
     coverLetters: Math.max(0, 3 - (sub.cover_letters_generated || 0)),
-    aiImprovements: 999, // Unlimited
-    resumeTailoring: 999, // Unlimited
+    aiImprovements: Math.max(0, 10 - (sub.ai_enhancements_used || 0)),
+    resumeTailoring: Math.max(0, 3 - (sub.tailoring_used || 0)),
     resumeAnalyses: Math.max(0, 3 - (sub.resume_analyses_done || 0)),
     expiry: sub.subscription_expires ? new Date(sub.subscription_expires).getTime() : 0,
   };
