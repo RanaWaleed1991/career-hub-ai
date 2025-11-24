@@ -1,9 +1,31 @@
 import React from 'react';
 
 const PrivacyPolicy: React.FC = () => {
+  const handleBack = () => {
+    window.history.back();
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 md:p-12">
+        {/* Back Button */}
+        <button
+          onClick={handleBack}
+          className="mb-6 flex items-center text-indigo-600 hover:text-indigo-700 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={2}
+            stroke="currentColor"
+            className="w-5 h-5 mr-2"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Back
+        </button>
+
         {/* Header */}
         <div className="border-b border-slate-200 pb-6 mb-8">
           <h1 className="text-4xl font-bold text-slate-900 mb-2">Privacy Policy</h1>
