@@ -82,21 +82,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       // Premium users: direct download without confirmation
       window.print();
     } else {
-      // Free users: open print dialog first, deduct credit only after successful print
-      const confirmed = window.confirm('This will use 1 download credit after you complete the download. Continue?');
+      // Free users: confirm before using credit
+      const confirmed = window.confirm('This will use 1 download credit. Continue to print/save as PDF?');
       if (confirmed) {
-        // Set up one-time listener for when print dialog closes
-        const handleAfterPrint = async () => {
-          // Deduct credit after print dialog closes (assumes user printed/saved)
-          await useResumeDownload();
-          // Remove this one-time listener
-          window.removeEventListener('afterprint', handleAfterPrint);
-        };
-
-        // Add listener before opening print dialog
-        window.addEventListener('afterprint', handleAfterPrint);
-
-        // Open print dialog
+        await useResumeDownload();
         window.print();
       }
     }
