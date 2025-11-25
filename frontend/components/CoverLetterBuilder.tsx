@@ -68,6 +68,19 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
             // Clone the element
             const clone = element.cloneNode(true) as HTMLElement;
 
+            // Find the textarea and the print div in the clone
+            const textarea = clone.querySelector('textarea');
+            const printDiv = clone.querySelector('.whitespace-pre-wrap') as HTMLElement;
+
+            // Manually apply print styles: hide textarea, show print div
+            if (textarea) {
+                textarea.style.display = 'none';
+            }
+            if (printDiv) {
+                printDiv.style.display = 'block';
+                printDiv.classList.remove('hidden');
+            }
+
             // Create a temporary container that's visible but below viewport
             const container = document.createElement('div');
             container.style.position = 'fixed';
