@@ -194,8 +194,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               padding: 0 !important;
             }
 
-            /* Collapse parent containers to zero height - removes blank pages */
-            body > *, body > * > *, body > * > * > * {
+            /* Collapse parent containers to zero height - but NOT resume content */
+            body > *,
+            body > * > *,
+            body > * > * > *:not(#resume-preview-content) {
               height: 0 !important;
               max-height: none !important;
               overflow: visible !important;
