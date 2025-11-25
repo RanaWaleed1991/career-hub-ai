@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import html2pdf from 'html2pdf.js';
 import type { Page, ResumeData, TemplateType } from '../types';
 import ClassicTemplate from '../templates/ClassicTemplate';
 import ModernTemplate from '../templates/ModernTemplate';
@@ -59,6 +60,39 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     }
   };
 
+  const generatePDF = async () => {
+    const element = document.getElementById('resume-preview-content');
+    if (!element) {
+      alert('Resume content not found. Please try again.');
+      return;
+    }
+
+    const opt = {
+      margin: 15, // 15mm margins to match @page rule
+      filename: `${resumeData.personalDetails.fullName || 'resume'}_resume.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        letterRendering: true
+      },
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait'
+      },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      alert('Failed to generate PDF. Please try again.');
+    }
+  };
+
   const handlePrintClick = async () => {
     // Guest mode - prompt signup before download
     if (isGuestMode) {
@@ -80,13 +114,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
     if (isPremium) {
       // Premium users: direct download without confirmation
-      window.print();
+      await generatePDF();
     } else {
       // Free users: confirm before using credit
-      const confirmed = window.confirm('You will see a print preview next where you can download as PDF.\n\nThis will use 1 download credit. Continue?');
+      const confirmed = window.confirm('This will download your resume as a PDF and use 1 download credit. Continue?');
       if (confirmed) {
         await useResumeDownload();
-        window.print();
+        await generatePDF();
       }
     }
   };
