@@ -185,12 +185,6 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         padding: 0 !important;
                     }
 
-                    /* Remove all spacing from parent containers to eliminate white space */
-                    body > *, body > * > *, body > * > * > * {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
-
                     /* Hide everything except cover letter content */
                     body * {
                         visibility: hidden;
@@ -199,14 +193,16 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         visibility: visible;
                     }
 
-                    /* Use static positioning to allow natural multi-page flow */
+                    /* Position cover letter - investigating page 2 blank issue */
                     #cover-letter-content {
-                        position: static !important;
+                        position: absolute;
+                        left: 0;
+                        top: 0;
                         width: 100%;
                         height: auto !important;
                         max-height: none !important;
                         overflow: visible !important;
-                        margin: 0 !important;
+                        margin: 0;
                         padding: 20mm !important;
                         border: none !important;
                         box-shadow: none !important;

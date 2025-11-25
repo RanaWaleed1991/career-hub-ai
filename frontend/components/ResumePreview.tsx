@@ -193,12 +193,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               padding: 0 !important;
             }
 
-            /* Remove all spacing from parent containers to eliminate white space */
-            body > *, body > * > *, body > * > * > * {
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-
             /* Hide everything except resume content - visibility approach works best with complex layouts */
             body * {
               visibility: hidden;
@@ -207,16 +201,18 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               visibility: visible;
             }
 
-            /* Use static positioning to allow natural multi-page flow */
+            /* Position resume at top - investigating page 2 blank issue */
             #resume-preview-content {
-              position: static !important;
+              position: absolute;
+              left: 0;
+              top: 0;
               width: 100%;
               height: auto !important;
               max-height: none !important;
               min-height: auto !important;
               overflow: visible !important;
-              margin: 0 !important;
-              padding: 0 !important;
+              margin: 0;
+              padding: 0;
               border: none;
               box-shadow: none;
               border-radius: 0;
