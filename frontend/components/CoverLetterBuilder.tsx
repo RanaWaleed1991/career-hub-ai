@@ -186,11 +186,9 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         padding: 0 !important;
                     }
 
-                    /* Collapse parent containers to zero height - but NOT cover letter content */
-                    body > *,
-                    body > * > *,
-                    body > * > * > *:not(#cover-letter-content) {
-                        height: 0 !important;
+                    /* Remove height/overflow constraints from ALL parent containers */
+                    body *, body > *, body > * > *, body > * > * > * {
+                        height: auto !important;
                         max-height: none !important;
                         overflow: visible !important;
                         margin: 0 !important;

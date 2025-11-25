@@ -155,9 +155,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 </div>
             </div>
             <div className="flex space-x-2">
+              <button onClick={() => window.print()} className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm">
+                  <PrintIcon className="w-4 h-4"/>
+                  <span>Preview</span>
+              </button>
               <button onClick={handlePrintClick} className="flex items-center space-x-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm">
                   <DownloadIcon className="w-4 h-4"/>
-                  <span>PDF</span>
+                  <span>Download PDF</span>
               </button>
             </div>
         </div>
@@ -194,11 +198,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               padding: 0 !important;
             }
 
-            /* Collapse parent containers to zero height - but NOT resume content */
-            body > *,
-            body > * > *,
-            body > * > * > *:not(#resume-preview-content) {
-              height: 0 !important;
+            /* Remove height/overflow constraints from ALL parent containers */
+            body *, body > *, body > * > *, body > * > * > * {
+              height: auto !important;
               max-height: none !important;
               overflow: visible !important;
               margin: 0 !important;
