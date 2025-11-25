@@ -193,11 +193,15 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               visibility: visible;
             }
 
-            /* Enable natural multi-page flow */
+            /* Position resume and enable multi-page flow */
             #resume-preview-content {
+              position: absolute;
+              left: 0;
+              top: 0;
               width: 100%;
               height: auto !important;
               max-height: none !important;
+              min-height: auto !important;
               overflow: visible !important;
               margin: 0;
               padding: 0;
@@ -229,13 +233,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             p, ul, ol {
               orphans: 2;
               widows: 2;
-            }
-
-            /* Ensure watermark is always visible for free tier */
-            #resume-preview-content .text-xs,
-            #resume-preview-content .text-gray-400 {
-              visibility: visible !important;
-              opacity: 1 !important;
             }
           }
 
