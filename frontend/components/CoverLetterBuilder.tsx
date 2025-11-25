@@ -60,6 +60,32 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
             return;
         }
 
+        // Clone the element to avoid modifying the visible UI
+        const clone = element.cloneNode(true) as HTMLElement;
+
+        // Create a temporary container off-screen
+        const container = document.createElement('div');
+        container.style.position = 'absolute';
+        container.style.left = '-9999px';
+        container.style.top = '0';
+        container.style.width = '210mm'; // A4 width
+        container.appendChild(clone);
+        document.body.appendChild(container);
+
+        // Remove all height constraints and let content flow naturally
+        clone.style.height = 'auto';
+        clone.style.minHeight = 'auto';
+        clone.style.maxHeight = 'none';
+        clone.style.overflow = 'visible';
+
+        // Find and fix all child elements with height constraints
+        const allElements = clone.querySelectorAll('*');
+        allElements.forEach((el: Element) => {
+            const htmlEl = el as HTMLElement;
+            htmlEl.style.maxHeight = 'none';
+            htmlEl.style.overflow = 'visible';
+        });
+
         const opt = {
             margin: 20, // 20mm margins for cover letters
             filename: 'cover_letter.pdf',
@@ -68,7 +94,8 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                 scale: 2,
                 useCORS: true,
                 logging: false,
-                letterRendering: true
+                letterRendering: true,
+                windowHeight: clone.scrollHeight
             },
             jsPDF: {
                 unit: 'mm',
@@ -79,10 +106,13 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
         };
 
         try {
-            await html2pdf().set(opt).from(element).save();
+            await html2pdf().set(opt).from(clone).save();
         } catch (error) {
             console.error('PDF generation failed:', error);
             alert('Failed to generate PDF. Please try again.');
+        } finally {
+            // Clean up: remove temporary container
+            document.body.removeChild(container);
         }
     };
 
