@@ -189,6 +189,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       <style>
         {`
           @media print {
+            /* Override template root div height constraints to allow multi-page flow */
+            #resume-preview-content > div {
+              height: auto !important;
+              min-height: auto !important;
+              max-height: none !important;
+            }
+
             /* Hide everything except resume content - visibility approach works best with complex layouts */
             body * {
               visibility: hidden;
