@@ -185,6 +185,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       <style>
         {`
           @media print {
+            /* Critical: Enable pagination by fixing html/body overflow and height */
+            html, body {
+              height: auto !important;
+              overflow: visible !important;
+              margin: 0;
+              padding: 0;
+            }
+
             /* Hide everything except resume content - visibility approach works best with complex layouts */
             body * {
               visibility: hidden;
@@ -193,7 +201,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               visibility: visible;
             }
 
-            /* Position resume and enable multi-page flow */
+            /* Position resume at top and enable multi-page flow */
             #resume-preview-content {
               position: absolute;
               left: 0;
@@ -217,16 +225,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               color-adjust: exact !important;
             }
 
-            /* Smart page break handling */
+            /* Smart page break handling - only prevent breaks after headings */
             h1, h2, h3, h4 {
               page-break-after: avoid !important;
               break-after: avoid !important;
             }
 
-            /* Keep sections together when possible, but allow breaks if needed */
-            section, .mb-6, .mb-4 {
-              page-break-inside: avoid;
-              break-inside: avoid;
+            /* Allow natural page breaks - remove aggressive avoid rules */
+            section, .mb-6, .mb-4, div {
+              page-break-inside: auto;
+              break-inside: auto;
             }
 
             /* Orphan/widow control for better pagination */
