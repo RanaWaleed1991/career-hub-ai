@@ -195,9 +195,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
             /* Position resume and enable multi-page flow */
             #resume-preview-content {
-              position: absolute;
-              left: 0;
-              top: 0;
+              position: relative;
               width: 100%;
               height: auto !important;
               max-height: none !important;
