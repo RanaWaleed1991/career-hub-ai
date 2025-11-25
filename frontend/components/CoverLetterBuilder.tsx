@@ -177,6 +177,14 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
 
             <style>{`
                 @media print {
+                    /* Critical: Enable pagination by fixing html/body overflow and height */
+                    html, body {
+                        height: auto !important;
+                        overflow: visible !important;
+                        margin: 0;
+                        padding: 0;
+                    }
+
                     /* Hide everything except cover letter content */
                     body * {
                         visibility: hidden;
@@ -187,7 +195,9 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
 
                     /* Position cover letter and enable multi-page flow */
                     #cover-letter-content {
-                        position: relative;
+                        position: absolute;
+                        left: 0;
+                        top: 0;
                         width: 100%;
                         height: auto !important;
                         max-height: none !important;
@@ -206,8 +216,10 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         color: black;
                     }
 
-                    /* Page break control */
-                    p {
+                    /* Page break control - allow natural breaks */
+                    p, div {
+                        page-break-inside: auto;
+                        break-inside: auto;
                         orphans: 2;
                         widows: 2;
                     }
