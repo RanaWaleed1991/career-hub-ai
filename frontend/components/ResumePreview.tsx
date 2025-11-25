@@ -191,8 +191,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           @media print {
             /* Override template root div height constraints to allow multi-page flow */
             #resume-preview-content > div {
-              height: auto !important;
-              min-height: auto !important;
+              height: fit-content !important;
+              min-height: fit-content !important;
               max-height: none !important;
             }
 
