@@ -67,6 +67,39 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       return;
     }
 
+    // Clone the element to avoid modifying the visible UI
+    const clone = element.cloneNode(true) as HTMLElement;
+
+    // Create a temporary container off-screen
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '210mm'; // A4 width
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    // Remove all height constraints and let content flow naturally
+    clone.style.height = 'auto';
+    clone.style.minHeight = 'auto';
+    clone.style.maxHeight = 'none';
+    clone.style.overflow = 'visible';
+
+    // Find and fix all child elements with height constraints
+    const allElements = clone.querySelectorAll('*');
+    allElements.forEach((el: Element) => {
+      const htmlEl = el as HTMLElement;
+      // Remove height constraints
+      if (htmlEl.style.height === '100%' || htmlEl.classList.contains('h-full')) {
+        htmlEl.style.height = 'auto';
+      }
+      if (htmlEl.style.minHeight === '100%' || htmlEl.classList.contains('min-h-full')) {
+        htmlEl.style.minHeight = 'auto';
+      }
+      htmlEl.style.maxHeight = 'none';
+      htmlEl.style.overflow = 'visible';
+    });
+
     const opt = {
       margin: 15, // 15mm margins to match @page rule
       filename: `${resumeData.personalDetails.fullName || 'resume'}_resume.pdf`,
@@ -75,7 +108,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         scale: 2,
         useCORS: true,
         logging: false,
-        letterRendering: true
+        letterRendering: true,
+        windowHeight: clone.scrollHeight
       },
       jsPDF: {
         unit: 'mm',
@@ -86,10 +120,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
     };
 
     try {
-      await html2pdf().set(opt).from(element).save();
+      await html2pdf().set(opt).from(clone).save();
     } catch (error) {
       console.error('PDF generation failed:', error);
       alert('Failed to generate PDF. Please try again.');
+    } finally {
+      // Clean up: remove temporary container
+      document.body.removeChild(container);
     }
   };
 
