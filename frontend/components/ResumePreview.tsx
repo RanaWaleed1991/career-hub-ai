@@ -189,24 +189,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       <style>
         {`
           @media print {
-            /* Remove ALL layout constraints to let browser paginate naturally */
-            html, body {
-              height: auto !important;
-              max-height: none !important;
-              overflow: visible !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-
-            /* Remove height/overflow constraints from ALL parent containers */
-            body *, body > *, body > * > *, body > * > * > * {
-              height: auto !important;
-              max-height: none !important;
-              overflow: visible !important;
-              margin: 0 !important;
-              padding: 0 !important;
-            }
-
             /* Hide everything except resume content - visibility approach works best with complex layouts */
             body * {
               visibility: hidden;
@@ -215,11 +197,18 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               visibility: visible;
             }
 
-            /* Resume content has natural height - let it flow across pages */
+            /* Position resume and enable multi-page flow */
             #resume-preview-content {
-              position: static !important;
+              position: absolute;
+              left: 0;
+              top: 0;
               width: 100%;
-              height: auto !important; /* Override parent height: 0 */
+              height: auto !important;
+              max-height: none !important;
+              min-height: auto !important;
+              overflow: visible !important;
+              margin: 0;
+              padding: 0;
               border: none;
               box-shadow: none;
               border-radius: 0;
@@ -232,13 +221,13 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               color-adjust: exact !important;
             }
 
-            /* Prevent awkward breaks in resume sections */
+            /* Smart page break handling */
             h1, h2, h3, h4 {
               page-break-after: avoid !important;
               break-after: avoid !important;
             }
 
-            /* Keep resume items together when possible */
+            /* Keep sections together when possible, but allow breaks if needed */
             section, .mb-6, .mb-4 {
               page-break-inside: avoid;
               break-inside: avoid;

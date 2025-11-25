@@ -177,24 +177,6 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
 
             <style>{`
                 @media print {
-                    /* Remove ALL layout constraints to let browser paginate naturally */
-                    html, body {
-                        height: auto !important;
-                        max-height: none !important;
-                        overflow: visible !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
-
-                    /* Remove height/overflow constraints from ALL parent containers */
-                    body *, body > *, body > * > *, body > * > * > * {
-                        height: auto !important;
-                        max-height: none !important;
-                        overflow: visible !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                    }
-
                     /* Hide everything except cover letter content */
                     body * {
                         visibility: hidden;
@@ -203,11 +185,16 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         visibility: visible;
                     }
 
-                    /* Cover letter content has natural height - let it flow across pages */
+                    /* Position cover letter and enable multi-page flow */
                     #cover-letter-content {
-                        position: static !important;
+                        position: absolute;
+                        left: 0;
+                        top: 0;
                         width: 100%;
-                        height: auto !important; /* Override parent height: 0 */
+                        height: auto !important;
+                        max-height: none !important;
+                        overflow: visible !important;
+                        margin: 0;
                         padding: 20mm !important;
                         border: none !important;
                         box-shadow: none !important;
@@ -221,10 +208,8 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         color: black;
                     }
 
-                    /* Page break control - allow natural breaks */
+                    /* Page break control */
                     p {
-                        page-break-inside: auto;
-                        break-inside: auto;
                         orphans: 2;
                         widows: 2;
                     }
