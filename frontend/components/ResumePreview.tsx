@@ -67,66 +67,73 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       return;
     }
 
-    // Clone the element to avoid modifying the visible UI
-    const clone = element.cloneNode(true) as HTMLElement;
-
-    // Create a temporary container off-screen
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.width = '210mm'; // A4 width
-    container.appendChild(clone);
-    document.body.appendChild(container);
-
-    // Remove all height constraints and let content flow naturally
-    clone.style.height = 'auto';
-    clone.style.minHeight = 'auto';
-    clone.style.maxHeight = 'none';
-    clone.style.overflow = 'visible';
-
-    // Find and fix all child elements with height constraints
-    const allElements = clone.querySelectorAll('*');
-    allElements.forEach((el: Element) => {
-      const htmlEl = el as HTMLElement;
-      // Remove height constraints
-      if (htmlEl.style.height === '100%' || htmlEl.classList.contains('h-full')) {
-        htmlEl.style.height = 'auto';
-      }
-      if (htmlEl.style.minHeight === '100%' || htmlEl.classList.contains('min-h-full')) {
-        htmlEl.style.minHeight = 'auto';
-      }
-      htmlEl.style.maxHeight = 'none';
-      htmlEl.style.overflow = 'visible';
-    });
-
-    const opt = {
-      margin: 15, // 15mm margins to match @page rule
-      filename: `${resumeData.personalDetails.fullName || 'resume'}_resume.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        letterRendering: true,
-        windowHeight: clone.scrollHeight
-      },
-      jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait'
-      },
-      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-    };
-
     try {
+      // Show loading state
+      const originalCursor = document.body.style.cursor;
+      document.body.style.cursor = 'wait';
+
+      // Clone the element
+      const clone = element.cloneNode(true) as HTMLElement;
+
+      // Create a temporary container that's visible but below viewport
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '0';
+      container.style.top = '100vh'; // Below viewport
+      container.style.width = '210mm'; // A4 width
+      container.style.minHeight = '297mm'; // A4 height minimum
+      container.style.zIndex = '-9999';
+      container.style.opacity = '0';
+      container.style.pointerEvents = 'none';
+      container.appendChild(clone);
+      document.body.appendChild(container);
+
+      // Force the cloned element to expand to full content height
+      // Keep h-full but override with a very large min-height
+      clone.style.minHeight = '5000px'; // Large enough for multi-page content
+      clone.style.height = 'auto';
+      clone.style.maxHeight = 'none';
+      clone.style.overflow = 'visible';
+
+      // Wait for browser to render and calculate layout
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Calculate actual content height after render
+      const contentHeight = clone.scrollHeight;
+
+      const opt = {
+        margin: 15,
+        filename: `${resumeData.personalDetails.fullName || 'resume'}_resume.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+          windowHeight: Math.max(contentHeight, 1500), // Ensure we capture full height
+          scrollY: 0,
+          scrollX: 0,
+          backgroundColor: '#ffffff'
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+        },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+      };
+
       await html2pdf().set(opt).from(clone).save();
+
+      // Restore cursor
+      document.body.style.cursor = originalCursor;
+
+      // Clean up
+      document.body.removeChild(container);
     } catch (error) {
       console.error('PDF generation failed:', error);
       alert('Failed to generate PDF. Please try again.');
-    } finally {
-      // Clean up: remove temporary container
-      document.body.removeChild(container);
+      document.body.style.cursor = 'default';
     }
   };
 

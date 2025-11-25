@@ -60,59 +60,85 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
             return;
         }
 
-        // Clone the element to avoid modifying the visible UI
-        const clone = element.cloneNode(true) as HTMLElement;
-
-        // Create a temporary container off-screen
-        const container = document.createElement('div');
-        container.style.position = 'absolute';
-        container.style.left = '-9999px';
-        container.style.top = '0';
-        container.style.width = '210mm'; // A4 width
-        container.appendChild(clone);
-        document.body.appendChild(container);
-
-        // Remove all height constraints and let content flow naturally
-        clone.style.height = 'auto';
-        clone.style.minHeight = 'auto';
-        clone.style.maxHeight = 'none';
-        clone.style.overflow = 'visible';
-
-        // Find and fix all child elements with height constraints
-        const allElements = clone.querySelectorAll('*');
-        allElements.forEach((el: Element) => {
-            const htmlEl = el as HTMLElement;
-            htmlEl.style.maxHeight = 'none';
-            htmlEl.style.overflow = 'visible';
-        });
-
-        const opt = {
-            margin: 20, // 20mm margins for cover letters
-            filename: 'cover_letter.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                letterRendering: true,
-                windowHeight: clone.scrollHeight
-            },
-            jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-            },
-            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-        };
-
         try {
+            // Show loading state
+            const originalCursor = document.body.style.cursor;
+            document.body.style.cursor = 'wait';
+
+            // Clone the element
+            const clone = element.cloneNode(true) as HTMLElement;
+
+            // Find the textarea and the print div in the clone
+            const textarea = clone.querySelector('textarea');
+            const printDiv = clone.querySelector('.whitespace-pre-wrap') as HTMLElement;
+
+            // Manually apply print styles: hide textarea, show print div
+            if (textarea) {
+                textarea.style.display = 'none';
+            }
+            if (printDiv) {
+                printDiv.style.display = 'block';
+                printDiv.classList.remove('hidden');
+            }
+
+            // Create a temporary container that's visible but below viewport
+            const container = document.createElement('div');
+            container.style.position = 'fixed';
+            container.style.left = '0';
+            container.style.top = '100vh'; // Below viewport
+            container.style.width = '210mm'; // A4 width
+            container.style.minHeight = '297mm'; // A4 height minimum
+            container.style.zIndex = '-9999';
+            container.style.opacity = '0';
+            container.style.pointerEvents = 'none';
+            container.appendChild(clone);
+            document.body.appendChild(container);
+
+            // Force content to be fully visible
+            clone.style.minHeight = '5000px';
+            clone.style.height = 'auto';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'visible';
+
+            // Wait for browser to render
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Calculate actual content height
+            const contentHeight = clone.scrollHeight;
+
+            const opt = {
+                margin: 20,
+                filename: 'cover_letter.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    letterRendering: true,
+                    windowHeight: Math.max(contentHeight, 1500),
+                    scrollY: 0,
+                    scrollX: 0,
+                    backgroundColor: '#ffffff'
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait'
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
             await html2pdf().set(opt).from(clone).save();
+
+            // Restore cursor
+            document.body.style.cursor = originalCursor;
+
+            // Clean up
+            document.body.removeChild(container);
         } catch (error) {
             console.error('PDF generation failed:', error);
             alert('Failed to generate PDF. Please try again.');
-        } finally {
-            // Clean up: remove temporary container
-            document.body.removeChild(container);
+            document.body.style.cursor = 'default';
         }
     };
 
