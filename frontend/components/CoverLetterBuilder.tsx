@@ -81,24 +81,30 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                 printDiv.classList.remove('hidden');
             }
 
+            // Remove all container styling (borders, shadows, backgrounds, rounded corners)
+            clone.style.border = 'none';
+            clone.style.boxShadow = 'none';
+            clone.style.borderRadius = '0';
+            clone.style.background = 'white';
+            clone.style.padding = '20mm'; // Add proper PDF padding
+
+            // Let content flow naturally without forcing height
+            clone.style.height = 'auto';
+            clone.style.minHeight = 'auto';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'visible';
+
             // Create a temporary container that's visible but below viewport
             const container = document.createElement('div');
             container.style.position = 'fixed';
             container.style.left = '0';
             container.style.top = '100vh'; // Below viewport
             container.style.width = '210mm'; // A4 width
-            container.style.minHeight = '297mm'; // A4 height minimum
             container.style.zIndex = '-9999';
             container.style.opacity = '0';
             container.style.pointerEvents = 'none';
             container.appendChild(clone);
             document.body.appendChild(container);
-
-            // Force content to be fully visible
-            clone.style.minHeight = '5000px';
-            clone.style.height = 'auto';
-            clone.style.maxHeight = 'none';
-            clone.style.overflow = 'visible';
 
             // Wait for browser to render
             await new Promise(resolve => setTimeout(resolve, 300));
@@ -107,7 +113,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
             const contentHeight = clone.scrollHeight;
 
             const opt = {
-                margin: 20,
+                margin: 0, // No margin since we're adding padding directly
                 filename: 'cover_letter.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: {
@@ -115,7 +121,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                     useCORS: true,
                     logging: false,
                     letterRendering: true,
-                    windowHeight: Math.max(contentHeight, 1500),
+                    windowHeight: contentHeight, // Use actual content height
                     scrollY: 0,
                     scrollX: 0,
                     backgroundColor: '#ffffff'

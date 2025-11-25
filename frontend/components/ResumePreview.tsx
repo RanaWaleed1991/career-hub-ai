@@ -75,25 +75,30 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       // Clone the element
       const clone = element.cloneNode(true) as HTMLElement;
 
+      // Remove all container styling (borders, shadows, backgrounds, rounded corners)
+      clone.style.border = 'none';
+      clone.style.boxShadow = 'none';
+      clone.style.borderRadius = '0';
+      clone.style.background = 'white';
+      clone.style.padding = '0';
+
+      // Let content flow naturally without forcing height
+      clone.style.height = 'auto';
+      clone.style.minHeight = 'auto';
+      clone.style.maxHeight = 'none';
+      clone.style.overflow = 'visible';
+
       // Create a temporary container that's visible but below viewport
       const container = document.createElement('div');
       container.style.position = 'fixed';
       container.style.left = '0';
       container.style.top = '100vh'; // Below viewport
       container.style.width = '210mm'; // A4 width
-      container.style.minHeight = '297mm'; // A4 height minimum
       container.style.zIndex = '-9999';
       container.style.opacity = '0';
       container.style.pointerEvents = 'none';
       container.appendChild(clone);
       document.body.appendChild(container);
-
-      // Force the cloned element to expand to full content height
-      // Keep h-full but override with a very large min-height
-      clone.style.minHeight = '5000px'; // Large enough for multi-page content
-      clone.style.height = 'auto';
-      clone.style.maxHeight = 'none';
-      clone.style.overflow = 'visible';
 
       // Wait for browser to render and calculate layout
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -110,7 +115,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
           useCORS: true,
           logging: false,
           letterRendering: true,
-          windowHeight: Math.max(contentHeight, 1500), // Ensure we capture full height
+          windowHeight: contentHeight, // Use actual content height
           scrollY: 0,
           scrollX: 0,
           backgroundColor: '#ffffff'
