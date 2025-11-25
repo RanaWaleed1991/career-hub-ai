@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import html2pdf from 'html2pdf.js';
 import { generateCoverLetter } from '../services/geminiService';
-import { 
-    canGenerateCoverLetter, 
+import {
+    canGenerateCoverLetter,
     useCoverLetterAttempt,
 } from '../services/premiumService';
 import { DownloadIcon, SparklesIcon } from './icons';
@@ -52,12 +53,36 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
         }
     };
     
-    const handleDownload = () => {
-        // Show confirmation dialog before download
-        // Note: Credit was already consumed on generation, this just confirms download action
-        const confirmed = window.confirm('You will see a print preview next where you can download as PDF.\n\nReady to proceed?');
-        if (confirmed) {
-            window.print();
+    const handleDownload = async () => {
+        const element = document.getElementById('cover-letter-content');
+        if (!element) {
+            alert('Cover letter content not found. Please generate a letter first.');
+            return;
+        }
+
+        const opt = {
+            margin: 20, // 20mm margins for cover letters
+            filename: 'cover_letter.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                letterRendering: true
+            },
+            jsPDF: {
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'portrait'
+            },
+            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        try {
+            await html2pdf().set(opt).from(element).save();
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+            alert('Failed to generate PDF. Please try again.');
         }
     };
 
