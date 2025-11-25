@@ -189,8 +189,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
             html, body {
               height: auto !important;
               overflow: visible !important;
-              margin: 0;
-              padding: 0;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+
+            /* Remove all spacing from parent containers to eliminate white space */
+            body > *, body > * > *, body > * > * > * {
+              margin: 0 !important;
+              padding: 0 !important;
             }
 
             /* Hide everything except resume content - visibility approach works best with complex layouts */
@@ -201,18 +207,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               visibility: visible;
             }
 
-            /* Position resume at top and enable multi-page flow */
+            /* Use static positioning to allow natural multi-page flow */
             #resume-preview-content {
-              position: absolute;
-              left: 0;
-              top: 0;
+              position: static !important;
               width: 100%;
               height: auto !important;
               max-height: none !important;
               min-height: auto !important;
               overflow: visible !important;
-              margin: 0;
-              padding: 0;
+              margin: 0 !important;
+              padding: 0 !important;
               border: none;
               box-shadow: none;
               border-radius: 0;
