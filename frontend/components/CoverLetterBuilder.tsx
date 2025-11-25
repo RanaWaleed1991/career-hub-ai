@@ -177,9 +177,19 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
 
             <style>{`
                 @media print {
-                    /* Critical: Enable pagination by fixing html/body overflow and height */
+                    /* Remove ALL layout constraints to let browser paginate naturally */
                     html, body {
                         height: auto !important;
+                        max-height: none !important;
+                        overflow: visible !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                    }
+
+                    /* Remove height/overflow constraints from ALL parent containers */
+                    body *, body > *, body > * > *, body > * > * > * {
+                        height: auto !important;
+                        max-height: none !important;
                         overflow: visible !important;
                         margin: 0 !important;
                         padding: 0 !important;
@@ -193,16 +203,10 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         visibility: visible;
                     }
 
-                    /* Position cover letter - investigating page 2 blank issue */
+                    /* NO positioning - let content flow naturally for multi-page */
                     #cover-letter-content {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
+                        position: static !important;
                         width: 100%;
-                        height: auto !important;
-                        max-height: none !important;
-                        overflow: visible !important;
-                        margin: 0;
                         padding: 20mm !important;
                         border: none !important;
                         box-shadow: none !important;
@@ -217,7 +221,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                     }
 
                     /* Page break control - allow natural breaks */
-                    p, div {
+                    p {
                         page-break-inside: auto;
                         break-inside: auto;
                         orphans: 2;

@@ -185,9 +185,19 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       <style>
         {`
           @media print {
-            /* Critical: Enable pagination by fixing html/body overflow and height */
+            /* Remove ALL layout constraints to let browser paginate naturally */
             html, body {
               height: auto !important;
+              max-height: none !important;
+              overflow: visible !important;
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+
+            /* Remove height/overflow constraints from ALL parent containers */
+            body *, body > *, body > * > *, body > * > * > * {
+              height: auto !important;
+              max-height: none !important;
               overflow: visible !important;
               margin: 0 !important;
               padding: 0 !important;
@@ -201,18 +211,10 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               visibility: visible;
             }
 
-            /* Position resume at top - investigating page 2 blank issue */
+            /* NO positioning - let content flow naturally for multi-page */
             #resume-preview-content {
-              position: absolute;
-              left: 0;
-              top: 0;
+              position: static !important;
               width: 100%;
-              height: auto !important;
-              max-height: none !important;
-              min-height: auto !important;
-              overflow: visible !important;
-              margin: 0;
-              padding: 0;
               border: none;
               box-shadow: none;
               border-radius: 0;
@@ -225,16 +227,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               color-adjust: exact !important;
             }
 
-            /* Smart page break handling - only prevent breaks after headings */
+            /* Prevent awkward breaks in resume sections */
             h1, h2, h3, h4 {
               page-break-after: avoid !important;
               break-after: avoid !important;
             }
 
-            /* Allow natural page breaks - remove aggressive avoid rules */
-            section, .mb-6, .mb-4, div {
-              page-break-inside: auto;
-              break-inside: auto;
+            /* Keep resume items together when possible */
+            section, .mb-6, .mb-4 {
+              page-break-inside: avoid;
+              break-inside: avoid;
             }
 
             /* Orphan/widow control for better pagination */
