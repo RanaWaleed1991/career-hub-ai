@@ -194,9 +194,9 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               padding: 0 !important;
             }
 
-            /* Remove height/overflow constraints from ALL parent containers */
-            body *, body > *, body > * > *, body > * > * > * {
-              height: auto !important;
+            /* Collapse parent containers to zero height - removes blank pages */
+            body > *, body > * > *, body > * > * > * {
+              height: 0 !important;
               max-height: none !important;
               overflow: visible !important;
               margin: 0 !important;
@@ -211,10 +211,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
               visibility: visible;
             }
 
-            /* NO positioning - let content flow naturally for multi-page */
+            /* Resume content has natural height - let it flow across pages */
             #resume-preview-content {
               position: static !important;
               width: 100%;
+              height: auto !important; /* Override parent height: 0 */
               border: none;
               box-shadow: none;
               border-radius: 0;

@@ -186,9 +186,9 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         padding: 0 !important;
                     }
 
-                    /* Remove height/overflow constraints from ALL parent containers */
-                    body *, body > *, body > * > *, body > * > * > * {
-                        height: auto !important;
+                    /* Collapse parent containers to zero height - removes blank pages */
+                    body > *, body > * > *, body > * > * > * {
+                        height: 0 !important;
                         max-height: none !important;
                         overflow: visible !important;
                         margin: 0 !important;
@@ -203,10 +203,11 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                         visibility: visible;
                     }
 
-                    /* NO positioning - let content flow naturally for multi-page */
+                    /* Cover letter content has natural height - let it flow across pages */
                     #cover-letter-content {
                         position: static !important;
                         width: 100%;
+                        height: auto !important; /* Override parent height: 0 */
                         padding: 20mm !important;
                         border: none !important;
                         box-shadow: none !important;
