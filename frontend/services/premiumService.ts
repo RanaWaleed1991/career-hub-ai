@@ -1,7 +1,8 @@
 import { supabase } from '../src/config/supabase';
 import { getAccessToken } from './userService';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// Production API URL - hardcoded for reliability
+const API_URL = 'https://career-hub-ai-w47n.vercel.app';
 
 // Type exports for backward compatibility
 export type Plan = 'free' | 'weekly' | 'monthly';

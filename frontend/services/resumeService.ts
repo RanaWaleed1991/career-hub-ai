@@ -1,7 +1,7 @@
 import type { ResumeData } from '../types';
 import { getAccessToken } from './userService';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = 'https://career-hub-ai-w47n.vercel.app';
 
 const initialResumeData: ResumeData = {
   personalDetails: {
