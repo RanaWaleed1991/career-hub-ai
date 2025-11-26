@@ -3,7 +3,7 @@ import type { ResumeData, ResumeVersion as ResumeVersionType } from '../types';
 import { getAccessToken } from './userService';
 import { getActiveResume } from './resumeService';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = 'https://career-hub-ai-w47n.vercel.app';
 
 // NEW: Interface for the class-based service
 export interface ResumeVersion {
