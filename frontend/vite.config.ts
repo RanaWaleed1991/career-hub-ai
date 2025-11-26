@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
+// Force rebuild to pick up VITE_API_URL environment variable
 export default defineConfig({
   plugins: [react()],
   resolve: {
