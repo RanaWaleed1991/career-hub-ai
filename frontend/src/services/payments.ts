@@ -2,7 +2,7 @@
  * Payment service for handling Stripe payments and subscriptions
  */
 
-const API_URL = 'http://localhost:3001';
+const API_URL = 'https://career-hub-ai-w47n.vercel.app';
 
 export interface SubscriptionTier {
   name: string;
