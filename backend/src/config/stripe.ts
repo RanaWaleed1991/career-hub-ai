@@ -23,8 +23,8 @@ export const stripe = env.STRIPE_SECRET_KEY
  * 4. Copy the price IDs (they start with price_) to your .env file
  */
 export const STRIPE_PRICE_IDS = {
-  WEEKLY: process.env.STRIPE_WEEKLY_PRICE_ID || '',
-  MONTHLY: process.env.STRIPE_MONTHLY_PRICE_ID || '',
+  WEEKLY: process.env.STRIPE_PRICE_ID_PRO_WEEKLY || '',
+  MONTHLY: process.env.STRIPE_PRICE_ID_PRO_MONTHLY || '',
 };
 
 /**
