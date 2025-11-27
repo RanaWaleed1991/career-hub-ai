@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import html2pdf from 'html2pdf.js';
 import { canAnalyzeResume, useResumeAnalysisAttempt } from '../services/premiumService';
 import { analyzeResume } from '../services/geminiService';
 import { pdfService } from '../services/pdfService';
@@ -51,7 +52,7 @@ const FeedbackCard: React.FC<{ item: ResumeAnalysisResult['sectionFeedback'][0] 
     }[item.rating] || 'text-slate-500 bg-slate-50';
 
     return (
-        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
             <div className="flex justify-between items-center mb-2">
                 <h4 className="font-semibold text-slate-700">{item.sectionName}</h4>
                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${ratingColor}`}>{item.rating}</span>
@@ -148,6 +149,92 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
         setFileName('');
     };
 
+    const generatePDF = async () => {
+        const element = document.getElementById('analysis-report');
+        if (!element || !analysisResult) {
+            alert('Report content not found. Please try again.');
+            return;
+        }
+
+        try {
+            // Show loading state
+            const originalCursor = document.body.style.cursor;
+            document.body.style.cursor = 'wait';
+
+            // Clone the element
+            const clone = element.cloneNode(true) as HTMLElement;
+
+            // Remove print:hidden elements (buttons)
+            const printHiddenElements = clone.querySelectorAll('.print\\:hidden');
+            printHiddenElements.forEach(el => el.remove());
+
+            // Remove all container styling
+            clone.style.border = 'none';
+            clone.style.boxShadow = 'none';
+            clone.style.borderRadius = '0';
+            clone.style.background = 'white';
+            clone.style.padding = '20px';
+
+            // Let content flow naturally
+            clone.style.height = 'auto';
+            clone.style.minHeight = 'auto';
+            clone.style.maxHeight = 'none';
+            clone.style.overflow = 'visible';
+
+            // Create temporary container
+            const container = document.createElement('div');
+            container.style.position = 'fixed';
+            container.style.left = '0';
+            container.style.top = '100vh'; // Below viewport
+            container.style.width = '210mm'; // A4 width
+            container.style.zIndex = '-9999';
+            container.style.opacity = '0';
+            container.style.pointerEvents = 'none';
+            container.appendChild(clone);
+            document.body.appendChild(container);
+
+            // Wait for browser to render
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Calculate content height
+            const contentHeight = clone.scrollHeight;
+
+            const opt = {
+                margin: 15,
+                filename: `resume_analysis_report_${Date.now()}.pdf`,
+                image: { type: 'png', quality: 1 },
+                html2canvas: {
+                    scale: 4, // High quality
+                    useCORS: true,
+                    logging: false,
+                    letterRendering: true,
+                    windowHeight: contentHeight,
+                    scrollY: 0,
+                    scrollX: 0,
+                    backgroundColor: '#ffffff'
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait',
+                    compress: true
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            await html2pdf().set(opt).from(clone).save();
+
+            document.body.style.cursor = originalCursor;
+
+            // Clean up
+            document.body.removeChild(container);
+        } catch (error) {
+            console.error('PDF generation failed:', error);
+            alert('Failed to generate PDF. Please try again.');
+            document.body.style.cursor = 'default';
+        }
+    };
+
     const renderContent = () => {
         switch (view) {
             case 'loading':
@@ -169,22 +256,22 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
                             <h2 className="text-3xl font-bold text-slate-800">Resume Analysis Report</h2>
                             <div className="flex gap-2">
                                 <button onClick={handleStartOver} className="px-4 py-2 bg-slate-200 text-slate-800 font-semibold rounded-md hover:bg-slate-300">Analyse Another</button>
-                                <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700">
-                                    <PrintIcon className="w-5 h-5"/> Print Report
+                                <button onClick={generatePDF} className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700">
+                                    <PrintIcon className="w-5 h-5"/> Download Report
                                 </button>
                             </div>
                         </div>
                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-1 space-y-6">
-                                <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm text-center">
+                                <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm text-center" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                     <h3 className="text-lg font-semibold text-slate-700 mb-4">ATS Compatibility Score</h3>
                                     <ScoreGauge score={analysisResult.atsScore} />
                                 </div>
-                                <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+                                <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                     <h3 className="font-semibold text-slate-700 mb-3 flex items-center gap-2"><LightBulbIcon className="w-5 h-5 text-indigo-500"/> Overall Feedback</h3>
                                     <p className="text-sm text-slate-600">{analysisResult.overallFeedback}</p>
                                 </div>
-                                 <div className="bg-indigo-700 text-white p-6 rounded-lg shadow-lg">
+                                 <div className="bg-indigo-700 text-white p-6 rounded-lg shadow-lg" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                     <h3 className="font-semibold mb-3 flex items-center gap-2"><UserCircleIcon className="w-5 h-5"/> Recruiter's Summary</h3>
                                     <p className="text-sm text-indigo-100 italic">"{analysisResult.recruiterSummary}"</p>
                                 </div>
@@ -236,18 +323,6 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
 
     return (
         <div className="h-full bg-slate-50 overflow-y-auto">
-            <style>{`
-                @media print {
-                    body * { visibility: hidden; }
-                    #analysis-report, #analysis-report * { visibility: visible; }
-                    #analysis-report { 
-                        position: absolute; left: 0; top: 0; width: 100%; height: auto; 
-                        margin: 0; padding: 1cm; border: none; box-shadow: none; 
-                        background-color: white;
-                    }
-                }
-                @page { size: A4; margin: 0; }
-            `}</style>
             {renderContent()}
         </div>
     );
