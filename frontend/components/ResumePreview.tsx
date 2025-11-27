@@ -111,7 +111,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         filename: `${resumeData.personalDetails.fullName || 'resume'}_resume.pdf`,
         image: { type: 'png', quality: 1 },
         html2canvas: {
-          scale: 3,
+          // *** KEY CHANGE: Increase scale for higher resolution capture ***
+          scale: 4, // Increased from 3 for sharper output
           useCORS: true,
           logging: false,
           letterRendering: true,
