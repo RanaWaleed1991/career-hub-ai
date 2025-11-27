@@ -220,15 +220,18 @@ export async function handleCheckoutComplete(session: Stripe.Checkout.Session): 
   }
 
   // Update database with subscription details
+  const currentPeriodStart = (stripeSubscription as any).current_period_start;
+  const currentPeriodEnd = (stripeSubscription as any).current_period_end;
+
   await subscriptionDb.upsert(userId, {
     plan,
     status: stripeSubscription.status,
     stripe_customer_id: session.customer as string,
     stripe_subscription_id: subscriptionId,
     stripe_price_id: priceId,
-    current_period_start: new Date((stripeSubscription as any).current_period_start * 1000).toISOString(),
-    current_period_end: new Date((stripeSubscription as any).current_period_end * 1000).toISOString(),
-    cancel_at_period_end: (stripeSubscription as any).cancel_at_period_end,
+    current_period_start: currentPeriodStart ? new Date(currentPeriodStart * 1000).toISOString() : null,
+    current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
+    cancel_at_period_end: (stripeSubscription as any).cancel_at_period_end || false,
     // Reset usage counters on new subscription
     ai_enhancements_used: 0,
     downloads_used: 0,
