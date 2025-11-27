@@ -14,8 +14,8 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
       className="w-full h-full bg-white text-gray-900 font-sans leading-relaxed"
       style={{
         fontFamily: "'Helvetica Neue', 'Arial', sans-serif",
-        fontSize: '13px',
-        padding: '56px',
+        fontSize: '12px',
+        padding: '40px 56px 56px 56px',
         maxWidth: '210mm',
         margin: '0 auto',
       }}

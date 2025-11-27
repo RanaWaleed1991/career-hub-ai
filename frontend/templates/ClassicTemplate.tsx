@@ -41,7 +41,7 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
       {/* Summary Section */}
       <div className="mb-6">
         <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Professional Summary</h2>
-        <p className="text-justify">{summary}</p>
+        <p className="text-justify text-sm">{summary}</p>
       </div>
 
       {/* Experience Section */}
@@ -57,7 +57,7 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
                 <p className="italic">{exp.company}</p>
                 <p className="text-xs text-gray-600">{exp.location}</p>
             </div>
-            <ul className="list-disc list-inside pl-4 text-sm space-y-1">
+            <ul className="list-disc list-outside ml-5 text-sm space-y-1">
               {exp.description.split('\n').map((line, i) => line.trim() && <li key={i}>{line.replace(/^- /, '')}</li>)}
             </ul>
           </div>
