@@ -79,17 +79,18 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                     fontSize: '18px',
                     fontFamily: "'Georgia', 'Times New Roman', serif",
                     color: '#111827',
+                    lineHeight: '1.2',
                   }}
                 >
                   <span
-                    className="block rounded-full"
+                    className="block rounded-full flex-shrink-0"
                     style={{
                       width: '32px',
                       height: '4px',
                       backgroundColor: '#0d9488',
                     }}
                   />
-                  About Me
+                  Professional Summary
                 </h3>
                 <p
                   className="leading-relaxed text-justify"
@@ -112,10 +113,11 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                     fontSize: '18px',
                     fontFamily: "'Georgia', 'Times New Roman', serif",
                     color: '#111827',
+                    lineHeight: '1.2',
                   }}
                 >
                   <span
-                    className="block rounded-full"
+                    className="block rounded-full flex-shrink-0"
                     style={{
                       width: '32px',
                       height: '4px',
@@ -197,10 +199,11 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                     fontSize: '18px',
                     fontFamily: "'Georgia', 'Times New Roman', serif",
                     color: '#111827',
+                    lineHeight: '1.2',
                   }}
                 >
                   <span
-                    className="block rounded-full"
+                    className="block rounded-full flex-shrink-0"
                     style={{
                       width: '32px',
                       height: '4px',
@@ -283,10 +286,11 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                           fontSize: '18px',
                           fontFamily: "'Georgia', 'Times New Roman', serif",
                           color: '#111827',
+                          lineHeight: '1.2',
                         }}
                       >
                         <span
-                          className="block rounded-full"
+                          className="block rounded-full flex-shrink-0"
                           style={{
                             width: '32px',
                             height: '4px',
@@ -331,10 +335,11 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                     fontSize: '18px',
                     fontFamily: "'Georgia', 'Times New Roman', serif",
                     color: '#111827',
+                    lineHeight: '1.2',
                   }}
                 >
                   <span
-                    className="block rounded-full"
+                    className="block rounded-full flex-shrink-0"
                     style={{
                       width: '32px',
                       height: '4px',
@@ -407,12 +412,13 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                   {skills.filter(s => s.name).map((skill) => (
                     <span
                       key={skill.id}
-                      className="px-3 py-1.5 rounded-md font-medium"
+                      className="px-3 py-1.5 rounded-md font-medium flex items-center"
                       style={{
                         backgroundColor: '#0d9488',
                         color: 'white',
                         fontSize: '11px',
                         boxShadow: '0 1px 2px 0 rgba(13, 148, 136, 0.2)',
+                        lineHeight: '1',
                       }}
                     >
                       {skill.name}

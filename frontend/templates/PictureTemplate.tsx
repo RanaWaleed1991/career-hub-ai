@@ -218,12 +218,13 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
                 {skills.filter(s => s.name).map((skill) => (
                   <span
                     key={skill.id}
-                    className="px-2 py-1 rounded"
+                    className="px-2 py-1 rounded flex items-center"
                     style={{
                       backgroundColor: 'rgba(30, 41, 59, 0.5)',
                       border: '1px solid #475569',
                       fontSize: '11px',
                       color: '#e2e8f0',
+                      lineHeight: '1',
                     }}
                   >
                     {skill.name}
@@ -267,16 +268,17 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
           <section>
             <h3
               className="font-bold uppercase tracking-widest mb-3 flex items-center gap-2"
-              style={{ fontSize: '12px', color: '#1e293b' }}
+              style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
             >
               <span
+                className="flex-shrink-0"
                 style={{
                   width: '32px',
                   height: '2px',
                   backgroundColor: '#1e293b',
                 }}
               />
-              Profile
+              Professional Summary
             </h3>
             <p
               className="text-justify"
@@ -296,9 +298,10 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
           <section>
             <h3
               className="font-bold uppercase tracking-widest mb-6 flex items-center gap-2"
-              style={{ fontSize: '12px', color: '#1e293b' }}
+              style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
             >
               <span
+                className="flex-shrink-0"
                 style={{
                   width: '32px',
                   height: '2px',
@@ -391,9 +394,10 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
           <section>
             <h3
               className="font-bold uppercase tracking-widest mb-6 flex items-center gap-2"
-              style={{ fontSize: '12px', color: '#1e293b' }}
+              style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
             >
               <span
+                className="flex-shrink-0"
                 style={{
                   width: '32px',
                   height: '2px',
@@ -472,9 +476,10 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
                 <section key={section.id}>
                   <h3
                     className="font-bold uppercase tracking-widest mb-6 flex items-center gap-2"
-                    style={{ fontSize: '12px', color: '#1e293b' }}
+                    style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
                   >
                     <span
+                      className="flex-shrink-0"
                       style={{
                         width: '32px',
                         height: '2px',
@@ -515,9 +520,10 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
           <section>
             <h3
               className="font-bold uppercase tracking-widest mb-6 flex items-center gap-2"
-              style={{ fontSize: '12px', color: '#1e293b' }}
+              style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
             >
               <span
+                className="flex-shrink-0"
                 style={{
                   width: '32px',
                   height: '2px',

@@ -108,11 +108,12 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
                 {skills.filter(s => s.name).map((skill) => (
                   <span
                     key={skill.id}
-                    className="px-2 py-1 rounded font-medium"
+                    className="px-2 py-1 rounded font-medium flex items-center"
                     style={{
                       backgroundColor: '#1e293b',
                       color: '#bfdbfe',
                       fontSize: '11px',
+                      lineHeight: '1',
                     }}
                   >
                     {skill.name}
@@ -175,7 +176,7 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
                   borderBottom: '2px solid #e2e8f0',
                 }}
               >
-                Profile
+                Professional Summary
               </h3>
               <p
                 className="leading-relaxed text-justify"
