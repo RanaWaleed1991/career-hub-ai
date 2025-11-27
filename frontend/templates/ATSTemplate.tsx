@@ -14,6 +14,7 @@ const ATSTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) =
       className="w-full h-full bg-white text-black p-10 max-w-[210mm] mx-auto"
       style={{
         fontFamily: "'Georgia', 'Times New Roman', serif",
+        fontSize: '12px',
       }}
     >
       {/* Header */}

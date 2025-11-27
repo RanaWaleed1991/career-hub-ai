@@ -10,7 +10,7 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
   const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
   return (
-    <div className="w-full min-h-full bg-white text-slate-800 font-sans flex">
+    <div className="w-full min-h-full bg-white text-slate-800 font-sans flex" style={{ fontSize: '12px' }}>
       {/* Left Sidebar - Fixed Width */}
       <aside
         className="w-[30%] min-w-[220px] max-w-[280px] text-white flex flex-col shrink-0"

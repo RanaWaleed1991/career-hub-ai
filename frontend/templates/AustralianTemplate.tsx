@@ -10,7 +10,7 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
   const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
   return (
-    <div className="w-full h-full bg-white text-gray-800 font-sans relative">
+    <div className="w-full h-full bg-white text-gray-800 font-sans relative" style={{ fontSize: '12px' }}>
       {/* Decorative Top Bar */}
       <div style={{ height: '16px', backgroundColor: '#0d9488', width: '100%' }} />
 
