@@ -15,7 +15,7 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
       style={{
         fontFamily: "'Helvetica Neue', 'Arial', sans-serif",
         fontSize: '12px',
-        padding: '40px 56px 56px 56px',
+        padding: '32px 56px 56px 56px',
         maxWidth: '210mm',
         margin: '0 auto',
       }}

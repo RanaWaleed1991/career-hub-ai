@@ -240,10 +240,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
                 </div>
             </div>
             <div className="flex space-x-2">
-              <button onClick={() => window.print()} className="flex items-center space-x-2 px-3 py-1.5 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm">
-                  <PrintIcon className="w-4 h-4"/>
-                  <span>Preview</span>
-              </button>
               <button onClick={handlePrintClick} className="flex items-center space-x-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm">
                   <DownloadIcon className="w-4 h-4"/>
                   <span>Download PDF</span>

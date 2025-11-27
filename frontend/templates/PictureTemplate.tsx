@@ -218,13 +218,17 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
                 {skills.filter(s => s.name).map((skill) => (
                   <span
                     key={skill.id}
-                    className="px-2 py-1 rounded flex items-center"
+                    className="rounded"
                     style={{
                       backgroundColor: 'rgba(30, 41, 59, 0.5)',
                       border: '1px solid #475569',
                       fontSize: '11px',
                       color: '#e2e8f0',
-                      lineHeight: '1',
+                      height: '24px',
+                      lineHeight: '24px',
+                      paddingLeft: '10px',
+                      paddingRight: '10px',
+                      display: 'inline-block',
                     }}
                   >
                     {skill.name}
@@ -267,17 +271,9 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
         {summary && (
           <section>
             <h3
-              className="font-bold uppercase tracking-widest mb-3 flex items-center gap-2"
-              style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
+              className="font-bold uppercase tracking-widest mb-3"
+              style={{ fontSize: '13px', color: '#1e293b' }}
             >
-              <span
-                className="flex-shrink-0"
-                style={{
-                  width: '32px',
-                  height: '2px',
-                  backgroundColor: '#1e293b',
-                }}
-              />
               Professional Summary
             </h3>
             <p
@@ -297,17 +293,9 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
         {experience.length > 0 && experience.some(e => e.jobTitle) && (
           <section>
             <h3
-              className="font-bold uppercase tracking-widest mb-6 flex items-center gap-2"
-              style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
+              className="font-bold uppercase tracking-widest mb-6"
+              style={{ fontSize: '13px', color: '#1e293b' }}
             >
-              <span
-                className="flex-shrink-0"
-                style={{
-                  width: '32px',
-                  height: '2px',
-                  backgroundColor: '#1e293b',
-                }}
-              />
               Experience
             </h3>
             <div className="flex flex-col gap-8">
@@ -393,17 +381,9 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
         {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
           <section>
             <h3
-              className="font-bold uppercase tracking-widest mb-6 flex items-center gap-2"
-              style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
+              className="font-bold uppercase tracking-widest mb-6"
+              style={{ fontSize: '13px', color: '#1e293b' }}
             >
-              <span
-                className="flex-shrink-0"
-                style={{
-                  width: '32px',
-                  height: '2px',
-                  backgroundColor: '#1e293b',
-                }}
-              />
               Certifications
             </h3>
             <div className="grid grid-cols-1 gap-4">
@@ -473,17 +453,9 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
               .map((section) => (
                 <section key={section.id}>
                   <h3
-                    className="font-bold uppercase tracking-widest mb-6 flex items-center gap-2"
-                    style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
+                    className="font-bold uppercase tracking-widest mb-6"
+                    style={{ fontSize: '13px', color: '#1e293b' }}
                   >
-                    <span
-                      className="flex-shrink-0"
-                      style={{
-                        width: '32px',
-                        height: '2px',
-                        backgroundColor: '#1e293b',
-                      }}
-                    />
                     {section.title}
                   </h3>
                   <div className="flex flex-col gap-6">
@@ -517,17 +489,9 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
         {references && references.length > 0 && references.some(r => r.name) && (
           <section>
             <h3
-              className="font-bold uppercase tracking-widest mb-6 flex items-center gap-2"
-              style={{ fontSize: '12px', color: '#1e293b', lineHeight: '1.2' }}
+              className="font-bold uppercase tracking-widest mb-6"
+              style={{ fontSize: '13px', color: '#1e293b' }}
             >
-              <span
-                className="flex-shrink-0"
-                style={{
-                  width: '32px',
-                  height: '2px',
-                  backgroundColor: '#1e293b',
-                }}
-              />
               References
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
