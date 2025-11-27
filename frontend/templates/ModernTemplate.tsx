@@ -10,7 +10,7 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
   const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
   return (
-    <div className="w-full h-full bg-white text-slate-800 font-sans" style={{ fontSize: '12px' }}>
+    <div className="w-full h-full bg-white text-slate-800 font-sans" style={{ fontSize: '12.5px' }}>
       <div className="grid grid-cols-12 min-h-full">
         {/* Left Sidebar */}
         <div
@@ -108,12 +108,14 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
                 {skills.filter(s => s.name).map((skill) => (
                   <span
                     key={skill.id}
-                    className="px-2 py-1 rounded font-medium flex items-center"
+                    className="rounded font-medium"
                     style={{
                       backgroundColor: '#1e293b',
                       color: '#bfdbfe',
                       fontSize: '11px',
-                      lineHeight: '1',
+                      lineHeight: '1.5',
+                      padding: '6px 10px',
+                      display: 'inline-block',
                     }}
                   >
                     {skill.name}
