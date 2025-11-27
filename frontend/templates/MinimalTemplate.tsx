@@ -58,34 +58,19 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
           }}
         >
           {personalDetails.email && (
-            <div className="flex items-center gap-1.5">
-              <span>✉</span>
-              <span>{personalDetails.email}</span>
-            </div>
+            <span>{personalDetails.email}</span>
           )}
           {personalDetails.phone && (
-            <div className="flex items-center gap-1.5">
-              <span>☎</span>
-              <span>{personalDetails.phone}</span>
-            </div>
+            <span>{personalDetails.phone}</span>
           )}
           {personalDetails.address && (
-            <div className="flex items-center gap-1.5">
-              <span>📍</span>
-              <span>{personalDetails.address}</span>
-            </div>
+            <span>{personalDetails.address}</span>
           )}
           {personalDetails.linkedin && (
-            <div className="flex items-center gap-1.5">
-              <span>in</span>
-              <span className="break-all">{personalDetails.linkedin.replace(/^https?:\/\//, '')}</span>
-            </div>
+            <span className="break-all">{personalDetails.linkedin.replace(/^https?:\/\//, '')}</span>
           )}
           {personalDetails.website && (
-            <div className="flex items-center gap-1.5">
-              <span>🌐</span>
-              <span className="break-all">{personalDetails.website.replace(/^https?:\/\//, '')}</span>
-            </div>
+            <span className="break-all">{personalDetails.website.replace(/^https?:\/\//, '')}</span>
           )}
         </div>
       </header>
@@ -98,7 +83,7 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             <h3
               className="font-bold uppercase tracking-widest pb-2 mb-3"
               style={{
-                fontSize: '12px',
+                fontSize: '13px',
                 borderBottom: '1px solid #d1d5db',
                 color: '#1a1a1a',
               }}
@@ -123,7 +108,7 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             <h3
               className="font-bold uppercase tracking-widest pb-2 mb-3"
               style={{
-                fontSize: '12px',
+                fontSize: '13px',
                 borderBottom: '1px solid #d1d5db',
                 color: '#1a1a1a',
               }}
@@ -131,17 +116,9 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
               {skillsLabel || 'Core Competencies'}
             </h3>
             <div className="flex flex-wrap gap-x-6 gap-y-2 text-gray-700" style={{ fontSize: '12px' }}>
-              {skills.filter(s => s.name).map((skill) => (
-                <span key={skill.id} className="flex items-center">
-                  <span
-                    className="rounded-full mr-2"
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      backgroundColor: '#9ca3af',
-                    }}
-                  />
-                  {skill.name}
+              {skills.filter(s => s.name).map((skill, index) => (
+                <span key={skill.id}>
+                  {skill.name}{index < skills.filter(s => s.name).length - 1 && ' •'}
                 </span>
               ))}
             </div>
@@ -154,7 +131,7 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             <h3
               className="font-bold uppercase tracking-widest pb-2 mb-4"
               style={{
-                fontSize: '12px',
+                fontSize: '13px',
                 borderBottom: '1px solid #d1d5db',
                 color: '#1a1a1a',
               }}
@@ -237,7 +214,7 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             <h3
               className="font-bold uppercase tracking-widest pb-2 mb-4"
               style={{
-                fontSize: '12px',
+                fontSize: '13px',
                 borderBottom: '1px solid #d1d5db',
                 color: '#1a1a1a',
               }}
@@ -291,7 +268,7 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             <h3
               className="font-bold uppercase tracking-widest pb-2 mb-4"
               style={{
-                fontSize: '12px',
+                fontSize: '13px',
                 borderBottom: '1px solid #d1d5db',
                 color: '#1a1a1a',
               }}
@@ -359,7 +336,7 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
                   <h3
                     className="font-bold uppercase tracking-widest pb-2 mb-4"
                     style={{
-                      fontSize: '12px',
+                      fontSize: '13px',
                       borderBottom: '1px solid #d1d5db',
                       color: '#1a1a1a',
                     }}
@@ -398,7 +375,7 @@ const MinimalTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             <h3
               className="font-bold uppercase tracking-widest pb-2 mb-4"
               style={{
-                fontSize: '12px',
+                fontSize: '13px',
                 borderBottom: '1px solid #d1d5db',
                 color: '#1a1a1a',
               }}

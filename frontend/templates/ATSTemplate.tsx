@@ -68,9 +68,9 @@ const ATSTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) =
       {summary && (
         <div className="mb-6">
           <h2
-            className="font-bold uppercase pb-1 mb-2"
+            className="font-bold uppercase pb-2 mb-3"
             style={{
-              fontSize: '12px',
+              fontSize: '13px',
               borderBottom: '1px solid #000',
             }}
           >
@@ -92,9 +92,9 @@ const ATSTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) =
       {skills.length > 0 && skills.some(s => s.name) && (
         <div className="mb-6">
           <h2
-            className="font-bold uppercase pb-1 mb-2"
+            className="font-bold uppercase pb-2 mb-3"
             style={{
-              fontSize: '12px',
+              fontSize: '13px',
               borderBottom: '1px solid #000',
             }}
           >
@@ -110,9 +110,9 @@ const ATSTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) =
       {experience.length > 0 && experience.some(e => e.jobTitle) && (
         <div className="mb-6">
           <h2
-            className="font-bold uppercase pb-1 mb-2"
+            className="font-bold uppercase pb-2 mb-3"
             style={{
-              fontSize: '12px',
+              fontSize: '13px',
               borderBottom: '1px solid #000',
             }}
           >
@@ -167,9 +167,9 @@ const ATSTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) =
       {education.length > 0 && education.some(e => e.degree) && (
         <div className="mb-6">
           <h2
-            className="font-bold uppercase pb-1 mb-2"
+            className="font-bold uppercase pb-2 mb-3"
             style={{
-              fontSize: '12px',
+              fontSize: '13px',
               borderBottom: '1px solid #000',
             }}
           >
@@ -205,9 +205,9 @@ const ATSTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) =
       {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
         <div className="mb-6">
           <h2
-            className="font-bold uppercase pb-1 mb-2"
+            className="font-bold uppercase pb-2 mb-3"
             style={{
-              fontSize: '12px',
+              fontSize: '13px',
               borderBottom: '1px solid #000',
             }}
           >
@@ -249,9 +249,9 @@ const ATSTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) =
             .map((section) => (
               <div key={section.id} className="mb-6">
                 <h2
-                  className="font-bold uppercase pb-1 mb-2"
+                  className="font-bold uppercase pb-2 mb-3"
                   style={{
-                    fontSize: '12px',
+                    fontSize: '13px',
                     borderBottom: '1px solid #000',
                   }}
                 >
@@ -281,9 +281,9 @@ const ATSTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) =
       {references && references.length > 0 && references.some(r => r.name) && (
         <div className="mb-6">
           <h2
-            className="font-bold uppercase pb-1 mb-2"
+            className="font-bold uppercase pb-2 mb-3"
             style={{
-              fontSize: '12px',
+              fontSize: '13px',
               borderBottom: '1px solid #000',
             }}
           >
