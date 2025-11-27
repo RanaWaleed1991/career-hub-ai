@@ -115,7 +115,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
             const opt = {
                 margin: 0, // No margin since we're adding padding directly
                 filename: 'cover_letter.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
+                image: { type: 'png', quality: 1 },
                 html2canvas: {
                     scale: 3,
                     useCORS: true,
@@ -129,7 +129,8 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                 jsPDF: {
                     unit: 'mm',
                     format: 'a4',
-                    orientation: 'portrait'
+                    orientation: 'portrait',
+                    compress: true
                 },
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
