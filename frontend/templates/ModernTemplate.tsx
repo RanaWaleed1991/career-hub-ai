@@ -10,7 +10,7 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
   const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
   return (
-    <div className="w-full h-full bg-white text-slate-800 font-sans">
+    <div className="w-full h-full bg-white text-slate-800 font-sans" style={{ fontSize: '12px' }}>
       <div className="grid grid-cols-12 min-h-full">
         {/* Left Sidebar */}
         <div
