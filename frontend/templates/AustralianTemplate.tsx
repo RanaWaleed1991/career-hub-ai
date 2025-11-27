@@ -10,7 +10,7 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
   const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
   return (
-    <div className="w-full h-full bg-white text-gray-800 font-sans relative" style={{ fontSize: '12px' }}>
+    <div className="w-full h-full bg-white text-gray-800 font-sans relative" style={{ fontSize: '12.5px' }}>
       {/* Decorative Top Bar */}
       <div style={{ height: '16px', backgroundColor: '#0d9488', width: '100%' }} />
 
@@ -222,36 +222,34 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                         border: '1px solid #f3f4f6',
                       }}
                     >
-                      <div className="flex justify-between items-center mb-2">
+                      <div className="flex justify-between items-start mb-2">
                         <h4
-                          className="font-bold flex items-center gap-2"
+                          className="font-bold"
                           style={{ fontSize: '13px', color: '#1f2937' }}
                         >
                           {cert.name}
                         </h4>
-                      </div>
-                      {cert.issuer && (
-                        <p
-                          className="mb-3 leading-relaxed"
-                          style={{ fontSize: '12px', color: '#4b5563' }}
-                        >
-                          {cert.issuer}
-                        </p>
-                      )}
-                      <div className="flex flex-wrap gap-1">
                         {cert.date && (
                           <span
-                            className="px-2 py-1 rounded-full font-medium"
+                            className="font-medium flex-shrink-0 ml-4"
                             style={{
-                              fontSize: '10px',
-                              color: '#0f766e',
-                              backgroundColor: 'white',
-                              border: '1px solid #5eead4',
+                              fontSize: '11px',
+                              color: '#0d9488',
                             }}
                           >
                             {cert.date}
                           </span>
                         )}
+                      </div>
+                      {cert.issuer && (
+                        <p
+                          className="leading-relaxed"
+                          style={{ fontSize: '12px', color: '#4b5563' }}
+                        >
+                          {cert.issuer}
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-1 mt-2">
                         {cert.credentialId && (
                           <span
                             className="px-2 py-1 rounded-full font-medium"
@@ -412,13 +410,15 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                   {skills.filter(s => s.name).map((skill) => (
                     <span
                       key={skill.id}
-                      className="px-3 py-1.5 rounded-md font-medium flex items-center"
+                      className="rounded-md font-medium"
                       style={{
                         backgroundColor: '#0d9488',
                         color: 'white',
                         fontSize: '11px',
                         boxShadow: '0 1px 2px 0 rgba(13, 148, 136, 0.2)',
-                        lineHeight: '1',
+                        lineHeight: '1.5',
+                        padding: '6px 12px',
+                        display: 'inline-block',
                       }}
                     >
                       {skill.name}
