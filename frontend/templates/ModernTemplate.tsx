@@ -7,7 +7,7 @@ interface TemplateProps {
 }
 
 const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) => {
-  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
+  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections, layoutStyle = 'traditional' } = data;
 
   return (
     <div className="w-full h-full bg-white text-slate-800 font-sans" style={{ fontSize: '12px' }}>

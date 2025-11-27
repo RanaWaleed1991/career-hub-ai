@@ -57,6 +57,8 @@ export interface CustomSection {
   order: number;
 }
 
+export type LayoutStyle = 'traditional' | 'skills-first' | 'australian';
+
 export interface ResumeData {
   personalDetails: PersonalDetails;
   summary: string;
@@ -64,6 +66,7 @@ export interface ResumeData {
   education: Education[];
   skills: Skill[];
   skillsLabel?: string; // Optional custom label for skills section
+  layoutStyle?: LayoutStyle; // Preset section ordering style (default: traditional)
   certifications?: Certification[];
   references?: Reference[];
   customSections?: CustomSection[];
