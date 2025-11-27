@@ -118,7 +118,7 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                 image: { type: 'png', quality: 1 },
                 html2canvas: {
                     // *** KEY CHANGE: Increase scale for higher resolution capture ***
-                    scale: 4, // Increased from 3 for sharper output
+                    scale: 5, // Maximum quality for crisp output
                     useCORS: true,
                     logging: false,
                     letterRendering: true,
