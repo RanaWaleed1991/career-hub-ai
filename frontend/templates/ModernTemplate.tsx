@@ -10,7 +10,7 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
   const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
   return (
-    <div className="w-full h-full bg-white text-slate-800 font-sans" style={{ fontSize: '12.5px' }}>
+    <div className="w-full h-full bg-white text-slate-800 font-sans" style={{ fontSize: '12px' }}>
       <div className="grid grid-cols-12 min-h-full">
         {/* Left Sidebar */}
         <div
@@ -278,13 +278,24 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
                     className="p-3 rounded hover:bg-slate-50 transition-colors"
                     style={{ border: '1px solid #f1f5f9' }}
                   >
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="flex justify-between items-start mb-1">
                       <h4
-                        className="font-bold flex items-center gap-2"
+                        className="font-bold"
                         style={{ fontSize: '12px', color: '#0f172a' }}
                       >
                         {cert.name}
                       </h4>
+                      {cert.date && (
+                        <span
+                          className="font-medium flex-shrink-0 ml-4"
+                          style={{
+                            fontSize: '11px',
+                            color: '#2563eb',
+                          }}
+                        >
+                          {cert.date}
+                        </span>
+                      )}
                     </div>
                     {cert.issuer && (
                       <p
@@ -295,19 +306,6 @@ const ModernTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }
                       </p>
                     )}
                     <div className="flex flex-wrap gap-1">
-                      {cert.date && (
-                        <span
-                          className="px-1.5 py-0.5 rounded"
-                          style={{
-                            fontSize: '10px',
-                            backgroundColor: '#dbeafe',
-                            color: '#2563eb',
-                            border: '1px solid #bfdbfe',
-                          }}
-                        >
-                          {cert.date}
-                        </span>
-                      )}
                       {cert.credentialId && (
                         <span
                           className="px-1.5 py-0.5 rounded"
