@@ -109,7 +109,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       const opt = {
         margin: 15,
         filename: `${resumeData.personalDetails.fullName || 'resume'}_resume.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
+        image: { type: 'png', quality: 1 },
         html2canvas: {
           scale: 3,
           useCORS: true,
@@ -123,7 +123,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         jsPDF: {
           unit: 'mm',
           format: 'a4',
-          orientation: 'portrait'
+          orientation: 'portrait',
+          compress: true
         },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
