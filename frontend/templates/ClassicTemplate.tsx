@@ -10,7 +10,7 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
   const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
 
   return (
-    <div className="bg-white p-8 font-serif text-sm text-gray-800">
+    <div className="bg-white p-8 font-serif text-gray-800" style={{ fontSize: '12px' }}>
       {/* Header */}
       <div className="text-center border-b-2 border-gray-400 pb-4 mb-6">
         <h1 className="text-4xl font-bold tracking-wider uppercase">{personalDetails.fullName}</h1>
@@ -40,13 +40,13 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
 
       {/* Summary Section */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold border-b border-gray-300 pb-1 mb-2 uppercase tracking-widest">Summary</h2>
+        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Professional Summary</h2>
         <p className="text-justify">{summary}</p>
       </div>
 
       {/* Experience Section */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold border-b border-gray-300 pb-1 mb-2 uppercase tracking-widest">Experience</h2>
+        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Experience</h2>
         {experience.map(exp => (
           <div key={exp.id} className="mb-4">
             <div className="flex justify-between items-baseline">
@@ -66,7 +66,7 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
 
       {/* Education Section */}
       <div className="mb-6">
-        <h2 className="text-xl font-semibold border-b border-gray-300 pb-1 mb-2 uppercase tracking-widest">Education</h2>
+        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Education</h2>
         {education.map(edu => (
           <div key={edu.id} className="mb-2">
             <div className="flex justify-between items-baseline">
@@ -84,11 +84,11 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
       {/* Skills Section */}
       {skills.length > 0 && skills.some(s => s.name) && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold border-b border-gray-300 pb-1 mb-2 uppercase tracking-widest">{skillsLabel || 'Skills'}</h2>
-          <div className="flex flex-wrap">
+          <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">{skillsLabel || 'Technical Skills'}</h2>
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
             {skills.filter(s => s.name).map((skill, index) => (
-              <span key={skill.id} className="text-sm">
-                {skill.name}{index < skills.filter(s => s.name).length - 1 && ' • '}
+              <span key={skill.id}>
+                {skill.name}{index < skills.filter(s => s.name).length - 1 && ' •'}
               </span>
             ))}
           </div>
@@ -98,7 +98,7 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
       {/* Certifications Section */}
       {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold border-b border-gray-300 pb-1 mb-2 uppercase tracking-widest">Certifications</h2>
+          <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Certifications</h2>
           {certifications.filter(c => c.name).map(cert => (
             <div key={cert.id} className="mb-2">
               <div className="flex justify-between items-baseline">
@@ -120,7 +120,7 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
             .sort((a, b) => a.order - b.order)
             .map(section => (
               <div key={section.id} className="mb-6">
-                <h2 className="text-xl font-semibold border-b border-gray-300 pb-1 mb-2 uppercase tracking-widest">{section.title}</h2>
+                <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">{section.title}</h2>
                 <div className="text-sm">
                   {section.content.split('\n').filter(line => line.trim()).map((line, i) => {
                     const cleanLine = line.trim();
@@ -143,7 +143,7 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
       {/* References Section */}
       {references && references.length > 0 && references.some(r => r.name) && (
         <div className="mb-6">
-          <h2 className="text-xl font-semibold border-b border-gray-300 pb-1 mb-2 uppercase tracking-widest">References</h2>
+          <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">References</h2>
           {references.filter(r => r.name).map(ref => (
             <div key={ref.id} className="mb-3">
               <h3 className="text-md font-bold">{ref.name}</h3>
