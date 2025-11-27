@@ -7,7 +7,147 @@ interface TemplateProps {
 }
 
 const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) => {
-  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
+  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections, layoutStyle = 'traditional' } = data;
+
+  // Define section order based on layout style
+  const getSectionOrder = (): string[] => {
+    switch (layoutStyle) {
+      case 'skills-first':
+        return ['summary', 'skills', 'experience', 'education', 'certifications', 'custom', 'references'];
+      case 'australian':
+        return ['summary', 'experience', 'certifications', 'education', 'skills', 'custom', 'references'];
+      case 'traditional':
+      default:
+        return ['summary', 'experience', 'education', 'skills', 'certifications', 'custom', 'references'];
+    }
+  };
+
+  const sectionOrder = getSectionOrder();
+
+  // Section components
+  const sections: Record<string, JSX.Element | null> = {
+    summary: summary ? (
+      <div className="mb-6" key="summary">
+        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Professional Summary</h2>
+        <p className="text-justify text-sm">{summary}</p>
+      </div>
+    ) : null,
+
+    experience: experience.length > 0 && experience.some(e => e.jobTitle) ? (
+      <div className="mb-6" key="experience">
+        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Experience</h2>
+        {experience.filter(e => e.jobTitle).map(exp => (
+          <div key={exp.id} className="mb-4">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-md font-bold">{exp.jobTitle}</h3>
+              <p className="text-xs text-gray-600">{exp.startDate} - {exp.endDate}</p>
+            </div>
+            <div className="flex justify-between items-baseline mb-1">
+                <p className="italic">{exp.company}</p>
+                <p className="text-xs text-gray-600">{exp.location}</p>
+            </div>
+            <ul className="list-disc list-outside ml-5 text-sm space-y-1">
+              {exp.description.split('\n').map((line, i) => line.trim() && <li key={i}>{line.replace(/^- /, '')}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    ) : null,
+
+    education: education.length > 0 && education.some(e => e.degree) ? (
+      <div className="mb-6" key="education">
+        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Education</h2>
+        {education.filter(e => e.degree).map(edu => (
+          <div key={edu.id} className="mb-2">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-md font-bold">{edu.degree}</h3>
+              <p className="text-xs text-gray-600">{edu.gradDate}</p>
+            </div>
+            <div className="flex justify-between items-baseline">
+                <p className="italic">{edu.institution}</p>
+                <p className="text-xs text-gray-600">{edu.location}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : null,
+
+    skills: skills.length > 0 && skills.some(s => s.name) ? (
+      <div className="mb-6" key="skills">
+        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">{skillsLabel || 'Technical Skills'}</h2>
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          {skills.filter(s => s.name).map((skill, index) => (
+            <span key={skill.id}>
+              {skill.name}{index < skills.filter(s => s.name).length - 1 && ' •'}
+            </span>
+          ))}
+        </div>
+      </div>
+    ) : null,
+
+    certifications: certifications && certifications.length > 0 && certifications.some(c => c.name) ? (
+      <div className="mb-6" key="certifications">
+        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Certifications</h2>
+        {certifications.filter(c => c.name).map(cert => (
+          <div key={cert.id} className="mb-2">
+            <div className="flex justify-between items-baseline">
+              <h3 className="text-md font-bold">{cert.name}</h3>
+              <p className="text-xs text-gray-600">{cert.date}</p>
+            </div>
+            <p className="italic">{cert.issuer}</p>
+            {cert.credentialId && <p className="text-xs text-gray-600">Credential ID: {cert.credentialId}</p>}
+          </div>
+        ))}
+      </div>
+    ) : null,
+
+    custom: customSections && customSections.length > 0 && customSections.some(s => s.title) ? (
+      <React.Fragment key="custom">
+        {customSections
+          .filter(s => s.title)
+          .sort((a, b) => a.order - b.order)
+          .map(section => (
+            <div key={section.id} className="mb-6">
+              <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">{section.title}</h2>
+              <div className="text-sm">
+                {section.content.split('\n').filter(line => line.trim()).map((line, i) => {
+                  const cleanLine = line.trim();
+                  if (cleanLine.startsWith('-') || cleanLine.startsWith('•')) {
+                    return (
+                      <div key={i} className="flex items-start mb-1">
+                        <span className="mr-2">•</span>
+                        <span>{cleanLine.replace(/^[-•]\s*/, '')}</span>
+                      </div>
+                    );
+                  }
+                  return <p key={i} className="mb-1">{cleanLine}</p>;
+                })}
+              </div>
+            </div>
+          ))}
+      </React.Fragment>
+    ) : null,
+
+    references: references && references.length > 0 && references.some(r => r.name) ? (
+      <div className="mb-6" key="references">
+        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">References</h2>
+        {references.filter(r => r.name).map(ref => (
+          <div key={ref.id} className="mb-3">
+            <h3 className="text-md font-bold">{ref.name}</h3>
+            <p className="italic">{ref.title} at {ref.company}</p>
+            <p className="text-xs text-gray-600">Relationship: {ref.relationship}</p>
+            {(ref.phone || ref.email) && (
+              <p className="text-xs text-gray-600">
+                {ref.phone && `Phone: ${ref.phone}`}
+                {ref.phone && ref.email && ' • '}
+                {ref.email && `Email: ${ref.email}`}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    ) : null,
+  };
 
   return (
     <div className="bg-white p-8 font-serif text-gray-800" style={{ fontSize: '12px' }}>
@@ -38,128 +178,8 @@ const ClassicTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
         )}
       </div>
 
-      {/* Summary Section */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Professional Summary</h2>
-        <p className="text-justify text-sm">{summary}</p>
-      </div>
-
-      {/* Experience Section */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Experience</h2>
-        {experience.map(exp => (
-          <div key={exp.id} className="mb-4">
-            <div className="flex justify-between items-baseline">
-              <h3 className="text-md font-bold">{exp.jobTitle}</h3>
-              <p className="text-xs text-gray-600">{exp.startDate} - {exp.endDate}</p>
-            </div>
-            <div className="flex justify-between items-baseline mb-1">
-                <p className="italic">{exp.company}</p>
-                <p className="text-xs text-gray-600">{exp.location}</p>
-            </div>
-            <ul className="list-disc list-outside ml-5 text-sm space-y-1">
-              {exp.description.split('\n').map((line, i) => line.trim() && <li key={i}>{line.replace(/^- /, '')}</li>)}
-            </ul>
-          </div>
-        ))}
-      </div>
-
-      {/* Education Section */}
-      <div className="mb-6">
-        <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Education</h2>
-        {education.map(edu => (
-          <div key={edu.id} className="mb-2">
-            <div className="flex justify-between items-baseline">
-              <h3 className="text-md font-bold">{edu.degree}</h3>
-              <p className="text-xs text-gray-600">{edu.gradDate}</p>
-            </div>
-            <div className="flex justify-between items-baseline">
-                <p className="italic">{edu.institution}</p>
-                <p className="text-xs text-gray-600">{edu.location}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Skills Section */}
-      {skills.length > 0 && skills.some(s => s.name) && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">{skillsLabel || 'Technical Skills'}</h2>
-          <div className="flex flex-wrap gap-x-3 gap-y-1">
-            {skills.filter(s => s.name).map((skill, index) => (
-              <span key={skill.id}>
-                {skill.name}{index < skills.filter(s => s.name).length - 1 && ' •'}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Certifications Section */}
-      {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">Certifications</h2>
-          {certifications.filter(c => c.name).map(cert => (
-            <div key={cert.id} className="mb-2">
-              <div className="flex justify-between items-baseline">
-                <h3 className="text-md font-bold">{cert.name}</h3>
-                <p className="text-xs text-gray-600">{cert.date}</p>
-              </div>
-              <p className="italic">{cert.issuer}</p>
-              {cert.credentialId && <p className="text-xs text-gray-600">Credential ID: {cert.credentialId}</p>}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Custom Sections */}
-      {customSections && customSections.length > 0 && customSections.some(s => s.title) && (
-        <>
-          {customSections
-            .filter(s => s.title)
-            .sort((a, b) => a.order - b.order)
-            .map(section => (
-              <div key={section.id} className="mb-6">
-                <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">{section.title}</h2>
-                <div className="text-sm">
-                  {section.content.split('\n').filter(line => line.trim()).map((line, i) => {
-                    const cleanLine = line.trim();
-                    if (cleanLine.startsWith('-') || cleanLine.startsWith('•')) {
-                      return (
-                        <div key={i} className="flex items-start mb-1">
-                          <span className="mr-2">•</span>
-                          <span>{cleanLine.replace(/^[-•]\s*/, '')}</span>
-                        </div>
-                      );
-                    }
-                    return <p key={i} className="mb-1">{cleanLine}</p>;
-                  })}
-                </div>
-              </div>
-            ))}
-        </>
-      )}
-
-      {/* References Section */}
-      {references && references.length > 0 && references.some(r => r.name) && (
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold border-b border-gray-300 pb-2 mb-3 uppercase tracking-widest">References</h2>
-          {references.filter(r => r.name).map(ref => (
-            <div key={ref.id} className="mb-3">
-              <h3 className="text-md font-bold">{ref.name}</h3>
-              <p className="italic">{ref.title} at {ref.company}</p>
-              <p className="text-xs text-gray-600">Relationship: {ref.relationship}</p>
-              {(ref.phone || ref.email) && (
-                <p className="text-xs text-gray-600">
-                  {ref.phone && `Phone: ${ref.phone}`}
-                  {ref.phone && ref.email && ' • '}
-                  {ref.email && `Email: ${ref.email}`}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Dynamic Sections based on layout style */}
+      {sectionOrder.map(sectionKey => sections[sectionKey]).filter(Boolean)}
 
        {showWatermark && (
         <div className="text-center mt-8 pt-4 border-t border-gray-200">

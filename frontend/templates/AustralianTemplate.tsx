@@ -7,7 +7,7 @@ interface TemplateProps {
 }
 
 const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) => {
-  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
+  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections, layoutStyle = 'traditional' } = data;
 
   return (
     <div className="w-full h-full bg-white text-gray-800 font-sans relative" style={{ fontSize: '12px' }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ResumeData, Experience, Education, Skill, Certification, Reference, CustomSection } from '../types';
+import type { ResumeData, Experience, Education, Skill, Certification, Reference, CustomSection, LayoutStyle } from '../types';
 import AIAssistButton from './AIAssistButton';
 import { PlusCircleIcon, MinusCircleIcon, TipIcon, UserCircleIcon } from './icons';
 
@@ -353,6 +353,23 @@ const ResumeForm: React.FC<ResumeFormProps> = ({ resumeData, setResumeData, onEn
             <option value="Key Skills">Key Skills</option>
             <option value="Professional Skills">Professional Skills</option>
           </select>
+        </div>
+
+        {/* Resume Layout Style */}
+        <div className="mb-4">
+          <label className={labelClass}>Resume Layout Style (Section Ordering)</label>
+          <select
+            value={resumeData.layoutStyle || 'traditional'}
+            onChange={(e) => setResumeData(prev => ({ ...prev, layoutStyle: e.target.value as 'traditional' | 'skills-first' | 'australian' }))}
+            className={inputClass}
+          >
+            <option value="traditional">Traditional (Experience → Education → Skills)</option>
+            <option value="skills-first">Skills-First (Skills → Experience → Education)</option>
+            <option value="australian">Australian (Experience → Certifications → Education)</option>
+          </select>
+          <p className="mt-1 text-xs text-slate-500">
+            Best for Classic, ATS, and Minimal templates. Sidebar templates (Modern, Picture, Australian) may not reflect all layout changes.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">

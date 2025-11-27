@@ -7,7 +7,7 @@ interface TemplateProps {
 }
 
 const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false }) => {
-  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections } = data;
+  const { personalDetails, summary, experience, education, skills, skillsLabel, certifications, references, customSections, layoutStyle = 'traditional' } = data;
 
   return (
     <div className="w-full min-h-full bg-white text-slate-800 font-sans flex" style={{ fontSize: '12px' }}>
@@ -218,16 +218,14 @@ const PictureTemplate: React.FC<TemplateProps> = ({ data, showWatermark = false 
                 {skills.filter(s => s.name).map((skill) => (
                   <span
                     key={skill.id}
-                    className="rounded"
+                    className="rounded font-medium"
                     style={{
                       backgroundColor: 'rgba(30, 41, 59, 0.5)',
                       border: '1px solid #475569',
                       fontSize: '11px',
                       color: '#e2e8f0',
-                      height: '24px',
-                      lineHeight: '24px',
-                      paddingLeft: '10px',
-                      paddingRight: '10px',
+                      lineHeight: '1.5',
+                      padding: '6px 10px',
                       display: 'inline-block',
                     }}
                   >
