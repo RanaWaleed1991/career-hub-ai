@@ -26,7 +26,6 @@ import webhooksRoutes from './routes/webhooks.js';
 import jobsRoutes from './routes/jobs.js';
 import coursesRoutes from './routes/courses.js';
 import userRoutes from './routes/user.js';
-import testEmailRoutes from './routes/test-email.js'; // ⚠️ REMOVE BEFORE PRODUCTION
 import { enforceHttps, addSecurityHeaders } from './middleware/httpsEnforcement.js';
 import { cacheJobs, cacheCourses } from './middleware/cache.js';
 
@@ -110,13 +109,6 @@ app.use('/api/user', generalLimiter, addSecurityHeaders, userRoutes);
 app.use('/api/resumes', generalLimiter, addSecurityHeaders, resumesRoutes);
 app.use('/api/versions', generalLimiter, addSecurityHeaders, versionsRoutes);
 app.use('/api/applications', generalLimiter, addSecurityHeaders, applicationsRoutes);
-
-// ⚠️ TEST EMAIL ROUTES - DELETE BEFORE PRODUCTION DEPLOYMENT ⚠️
-// These endpoints are for testing email functionality during development only
-if (env.NODE_ENV !== 'production') {
-  app.use('/api/test-email', testEmailRoutes);
-  console.log('📧 Test email endpoints available at /api/test-email');
-}
 
 // ============================================================================
 // ERROR HANDLING
