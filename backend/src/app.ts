@@ -27,7 +27,7 @@ import jobsRoutes from './routes/jobs.js';
 import coursesRoutes from './routes/courses.js';
 import userRoutes from './routes/user.js';
 import { enforceHttps, addSecurityHeaders } from './middleware/httpsEnforcement.js';
-import { cacheJobs, cacheCourses } from './middleware/cache.js';
+import { cacheJobs, cacheCourses, cacheSubscriptions } from './middleware/cache.js';
 
 export const app = express();
 
@@ -90,11 +90,13 @@ app.use('/api/auth', authLimiter, authRoutes);
 // AI-powered routes - rate limited due to high cost
 app.use('/api/gemini', aiLimiter, geminiRoutes);
 
-// Payment routes - strict rate limiting to prevent payment abuse
-app.use('/api/payments', paymentLimiter, paymentsRoutes);
+// Payment routes - strict rate limiting + caching for GET requests (config, subscription-status)
+// Caching prevents 429 errors from duplicate subscription status checks on login
+app.use('/api/payments', paymentLimiter, cacheSubscriptions, paymentsRoutes);
 
-// Subscription routes - general rate limiting (users check subscription status frequently)
-app.use('/api/subscriptions', generalLimiter, subscriptionsRoutes);
+// Subscription routes - general rate limiting + caching (prevents 429 errors from duplicate calls)
+// Cached for 15 minutes to prevent simultaneous API calls on login
+app.use('/api/subscriptions', generalLimiter, cacheSubscriptions, subscriptionsRoutes);
 
 // Admin routes - strict rate limiting for sensitive operations
 // Note: These are protected by adminMiddleware inside the route files

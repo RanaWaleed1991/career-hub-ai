@@ -31,6 +31,11 @@ const adminCache = new NodeCache({
   checkperiod: 30
 });
 
+const subscriptionsCache = new NodeCache({
+  stdTTL: 900, // 15 minutes - prevents duplicate calls during user session
+  checkperiod: 120
+});
+
 /**
  * Generate cache key from request
  */
@@ -94,23 +99,31 @@ export const cacheCourses = createCacheMiddleware(coursesCache);
 export const cacheAdmin = createCacheMiddleware(adminCache);
 
 /**
+ * Cache middleware for subscription endpoints
+ * Prevents 429 rate limiting from duplicate subscription API calls on login
+ */
+export const cacheSubscriptions = createCacheMiddleware(subscriptionsCache);
+
+/**
  * Clear all caches (useful for testing or manual invalidation)
  */
 export function clearAllCaches() {
   jobsCache.flushAll();
   coursesCache.flushAll();
   adminCache.flushAll();
+  subscriptionsCache.flushAll();
   console.log('[Cache] All caches cleared');
 }
 
 /**
  * Clear specific cache
  */
-export function clearCache(cacheType: 'jobs' | 'courses' | 'admin') {
+export function clearCache(cacheType: 'jobs' | 'courses' | 'admin' | 'subscriptions') {
   const cacheMap = {
     jobs: jobsCache,
     courses: coursesCache,
-    admin: adminCache
+    admin: adminCache,
+    subscriptions: subscriptionsCache
   };
 
   cacheMap[cacheType].flushAll();
@@ -139,6 +152,12 @@ export function getCacheStats() {
       hits: adminCache.getStats().hits,
       misses: adminCache.getStats().misses,
       ttl: 60
+    },
+    subscriptions: {
+      keys: subscriptionsCache.keys().length,
+      hits: subscriptionsCache.getStats().hits,
+      misses: subscriptionsCache.getStats().misses,
+      ttl: 900
     }
   };
 }
