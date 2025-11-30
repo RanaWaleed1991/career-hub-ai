@@ -38,11 +38,17 @@ const subscriptionsCache = new NodeCache({
 
 /**
  * Generate cache key from request
+ * For authenticated requests, includes user ID to ensure user-specific caching
  */
 function generateCacheKey(req: Request): string {
   // Include query params in cache key for different results
   const queryString = JSON.stringify(req.query);
-  return `${req.originalUrl}?${queryString}`;
+
+  // For authenticated requests, include user ID in cache key
+  // This ensures user-specific caching for subscription/payment data
+  const userId = (req as any).user?.id || 'anonymous';
+
+  return `${userId}:${req.originalUrl}?${queryString}`;
 }
 
 /**
