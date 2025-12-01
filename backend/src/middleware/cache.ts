@@ -137,6 +137,23 @@ export function clearCache(cacheType: 'jobs' | 'courses' | 'admin' | 'subscripti
 }
 
 /**
+ * Clear subscription cache for a specific user
+ * Used when subscription data changes (e.g., feature usage updated)
+ */
+export function clearUserSubscriptionCache(userId: string) {
+  const keys = subscriptionsCache.keys();
+  const userKeys = keys.filter(key => key.startsWith(`${userId}:`));
+
+  userKeys.forEach(key => {
+    subscriptionsCache.del(key);
+  });
+
+  if (userKeys.length > 0) {
+    console.log(`[Cache] Cleared ${userKeys.length} subscription cache entries for user ${userId}`);
+  }
+}
+
+/**
  * Get cache statistics
  */
 export function getCacheStats() {
