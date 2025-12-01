@@ -20,7 +20,7 @@ export const signup = async (
   fullName?: string
 ): Promise<{ user: AuthUser | null; error: string | null }> => {
   try {
-    const API_URL = 'https://career-hub-ai-w47n.vercel.app';
+    const API_URL = 'https://api.careerhubai.com.au';
 
     // Call backend API instead of Supabase directly to trigger welcome email
     const response = await fetch(`${API_URL}/api/auth/signup`, {

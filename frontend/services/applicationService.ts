@@ -1,7 +1,7 @@
 import type { Application, ApplicationStatus } from '../types';
 import { getAccessToken } from './userService';
 
-const API_URL = 'https://career-hub-ai-w47n.vercel.app';
+const API_URL = 'https://api.careerhubai.com.au';
 
 /**
  * Get auth headers with JWT token

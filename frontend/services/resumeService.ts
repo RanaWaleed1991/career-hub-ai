@@ -1,7 +1,7 @@
 import type { ResumeData } from '../types';
 import { getAccessToken } from './userService';
 
-const API_URL = 'https://career-hub-ai-w47n.vercel.app';
+const API_URL = 'https://api.careerhubai.com.au';
 
 const initialResumeData: ResumeData = {
   personalDetails: {

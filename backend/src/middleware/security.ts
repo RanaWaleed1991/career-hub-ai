@@ -82,6 +82,7 @@ export const requestSizeLimit = (req: Request, res: Response, next: NextFunction
 export const getCorsOptions = () => {
   const allowedOrigins = [
     process.env.FRONTEND_URL || 'http://localhost:5173',
+    'https://www.careerhubai.com.au', // Allow www subdomain
     'http://localhost:5173', // Development fallback
     'http://localhost:3000', // Alternative dev port
   ];
