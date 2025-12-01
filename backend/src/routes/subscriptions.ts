@@ -1,11 +1,16 @@
 import express, { Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { subscriptionDb, ensureDatabaseConfigured, handleDatabaseError } from '../services/database.js';
+import { cacheSubscriptions } from '../middleware/cache.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authMiddleware);
+
+// Apply caching AFTER authentication to ensure user-specific cache keys
+// Prevents 429 errors from duplicate subscription API calls on login
+router.use(cacheSubscriptions);
 
 /**
  * GET /api/subscriptions/current

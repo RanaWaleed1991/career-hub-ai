@@ -94,9 +94,9 @@ app.use('/api/gemini', aiLimiter, geminiRoutes);
 // Caching prevents 429 errors from duplicate subscription status checks on login
 app.use('/api/payments', paymentLimiter, cacheSubscriptions, paymentsRoutes);
 
-// Subscription routes - general rate limiting + caching (prevents 429 errors from duplicate calls)
-// Cached for 15 minutes to prevent simultaneous API calls on login
-app.use('/api/subscriptions', generalLimiter, cacheSubscriptions, subscriptionsRoutes);
+// Subscription routes - general rate limiting
+// Note: caching applied AFTER auth inside subscriptionsRoutes to ensure user-specific caching
+app.use('/api/subscriptions', generalLimiter, subscriptionsRoutes);
 
 // Admin routes - strict rate limiting for sensitive operations
 // Note: These are protected by adminMiddleware inside the route files
