@@ -91,12 +91,34 @@ export async function createPortalSession(
   if (!stripe) throw new Error('Stripe not configured');
 
   const subscription = await subscriptionDb.getCurrent(userId);
-  if (!subscription?.stripe_customer_id) {
-    throw new Error('No Stripe customer found for user');
+  let customerId = subscription?.stripe_customer_id;
+
+  // If user doesn't have a Stripe customer ID yet, create one
+  if (!customerId) {
+    // Get user email from Supabase
+    if (!supabase) throw new Error('Cannot create Stripe customer: Supabase not configured');
+
+    const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+    if (!authUser?.user?.email) {
+      throw new Error('Cannot create Stripe customer: User email not found');
+    }
+
+    const customer = await createStripeCustomer(
+      userId,
+      authUser.user.email,
+      authUser.user.user_metadata?.full_name
+    );
+    customerId = customer.id;
+
+    // Save customer ID to database
+    await subscriptionDb.upsert(userId, {
+      stripe_customer_id: customerId,
+      plan: subscription?.plan || 'free',
+    });
   }
 
   const session = await stripe.billingPortal.sessions.create({
-    customer: subscription.stripe_customer_id,
+    customer: customerId,
     return_url: returnUrl,
   });
 

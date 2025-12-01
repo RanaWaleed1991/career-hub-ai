@@ -14,7 +14,7 @@ if (typeof Promise.withResolvers === 'undefined') {
 import { Router, Request, Response } from 'express';
 import { GoogleGenAI, Type } from '@google/genai';
 import { env } from '../config/env.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import {
   enhanceSummarySchema,
@@ -22,6 +22,7 @@ import {
   generateCoverLetterSchema,
   tailorResumeSchema,
 } from '../validators/schemas.js';
+import { subscriptionDb } from '../services/database.js';
 
 const router = Router();
 
@@ -170,7 +171,7 @@ router.post('/enhance-summary', authMiddleware, enhanceSummarySchema, validate, 
 });
 
 // POST /api/gemini/generate-cover-letter
-router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema, validate, async (req: Request, res: Response) => {
+router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema, validate, async (req: AuthRequest, res: Response) => {
   try {
     const { resumeText, jobTitle, company, jobDescription } = req.body;
 
@@ -186,6 +187,21 @@ router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema,
     });
 
     const coverLetter = response.text?.trim() || '';
+
+    // Update usage counter for cover letter generation
+    if (req.user?.id) {
+      try {
+        const currentSub = await subscriptionDb.getCurrent(req.user.id);
+        const currentUsage = currentSub?.cover_letters_generated || 0;
+        await subscriptionDb.updateFeatureUsage(req.user.id, {
+          cover_letters_generated: currentUsage + 1
+        });
+      } catch (dbError) {
+        console.error('Failed to update cover letter usage counter:', dbError);
+        // Don't fail the request if counter update fails
+      }
+    }
+
     res.json({ coverLetter });
   } catch (error) {
     console.error('Error calling Gemini API for cover letter:', error);
@@ -194,7 +210,7 @@ router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema,
 });
 
 // POST /api/gemini/analyze-resume
-router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, async (req: Request, res: Response) => {
+router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, async (req: AuthRequest, res: Response) => {
   try {
     const { resumeText } = req.body;
 
@@ -211,6 +227,21 @@ router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, as
 
     const jsonText = response.text?.trim() || '{}';
     const analysis = JSON.parse(jsonText);
+
+    // Update usage counter for resume analysis
+    if (req.user?.id) {
+      try {
+        const currentSub = await subscriptionDb.getCurrent(req.user.id);
+        const currentUsage = currentSub?.resume_analyses_done || 0;
+        await subscriptionDb.updateFeatureUsage(req.user.id, {
+          resume_analyses_done: currentUsage + 1
+        });
+      } catch (dbError) {
+        console.error('Failed to update resume analysis usage counter:', dbError);
+        // Don't fail the request if counter update fails
+      }
+    }
+
     res.json({ analysis });
   } catch (error) {
     console.error('Error calling Gemini API for resume analysis:', error);
