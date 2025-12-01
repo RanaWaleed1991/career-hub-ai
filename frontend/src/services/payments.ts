@@ -2,7 +2,7 @@
  * Payment service for handling Stripe payments and subscriptions
  */
 
-const API_URL = 'https://career-hub-ai-w47n.vercel.app';
+const API_URL = 'https://api.careerhubai.com.au';
 
 export interface SubscriptionTier {
   name: string;
