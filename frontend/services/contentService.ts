@@ -2,7 +2,7 @@ import type { Job, Course } from '../types';
 import { getAccessToken } from './userService';
 
 // Get API URL from environment variables
-const API_URL = 'https://career-hub-ai-w47n.vercel.app';
+const API_URL = 'https://api.careerhubai.com.au';
 
 /**
  * Get auth headers with JWT token

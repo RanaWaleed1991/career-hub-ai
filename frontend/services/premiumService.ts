@@ -2,7 +2,7 @@ import { supabase } from '../src/config/supabase';
 import { getAccessToken } from './userService';
 
 // Production API URL - hardcoded for reliability
-const API_URL = 'https://career-hub-ai-w47n.vercel.app';
+const API_URL = 'https://api.careerhubai.com.au';
 
 // Type exports for backward compatibility
 export type Plan = 'free' | 'weekly' | 'monthly';
