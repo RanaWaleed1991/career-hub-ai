@@ -1,7 +1,7 @@
 import express, { Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { subscriptionDb, ensureDatabaseConfigured, handleDatabaseError } from '../services/database.js';
-import { cacheSubscriptions } from '../middleware/cache.js';
+import { cacheSubscriptions, clearUserSubscriptionCache } from '../middleware/cache.js';
 
 const router = express.Router();
 
@@ -93,6 +93,9 @@ router.post('/upgrade', async (req: AuthRequest, res: Response): Promise<void> =
       resume_analyses_done: 0,
     });
 
+    // Clear cache so frontend gets updated subscription immediately
+    clearUserSubscriptionCache(req.user.id);
+
     res.status(200).json({ subscription, message: 'Subscription updated successfully' });
   } catch (error) {
     const message = handleDatabaseError(error, 'upgrade subscription');
@@ -131,6 +134,10 @@ router.put('/features', async (req: AuthRequest, res: Response): Promise<void> =
     }
 
     const subscription = await subscriptionDb.updateFeatureUsage(req.user.id, featureUpdates);
+
+    // Clear cache so frontend gets updated counter immediately
+    clearUserSubscriptionCache(req.user.id);
+
     res.status(200).json({ subscription });
   } catch (error) {
     const message = handleDatabaseError(error, 'update feature usage');
