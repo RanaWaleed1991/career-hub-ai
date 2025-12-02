@@ -124,10 +124,17 @@ router.post(
         portalUrl: session.url,
       });
     } catch (error: any) {
-      console.error('Error creating portal session:', error);
+      console.error('❌ Error creating portal session:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        type: error.type,
+        userId: req.user?.id,
+      });
       res.status(500).json({
         error: 'Failed to create portal session',
         message: error.message,
+        details: error.type || error.name,
       });
     }
   }

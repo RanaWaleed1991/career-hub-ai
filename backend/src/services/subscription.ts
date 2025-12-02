@@ -87,18 +87,26 @@ export async function createPortalSession(
   userId: string,
   returnUrl: string
 ): Promise<Stripe.BillingPortal.Session> {
+  console.log(`[Portal] Creating portal session for user ${userId}`);
+
   ensureStripeConfigured();
   if (!stripe) throw new Error('Stripe not configured');
 
   const subscription = await subscriptionDb.getCurrent(userId);
+  console.log(`[Portal] Current subscription:`, subscription);
+
   let customerId = subscription?.stripe_customer_id;
 
   // If user doesn't have a Stripe customer ID yet, create one
   if (!customerId) {
+    console.log(`[Portal] No customer ID found, creating new Stripe customer`);
+
     // Get user email from Supabase
     if (!supabase) throw new Error('Cannot create Stripe customer: Supabase not configured');
 
     const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+    console.log(`[Portal] Fetched user from Supabase:`, { email: authUser?.user?.email });
+
     if (!authUser?.user?.email) {
       throw new Error('Cannot create Stripe customer: User email not found');
     }
@@ -109,20 +117,35 @@ export async function createPortalSession(
       authUser.user.user_metadata?.full_name
     );
     customerId = customer.id;
+    console.log(`[Portal] Created Stripe customer: ${customerId}`);
 
     // Save customer ID to database
     await subscriptionDb.upsert(userId, {
       stripe_customer_id: customerId,
       plan: subscription?.plan || 'free',
     });
+    console.log(`[Portal] Saved customer ID to database`);
   }
 
-  const session = await stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url: returnUrl,
-  });
+  console.log(`[Portal] Creating billing portal session for customer ${customerId}`);
 
-  return session;
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: returnUrl,
+    });
+
+    console.log(`[Portal] ✅ Successfully created portal session`);
+    return session;
+  } catch (stripeError: any) {
+    console.error(`[Portal] ❌ Stripe API error:`, {
+      message: stripeError.message,
+      type: stripeError.type,
+      code: stripeError.code,
+      statusCode: stripeError.statusCode,
+    });
+    throw stripeError;
+  }
 }
 
 /**
