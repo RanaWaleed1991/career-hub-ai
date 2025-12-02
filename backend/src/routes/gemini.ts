@@ -152,8 +152,37 @@ const resumeAnalysisSchema = {
 };
 
 // POST /api/gemini/enhance-summary
-router.post('/enhance-summary', authMiddleware, enhanceSummarySchema, validate, async (req: Request, res: Response) => {
+router.post('/enhance-summary', authMiddleware, enhanceSummarySchema, validate, async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    // Check if user has reached their limit BEFORE enhancing
+    const subscription = await subscriptionDb.getCurrent(req.user.id);
+    const plan = subscription?.plan || 'free';
+    const currentUsage = subscription?.ai_enhancements_used || 0;
+
+    // Define limits per plan
+    const limits: Record<string, number> = {
+      free: 3,
+      weekly: Infinity,
+      monthly: Infinity,
+    };
+
+    const limit = limits[plan];
+    if (currentUsage >= limit) {
+      res.status(403).json({
+        error: 'Limit reached',
+        message: `You've reached your limit of ${limit} AI enhancements. Please upgrade to continue.`,
+        limitReached: true,
+        currentUsage,
+        limit: limit === Infinity ? 'unlimited' : limit,
+      });
+      return;
+    }
+
     const { text, section } = req.body;
 
     const prompt = PROMPT_TEMPLATES[section].replace('{TEXT}', text);
@@ -164,6 +193,19 @@ router.post('/enhance-summary', authMiddleware, enhanceSummarySchema, validate, 
     });
 
     const enhancedText = response.text?.trim() || '';
+
+    // Update usage counter for AI enhancement
+    try {
+      await subscriptionDb.updateFeatureUsage(req.user.id, {
+        ai_enhancements_used: currentUsage + 1
+      });
+      // Clear cache so frontend gets updated counter immediately
+      clearUserSubscriptionCache(req.user.id);
+    } catch (dbError) {
+      console.error('Failed to update AI enhancement usage counter:', dbError);
+      // Don't fail the request if counter update fails
+    }
+
     res.json({ enhancedText });
   } catch (error) {
     console.error('Error calling Gemini API for enhance-summary:', error);
@@ -174,6 +216,35 @@ router.post('/enhance-summary', authMiddleware, enhanceSummarySchema, validate, 
 // POST /api/gemini/generate-cover-letter
 router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema, validate, async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    // Check if user has reached their limit BEFORE generating
+    const subscription = await subscriptionDb.getCurrent(req.user.id);
+    const plan = subscription?.plan || 'free';
+    const currentUsage = subscription?.cover_letters_generated || 0;
+
+    // Define limits per plan
+    const limits: Record<string, number> = {
+      free: 3,
+      weekly: Infinity,
+      monthly: Infinity,
+    };
+
+    const limit = limits[plan];
+    if (currentUsage >= limit) {
+      res.status(403).json({
+        error: 'Limit reached',
+        message: `You've reached your limit of ${limit} cover letters. Please upgrade to continue.`,
+        limitReached: true,
+        currentUsage,
+        limit: limit === Infinity ? 'unlimited' : limit,
+      });
+      return;
+    }
+
     const { resumeText, jobTitle, company, jobDescription } = req.body;
 
     const prompt = PROMPT_TEMPLATES['coverLetter']
@@ -190,19 +261,15 @@ router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema,
     const coverLetter = response.text?.trim() || '';
 
     // Update usage counter for cover letter generation
-    if (req.user?.id) {
-      try {
-        const currentSub = await subscriptionDb.getCurrent(req.user.id);
-        const currentUsage = currentSub?.cover_letters_generated || 0;
-        await subscriptionDb.updateFeatureUsage(req.user.id, {
-          cover_letters_generated: currentUsage + 1
-        });
-        // Clear cache so frontend gets updated counter immediately
-        clearUserSubscriptionCache(req.user.id);
-      } catch (dbError) {
-        console.error('Failed to update cover letter usage counter:', dbError);
-        // Don't fail the request if counter update fails
-      }
+    try {
+      await subscriptionDb.updateFeatureUsage(req.user.id, {
+        cover_letters_generated: currentUsage + 1
+      });
+      // Clear cache so frontend gets updated counter immediately
+      clearUserSubscriptionCache(req.user.id);
+    } catch (dbError) {
+      console.error('Failed to update cover letter usage counter:', dbError);
+      // Don't fail the request if counter update fails
     }
 
     res.json({ coverLetter });
@@ -215,6 +282,35 @@ router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema,
 // POST /api/gemini/analyze-resume
 router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    // Check if user has reached their limit BEFORE analyzing
+    const subscription = await subscriptionDb.getCurrent(req.user.id);
+    const plan = subscription?.plan || 'free';
+    const currentUsage = subscription?.resume_analyses_done || 0;
+
+    // Define limits per plan
+    const limits: Record<string, number> = {
+      free: 3,
+      weekly: 10,
+      monthly: Infinity,
+    };
+
+    const limit = limits[plan];
+    if (currentUsage >= limit) {
+      res.status(403).json({
+        error: 'Limit reached',
+        message: `You've reached your limit of ${limit === Infinity ? 'unlimited' : limit} resume analyses. Please upgrade to continue.`,
+        limitReached: true,
+        currentUsage,
+        limit: limit === Infinity ? 'unlimited' : limit,
+      });
+      return;
+    }
+
     const { resumeText } = req.body;
 
     const prompt = PROMPT_TEMPLATES['resumeAnalysis'].replace('{RESUME_TEXT}', resumeText);
@@ -232,19 +328,15 @@ router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, as
     const analysis = JSON.parse(jsonText);
 
     // Update usage counter for resume analysis
-    if (req.user?.id) {
-      try {
-        const currentSub = await subscriptionDb.getCurrent(req.user.id);
-        const currentUsage = currentSub?.resume_analyses_done || 0;
-        await subscriptionDb.updateFeatureUsage(req.user.id, {
-          resume_analyses_done: currentUsage + 1
-        });
-        // Clear cache so frontend gets updated counter immediately
-        clearUserSubscriptionCache(req.user.id);
-      } catch (dbError) {
-        console.error('Failed to update resume analysis usage counter:', dbError);
-        // Don't fail the request if counter update fails
-      }
+    try {
+      await subscriptionDb.updateFeatureUsage(req.user.id, {
+        resume_analyses_done: currentUsage + 1
+      });
+      // Clear cache so frontend gets updated counter immediately
+      clearUserSubscriptionCache(req.user.id);
+    } catch (dbError) {
+      console.error('Failed to update resume analysis usage counter:', dbError);
+      // Don't fail the request if counter update fails
     }
 
     res.json({ analysis });
