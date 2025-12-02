@@ -166,7 +166,7 @@ router.post('/enhance-summary', authMiddleware, enhanceSummarySchema, validate, 
 
     // Define limits per plan
     const limits: Record<string, number> = {
-      free: 3,
+      free: 10,
       weekly: Infinity,
       monthly: Infinity,
     };
@@ -347,8 +347,37 @@ router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, as
 });
 
 // POST /api/gemini/tailor-resume
-router.post('/tailor-resume', authMiddleware, tailorResumeSchema, validate, async (req: Request, res: Response) => {
+router.post('/tailor-resume', authMiddleware, tailorResumeSchema, validate, async (req: AuthRequest, res: Response) => {
   try {
+    if (!req.user?.id) {
+      res.status(401).json({ error: 'Not authenticated' });
+      return;
+    }
+
+    // Check if user has reached their limit BEFORE tailoring
+    const subscription = await subscriptionDb.getCurrent(req.user.id);
+    const plan = subscription?.plan || 'free';
+    const currentUsage = (subscription as any)?.ai_tailoring_used || 0;
+
+    // Define limits per plan
+    const limits: Record<string, number> = {
+      free: 3,
+      weekly: Infinity,
+      monthly: Infinity,
+    };
+
+    const limit = limits[plan];
+    if (currentUsage >= limit) {
+      res.status(403).json({
+        error: 'Limit reached',
+        message: `You've reached your limit of ${limit} resume tailoring sessions. Please upgrade to continue.`,
+        limitReached: true,
+        currentUsage,
+        limit: limit === Infinity ? 'unlimited' : limit,
+      });
+      return;
+    }
+
     const { resumeText, jobDescription } = req.body;
 
     const prompt = PROMPT_TEMPLATES['tailor']
@@ -361,6 +390,19 @@ router.post('/tailor-resume', authMiddleware, tailorResumeSchema, validate, asyn
     });
 
     const tailoredResume = response.text?.trim() || '';
+
+    // Update usage counter for resume tailoring
+    try {
+      await subscriptionDb.updateFeatureUsage(req.user.id, {
+        ai_tailoring_used: currentUsage + 1
+      } as any);
+      // Clear cache so frontend gets updated counter immediately
+      clearUserSubscriptionCache(req.user.id);
+    } catch (dbError) {
+      console.error('Failed to update tailoring usage counter:', dbError);
+      // Don't fail the request if counter update fails
+    }
+
     res.json({ tailoredResume });
   } catch (error) {
     console.error('Error calling Gemini API for tailoring:', error);

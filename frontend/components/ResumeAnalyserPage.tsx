@@ -111,7 +111,13 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
             setView('result');
 
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred during analysis.');
+            // Check if this is a limit reached error
+            if (err instanceof Error && (err as any).limitReached) {
+                setActionToRetry(() => () => handleFile(file));
+                triggerPremiumFlow();
+            } else {
+                setError(err instanceof Error ? err.message : 'An unknown error occurred during analysis.');
+            }
             setView('upload');
         }
     }, [setActionToRetry, triggerPremiumFlow]);
