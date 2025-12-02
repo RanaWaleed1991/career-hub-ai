@@ -144,6 +144,43 @@ export async function createPortalSession(
       code: stripeError.code,
       statusCode: stripeError.statusCode,
     });
+
+    // If customer doesn't exist in Stripe (deleted or wrong mode), create a new one
+    if (stripeError.type === 'StripeInvalidRequestError' && stripeError.code === 'resource_missing') {
+      console.log(`[Portal] Customer ${customerId} not found in Stripe, creating new customer`);
+
+      // Get user email from Supabase
+      if (!supabase) throw new Error('Cannot create Stripe customer: Supabase not configured');
+
+      const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+      if (!authUser?.user?.email) {
+        throw new Error('Cannot create Stripe customer: User email not found');
+      }
+
+      // Create new customer
+      const newCustomer = await createStripeCustomer(
+        userId,
+        authUser.user.email,
+        authUser.user.user_metadata?.full_name
+      );
+      console.log(`[Portal] Created new Stripe customer: ${newCustomer.id}`);
+
+      // Update database with new customer ID
+      await subscriptionDb.upsert(userId, {
+        stripe_customer_id: newCustomer.id,
+        plan: subscription?.plan || 'free',
+      });
+
+      // Retry creating portal session with new customer
+      const retrySession = await stripe.billingPortal.sessions.create({
+        customer: newCustomer.id,
+        return_url: returnUrl,
+      });
+
+      console.log(`[Portal] ✅ Successfully created portal session with new customer`);
+      return retrySession;
+    }
+
     throw stripeError;
   }
 }
