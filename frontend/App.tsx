@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
@@ -326,6 +327,7 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <AppContent />
+      <Analytics />
     </AuthProvider>
   );
 };
