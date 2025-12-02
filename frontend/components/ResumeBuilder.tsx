@@ -161,7 +161,13 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
         return prev;
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      // Check if this is a limit reached error
+      if (err instanceof Error && (err as any).limitReached) {
+        setActionToRetry(() => () => handleEnhance(field, text, index));
+        triggerPremiumFlow();
+      } else {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      }
     } finally {
       setIsAiLoading(null);
     }

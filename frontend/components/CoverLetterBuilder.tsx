@@ -47,7 +47,13 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
             // Only track usage after successful generation
             await useCoverLetterAttempt();
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+            // Check if this is a limit reached error
+            if (err instanceof Error && (err as any).limitReached) {
+                setActionToRetry(() => handleGenerate);
+                triggerPremiumFlow();
+            } else {
+                setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+            }
         } finally {
             setIsLoading(false);
         }

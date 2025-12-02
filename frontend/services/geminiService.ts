@@ -38,6 +38,12 @@ export const enhanceTextWithAI = async (text: string, section: 'summary' | 'expe
       if (response.status === 401) {
         throw new Error('Please log in to use this feature.');
       }
+      if (response.status === 403) {
+        const errorData = await response.json();
+        const error: any = new Error(errorData.message || 'You have reached your limit. Please upgrade to continue.');
+        error.limitReached = true;
+        throw error;
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -74,6 +80,12 @@ export const tailorResumeForJob = async (resumeText: string, jobDescription: str
     if (!response.ok) {
       if (response.status === 401) {
         throw new Error('Please log in to use this feature.');
+      }
+      if (response.status === 403) {
+        const errorData = await response.json();
+        const error: any = new Error(errorData.message || 'You have reached your limit. Please upgrade to continue.');
+        error.limitReached = true;
+        throw error;
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -119,6 +131,12 @@ export const generateCoverLetter = async (
       if (response.status === 401) {
         throw new Error('Please log in to use this feature.');
       }
+      if (response.status === 403) {
+        const errorData = await response.json();
+        const error: any = new Error(errorData.message || 'You have reached your limit. Please upgrade to continue.');
+        error.limitReached = true;
+        throw error;
+      }
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -154,6 +172,12 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysisR
     if (!response.ok) {
       if (response.status === 401) {
         throw new Error('Please log in to use this feature.');
+      }
+      if (response.status === 403) {
+        const errorData = await response.json();
+        const error: any = new Error(errorData.message || 'You have reached your limit. Please upgrade to continue.');
+        error.limitReached = true;
+        throw error;
       }
       throw new Error(`HTTP error! status: ${response.status}`);
     }

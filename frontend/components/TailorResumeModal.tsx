@@ -39,7 +39,12 @@ const TailorResumeModal: React.FC<TailorResumeModalProps> = ({ onClose, initialR
 
       setStep('result');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      // Check if this is a limit reached error
+      if (err instanceof Error && (err as any).limitReached) {
+        setShowPremiumModal(true);
+      } else {
+        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      }
     } finally {
       setIsLoading(false);
     }

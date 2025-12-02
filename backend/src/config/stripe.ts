@@ -42,6 +42,7 @@ export interface SubscriptionTier {
     coverLetters: number;
     resumeAnalyses: number;
     aiEnhancements: number;
+    aiTailoring: number;
   };
 }
 
@@ -56,12 +57,15 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
       '3 Resume Downloads',
       '3 Cover Letters',
       '3 Resume Analyses',
+      '10 AI Enhancements',
+      '3 Resume Tailoring',
     ],
     limits: {
       downloads: 3,
       coverLetters: 3,
       resumeAnalyses: 3,
-      aiEnhancements: 3,
+      aiEnhancements: 10,
+      aiTailoring: 3,
     },
   },
   weekly: {
@@ -85,6 +89,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
       coverLetters: Infinity,
       resumeAnalyses: 10,
       aiEnhancements: Infinity,
+      aiTailoring: Infinity,
     },
   },
   monthly: {
@@ -110,6 +115,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
       coverLetters: Infinity,
       resumeAnalyses: Infinity,
       aiEnhancements: Infinity,
+      aiTailoring: Infinity,
     },
   },
 };
