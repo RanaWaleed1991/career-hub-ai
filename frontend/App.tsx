@@ -71,6 +71,15 @@ const AppContent: React.FC = () => {
     }
   }, [user]);
 
+  // Detect password recovery token in URL and redirect to reset password page
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      console.log('Password recovery token detected, redirecting to reset-password page');
+      setPage('reset-password');
+    }
+  }, []);
+
   // Redirect admin users to admin page on initial login (only once)
   // Redirect authenticated users to dashboard if on landing page
   useEffect(() => {
