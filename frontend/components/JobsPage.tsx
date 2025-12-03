@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getPublicJobs } from '../services/contentService';
-import type { Job, JobCategory } from '../types';
+import type { Job } from '../types';
 
 const JobCard: React.FC<{ job: Job, index: number }> = ({ job, index }) => {
   const hasExternalUrl = job.external_url && job.external_url.trim() !== '';
@@ -40,7 +40,8 @@ const JobCard: React.FC<{ job: Job, index: number }> = ({ job, index }) => {
 };
 
 const JobsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<JobCategory>('tech');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [keyword, setKeyword] = useState<string>('');
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,13 +64,20 @@ const JobsPage: React.FC = () => {
     }
   };
 
-  const getTabClass = (tabName: JobCategory) => {
-    return activeTab === tabName
-      ? 'bg-indigo-600 text-white'
-      : 'bg-white text-slate-600 hover:bg-slate-100';
-  };
+  const filteredJobs = jobs.filter(job => {
+    // City filter
+    const cityMatch = selectedCity === 'all' ||
+                      job.location.toLowerCase().includes(selectedCity.toLowerCase());
 
-  const filteredJobs = jobs.filter(job => job.category === activeTab);
+    // Keyword filter (search in title, company, and description)
+    const keywordLower = keyword.toLowerCase();
+    const keywordMatch = keyword === '' ||
+                         job.title.toLowerCase().includes(keywordLower) ||
+                         job.company.toLowerCase().includes(keywordLower) ||
+                         job.description.toLowerCase().includes(keywordLower);
+
+    return cityMatch && keywordMatch;
+  });
 
   return (
     <div className="p-8 bg-slate-50 h-full overflow-y-auto">
@@ -85,10 +93,49 @@ const JobsPage: React.FC = () => {
       )}
 
       <div className="flex justify-center mb-8">
-        <div className="flex space-x-2 bg-slate-200 p-1.5 rounded-lg shadow-sm">
-          <button onClick={() => setActiveTab('tech')} className={`px-6 py-2 rounded-md font-medium transition-colors duration-300 ${getTabClass('tech')}`}>Tech</button>
-          <button onClick={() => setActiveTab('accounting')} className={`px-6 py-2 rounded-md font-medium transition-colors duration-300 ${getTabClass('accounting')}`}>Accounting</button>
-          <button onClick={() => setActiveTab('casual')} className={`px-6 py-2 rounded-md font-medium transition-colors duration-300 ${getTabClass('casual')}`}>Casual</button>
+        <div className="bg-white p-6 rounded-lg shadow-md border border-slate-200 w-full max-w-4xl">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* City Filter */}
+            <div className="flex-1">
+              <label htmlFor="city-filter" className="block text-sm font-medium text-slate-700 mb-2">
+                🏙️ Filter by City
+              </label>
+              <select
+                id="city-filter"
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white text-slate-800"
+              >
+                <option value="all">All Australia</option>
+                <option value="melbourne">Melbourne</option>
+                <option value="sydney">Sydney</option>
+                <option value="brisbane">Brisbane</option>
+                <option value="perth">Perth</option>
+                <option value="adelaide">Adelaide</option>
+                <option value="canberra">Canberra</option>
+              </select>
+            </div>
+
+            {/* Keyword Search */}
+            <div className="flex-1">
+              <label htmlFor="keyword-search" className="block text-sm font-medium text-slate-700 mb-2">
+                🔍 Search by Keyword
+              </label>
+              <input
+                id="keyword-search"
+                type="text"
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                placeholder="e.g., developer, barista, accountant..."
+                className="w-full px-4 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 placeholder-slate-400"
+              />
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="mt-4 text-center text-sm text-slate-600">
+            Showing {filteredJobs.length} job{filteredJobs.length !== 1 ? 's' : ''}
+          </div>
         </div>
       </div>
 
@@ -103,7 +150,11 @@ const JobsPage: React.FC = () => {
           </div>
         ) : (
           <div className="text-center py-16 bg-white rounded-lg shadow-sm">
-            <p className="text-slate-500">No jobs available in this category right now. An administrator can add new jobs from the Admin Panel.</p>
+            <p className="text-slate-500">
+              {jobs.length === 0
+                ? 'No jobs available right now. An administrator can add new jobs from the Admin Panel.'
+                : 'No jobs match your search criteria. Try adjusting your filters.'}
+            </p>
           </div>
         )}
       </div>
