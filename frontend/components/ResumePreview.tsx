@@ -11,6 +11,7 @@ import { PrintIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, DocumentTextIcon, 
 import { shouldShowWatermark, canDownloadResume, useResumeDownload, canAccessVersionHistory, canSaveVersion, useVersionSave, hasPremium } from '../services/premiumService';
 import { saveVersion } from '../services/versionHistoryService';
 import { resumeDataToText } from '../utils/resumeUtils';
+import { downloadOrSharePDF, isMobileDevice, getPDFSuccessMessage } from '../utils/pdfDownload';
 
 interface ResumePreviewProps {
   resumeData: ResumeData;
@@ -110,9 +111,11 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
       // Calculate actual content height after render
       const contentHeight = clone.scrollHeight;
 
+      const filename = `${resumeData.personalDetails.fullName || 'resume'}_resume.pdf`;
+
       const opt = {
         margin: 15,
-        filename: `${resumeData.personalDetails.fullName || 'resume'}_resume.pdf`,
+        filename, // Still needed for some html2pdf internal logic
         image: { type: 'png', quality: 1 },
         html2canvas: {
           // *** KEY CHANGE: Increase scale for higher resolution capture ***
@@ -134,7 +137,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
       };
 
-      await html2pdf().set(opt).from(clone).save();
+      // Generate PDF as blob instead of auto-saving
+      const pdfBlob = await html2pdf().set(opt).from(clone).outputPdf('blob');
 
       // Restore cursor
       document.body.style.cursor = originalCursor;
@@ -144,6 +148,16 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 
       // Hide loading modal
       setIsGeneratingPDF(false);
+
+      // Use mobile-friendly download/share
+      const result = await downloadOrSharePDF(pdfBlob, filename);
+
+      if (result.success) {
+        const isMobile = isMobileDevice();
+        alert(getPDFSuccessMessage(result.method, isMobile));
+      } else {
+        throw new Error(result.error || 'Failed to save PDF');
+      }
     } catch (error) {
       console.error('PDF generation failed:', error);
       alert('Failed to generate PDF. Please try again.');
