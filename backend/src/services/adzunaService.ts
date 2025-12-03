@@ -171,7 +171,7 @@ export class AdzunaService {
    */
   async fetchTechJobs(limit: number = 20, location?: string): Promise<MappedJob[]> {
     const response = await this.searchJobs({
-      what: 'software developer OR engineer OR programmer',
+      what: 'developer OR engineer OR programmer OR software OR IT OR technical OR analyst OR data OR technology OR web OR mobile OR cloud',
       where: location,
       resultsPerPage: limit,
     });
@@ -183,7 +183,7 @@ export class AdzunaService {
    */
   async fetchAccountingJobs(limit: number = 20, location?: string): Promise<MappedJob[]> {
     const response = await this.searchJobs({
-      what: 'accountant OR bookkeeper OR finance',
+      what: 'accountant OR bookkeeper OR finance OR accounting OR financial OR auditor OR payroll OR tax OR treasury OR banking',
       where: location,
       resultsPerPage: limit,
     });
@@ -195,7 +195,7 @@ export class AdzunaService {
    */
   async fetchCasualJobs(limit: number = 20, location?: string): Promise<MappedJob[]> {
     const response = await this.searchJobs({
-      what: 'retail OR hospitality OR customer service',
+      what: 'retail OR hospitality OR customer service OR casual OR sales OR warehouse OR driver OR delivery OR cleaning OR kitchen OR bartender OR waiter OR barista',
       where: location,
       resultsPerPage: limit,
     });
