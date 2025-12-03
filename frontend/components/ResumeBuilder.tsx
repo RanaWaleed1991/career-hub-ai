@@ -71,6 +71,22 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
 
+  // Mobile-only state for Edit/Preview toggle
+  const [mobileView, setMobileView] = useState<'edit' | 'preview'>('edit');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Load resume data on mount
   useEffect(() => {
     const loadResume = async () => {
@@ -254,8 +270,34 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
         </div>
       )}
 
+      {/* Mobile-only Edit/Preview Tabs */}
+      {isMobile && (
+        <div className="flex bg-slate-100 border-b border-slate-300">
+          <button
+            onClick={() => setMobileView('edit')}
+            className={`flex-1 py-3 px-4 font-semibold text-sm transition-colors ${
+              mobileView === 'edit'
+                ? 'bg-white text-indigo-600 border-b-2 border-indigo-600'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            ✏️ Edit Resume
+          </button>
+          <button
+            onClick={() => setMobileView('preview')}
+            className={`flex-1 py-3 px-4 font-semibold text-sm transition-colors ${
+              mobileView === 'preview'
+                ? 'bg-white text-indigo-600 border-b-2 border-indigo-600'
+                : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            👁️ Preview
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 h-full overflow-hidden">
-        <div className="overflow-y-auto">
+        <div className={`overflow-y-auto ${isMobile && mobileView === 'preview' ? 'hidden' : ''}`}>
           <ResumeForm
             resumeData={resumeData}
             setResumeData={setResumeData}
@@ -263,7 +305,7 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
             isAiLoading={isAiLoading}
           />
         </div>
-        <div className="overflow-y-auto">
+        <div className={`overflow-y-auto ${isMobile && mobileView === 'edit' ? 'hidden' : ''}`}>
           <ResumePreview
             resumeData={resumeData}
             template={template}
