@@ -4,6 +4,7 @@ import './polyfills';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import * as Sentry from "@sentry/react";
+import { injectSpeedInsights } from '@vercel/speed-insights';
 import App from './App';
 
 // Initialize Sentry for error tracking
@@ -21,6 +22,9 @@ Sentry.init({
   // Environment
   environment: import.meta.env.MODE, // 'development' or 'production'
 });
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
