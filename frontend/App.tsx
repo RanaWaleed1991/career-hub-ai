@@ -3,6 +3,8 @@ import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
 import AuthPage from './components/AuthPage';
+import ForgotPasswordPage from './components/ForgotPasswordPage';
+import ResetPasswordPage from './components/ResetPasswordPage';
 import WelcomeModal from './components/WelcomeModal';
 import SubscriptionExpiredModal from './components/SubscriptionExpiredModal';
 import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFlag, getSubscription } from './services/premiumService';
@@ -178,17 +180,20 @@ const AppContent: React.FC = () => {
   }
 
   // If not authenticated and trying to access protected pages, show landing page
-  // Public pages (landing, privacy, terms, builder, jobs, courses, coverLetter) are accessible without auth
-  const publicPages = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses', 'coverLetter'];
+  // Public pages (landing, privacy, terms, builder, jobs, courses, coverLetter, forgot-password, reset-password) are accessible without auth
+  const publicPages = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses', 'coverLetter', 'forgot-password', 'reset-password'];
   const isPublicPage = publicPages.includes(page);
 
   // If not authenticated but viewing public pages, render them
-  if (!user && (page === 'privacy' || page === 'terms')) {
+  if (!user && (page === 'privacy' || page === 'terms' || page === 'forgot-password' || page === 'reset-password')) {
     return (
       <div className="h-screen w-screen bg-slate-50 flex flex-col">
         <main className="flex-grow overflow-y-auto relative">
           <Suspense fallback={<LoadingFallback />}>
-            {page === 'privacy' ? <PrivacyPolicy setPage={setPage} /> : <TermsOfService setPage={setPage} />}
+            {page === 'privacy' && <PrivacyPolicy setPage={setPage} />}
+            {page === 'terms' && <TermsOfService setPage={setPage} />}
+            {page === 'forgot-password' && <ForgotPasswordPage setPage={setPage} />}
+            {page === 'reset-password' && <ResetPasswordPage setPage={setPage} />}
           </Suspense>
         </main>
       </div>

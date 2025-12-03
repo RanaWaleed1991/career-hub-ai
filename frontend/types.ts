@@ -81,7 +81,7 @@ export interface ResumeVersion {
 
 export type TemplateType = 'classic' | 'modern' | 'australian' | 'picture' | 'ats' | 'minimal';
 
-export type Page = 'landing' | 'builder' | 'courses' | 'jobs' | 'coverLetter' | 'admin' | 'tracker' | 'versions' | 'analyser' | 'dashboard' | 'paymentSuccess' | 'paymentCancel' | 'pricing' | 'subscription' | 'privacy' | 'terms';
+export type Page = 'landing' | 'auth' | 'forgot-password' | 'reset-password' | 'builder' | 'courses' | 'jobs' | 'coverLetter' | 'admin' | 'tracker' | 'versions' | 'analyser' | 'dashboard' | 'paymentSuccess' | 'paymentCancel' | 'pricing' | 'subscription' | 'privacy' | 'terms';
 
 export interface ResumeAnalysisResult {
   atsScore: number;

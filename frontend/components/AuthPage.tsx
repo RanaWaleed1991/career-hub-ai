@@ -29,25 +29,30 @@ const AuthPage: React.FC<AuthPageProps> = ({ setPage }) => {
         const { error: loginError } = await login(email, password);
         if (loginError) {
           setError(loginError);
+          setLoading(false);
+          return;
         }
       } else {
         // Sign up
         if (password !== confirmPassword) {
           setError("Passwords do not match.");
+          setLoading(false);
           return;
         }
         if (password.length < 6) {
           setError("Password must be at least 6 characters long.");
+          setLoading(false);
           return;
         }
         const { error: signupError } = await signup(email, password, fullName);
         if (signupError) {
           setError(signupError);
+          setLoading(false);
+          return;
         }
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -161,7 +166,16 @@ const AuthPage: React.FC<AuthPageProps> = ({ setPage }) => {
                   />
                 </div>
                 <div>
-                  <label htmlFor="password-login" className={labelClass}>Password</label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label htmlFor="password-login" className={labelClass}>Password</label>
+                    <button
+                      type="button"
+                      onClick={() => setPage('forgot-password')}
+                      className="text-xs text-indigo-600 hover:text-indigo-500 font-medium"
+                    >
+                      Forgot password?
+                    </button>
+                  </div>
                   <input
                     id="password-login"
                     type="password"
