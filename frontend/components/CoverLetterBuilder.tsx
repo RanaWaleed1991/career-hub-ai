@@ -6,6 +6,7 @@ import {
     useCoverLetterAttempt,
 } from '../services/premiumService';
 import { DownloadIcon, SparklesIcon } from './icons';
+import { downloadOrSharePDF, isMobileDevice, getPDFSuccessMessage } from '../utils/pdfDownload';
 
 interface CoverLetterBuilderProps {
   triggerPremiumFlow: () => void;
@@ -118,9 +119,11 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
             // Calculate actual content height
             const contentHeight = clone.scrollHeight;
 
+            const filename = 'cover_letter.pdf';
+
             const opt = {
                 margin: 0, // No margin since we're adding padding directly
-                filename: 'cover_letter.pdf',
+                filename, // Still needed for some html2pdf internal logic
                 image: { type: 'png', quality: 1 },
                 html2canvas: {
                     // *** KEY CHANGE: Increase scale for higher resolution capture ***
@@ -142,13 +145,24 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            await html2pdf().set(opt).from(clone).save();
+            // Generate PDF as blob instead of auto-saving
+            const pdfBlob = await html2pdf().set(opt).from(clone).outputPdf('blob');
 
             // Restore cursor
             document.body.style.cursor = originalCursor;
 
             // Clean up
             document.body.removeChild(container);
+
+            // Use mobile-friendly download/share
+            const result = await downloadOrSharePDF(pdfBlob, filename);
+
+            if (result.success) {
+                const isMobile = isMobileDevice();
+                alert(getPDFSuccessMessage(result.method, isMobile));
+            } else {
+                throw new Error(result.error || 'Failed to save PDF');
+            }
         } catch (error) {
             console.error('PDF generation failed:', error);
             alert('Failed to generate PDF. Please try again.');

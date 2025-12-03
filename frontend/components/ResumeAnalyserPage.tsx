@@ -5,6 +5,7 @@ import { analyzeResume } from '../services/geminiService';
 import { pdfService } from '../services/pdfService';
 import type { ResumeAnalysisResult } from '../types';
 import { UploadCloudIcon, CheckCircleIcon, XCircleIcon, DocumentChartBarIcon, LightBulbIcon, UserCircleIcon, PrintIcon } from './icons';
+import { downloadOrSharePDF, isMobileDevice, getPDFSuccessMessage } from '../utils/pdfDownload';
 
 interface ResumeAnalyserPageProps {
   triggerPremiumFlow: () => void;
@@ -209,9 +210,11 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
             // Calculate content height
             const contentHeight = clone.scrollHeight;
 
+            const filename = `resume_analysis_report_${Date.now()}.pdf`;
+
             const opt = {
                 margin: 15,
-                filename: `resume_analysis_report_${Date.now()}.pdf`,
+                filename, // Still needed for some html2pdf internal logic
                 image: { type: 'png', quality: 1 },
                 html2canvas: {
                     scale: 4, // High quality
@@ -232,7 +235,8 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
                 pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
 
-            await html2pdf().set(opt).from(clone).save();
+            // Generate PDF as blob instead of auto-saving
+            const pdfBlob = await html2pdf().set(opt).from(clone).outputPdf('blob');
 
             document.body.style.cursor = originalCursor;
 
@@ -241,6 +245,16 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
 
             // Hide loading modal
             setIsGeneratingPDF(false);
+
+            // Use mobile-friendly download/share
+            const result = await downloadOrSharePDF(pdfBlob, filename);
+
+            if (result.success) {
+                const isMobile = isMobileDevice();
+                alert(getPDFSuccessMessage(result.method, isMobile));
+            } else {
+                throw new Error(result.error || 'Failed to save PDF');
+            }
         } catch (error) {
             console.error('PDF generation failed:', error);
             alert('Failed to generate PDF. Please try again.');
