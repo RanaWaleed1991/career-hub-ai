@@ -19,17 +19,38 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
     // Check if we have a valid reset token in the URL
     const checkToken = async () => {
       try {
-        // Supabase automatically handles the token from URL hash
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // Try to get token from URL query parameter first
+        const searchParams = new URLSearchParams(window.location.search);
+        const tokenFromQuery = searchParams.get('token');
 
-        if (error || !session) {
-          setError('Invalid or expired reset link. Please request a new one.');
+        if (tokenFromQuery) {
+          // Verify the recovery token with Supabase
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenFromQuery,
+            type: 'recovery',
+          });
+
+          if (error || !data.session) {
+            setError('Invalid or expired reset link. Please request a new one.');
+            setChecking(false);
+            return;
+          }
+
+          setValidToken(true);
           setChecking(false);
-          return;
-        }
+        } else {
+          // Fallback: check if Supabase automatically handled token from URL hash
+          const { data: { session }, error } = await supabase.auth.getSession();
 
-        setValidToken(true);
-        setChecking(false);
+          if (error || !session) {
+            setError('Invalid or expired reset link. Please request a new one.');
+            setChecking(false);
+            return;
+          }
+
+          setValidToken(true);
+          setChecking(false);
+        }
       } catch (err) {
         setError('Failed to verify reset link. Please try again.');
         setChecking(false);
