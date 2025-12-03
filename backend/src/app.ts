@@ -85,12 +85,6 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Sentry test endpoint - intentionally throws error to test error tracking
-// Remove this endpoint in production or add authentication
-app.get('/debug-sentry', (req, res) => {
-  throw new Error('Sentry error tracking test - this error is intentional!');
-});
-
 // Auth routes - strict rate limiting to prevent brute force
 app.use('/api/auth', authLimiter, authRoutes);
 
