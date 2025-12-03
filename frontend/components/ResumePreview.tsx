@@ -33,6 +33,19 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
 }) => {
   const [showWatermark, setShowWatermark] = useState(true);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const checkPremiumStatus = async () => {
@@ -250,23 +263,44 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({
   return (
     <div className="p-4 md:p-6 bg-gradient-to-br from-slate-100 to-slate-200 h-full flex flex-col">
       <div className="mb-4 p-2 bg-white/60 backdrop-blur-sm rounded-lg shadow-sm flex flex-col gap-3 print:hidden">
-        {/* Top row for templates */}
-        <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-                <span className="text-sm font-semibold text-slate-700">Template:</span>
-                <div className="flex rounded-md shadow-sm border border-slate-200">
+        {/* Top row for templates and download button */}
+        <div className="flex justify-between items-center gap-3">
+            <div className="flex items-center space-x-2 flex-1 min-w-0">
+                <span className="text-sm font-semibold text-slate-700 whitespace-nowrap">Template:</span>
+
+                {/* Mobile: Dropdown Select */}
+                {isMobile ? (
+                  <select
+                    value={template}
+                    onChange={(e) => setTemplate(e.target.value as TemplateType)}
+                    className="flex-1 px-3 py-1.5 text-sm font-medium bg-white border border-slate-200 rounded-md text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="classic">Classic</option>
+                    <option value="modern">Modern</option>
+                    <option value="australian">Australian</option>
+                    <option value="picture">Picture</option>
+                    <option value="ats">ATS</option>
+                    <option value="minimal">Minimal</option>
+                  </select>
+                ) : (
+                  /* Desktop: Button Group */
+                  <div className="flex rounded-md shadow-sm border border-slate-200">
                     <button onClick={() => setTemplate('classic')} className={`${templateButtonClass} rounded-l-md ${template === 'classic' ? activeClass : inactiveClass}`}>Classic</button>
                     <button onClick={() => setTemplate('modern')} className={`${templateButtonClass} ${template === 'modern' ? activeClass : inactiveClass}`}>Modern</button>
                     <button onClick={() => setTemplate('australian')} className={`${templateButtonClass} ${template === 'australian' ? activeClass : inactiveClass}`}>Australian</button>
                     <button onClick={() => setTemplate('picture')} className={`${templateButtonClass} ${template === 'picture' ? activeClass : inactiveClass}`}>Picture</button>
                     <button onClick={() => setTemplate('ats')} className={`${templateButtonClass} ${template === 'ats' ? activeClass : inactiveClass}`}>ATS</button>
                     <button onClick={() => setTemplate('minimal')} className={`${templateButtonClass} rounded-r-md ${template === 'minimal' ? activeClass : inactiveClass}`}>Minimal</button>
-                </div>
+                  </div>
+                )}
             </div>
-            <div className="flex space-x-2">
-              <button onClick={handlePrintClick} className="flex items-center space-x-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm">
+
+            {/* Download button - always visible */}
+            <div className="flex-shrink-0">
+              <button onClick={handlePrintClick} className="flex items-center space-x-2 px-3 py-1.5 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm whitespace-nowrap">
                   <DownloadIcon className="w-4 h-4"/>
-                  <span>Download PDF</span>
+                  <span className="hidden sm:inline">Download PDF</span>
+                  <span className="sm:hidden">PDF</span>
               </button>
             </div>
         </div>
