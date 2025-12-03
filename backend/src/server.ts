@@ -4,6 +4,9 @@
  * Starts the Express server and performs environment validation
  */
 
+// IMPORTANT: Sentry instrumentation must be imported FIRST
+import './instrument.js';
+
 import { env } from './config/env.js';
 import { validateEnv } from './config/validateEnv.js';
 import { performSecurityChecks, logSecurityFeatures } from './utils/securityChecks.js';

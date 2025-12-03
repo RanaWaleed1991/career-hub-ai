@@ -28,6 +28,7 @@ import coursesRoutes from './routes/courses.js';
 import userRoutes from './routes/user.js';
 import { enforceHttps, addSecurityHeaders } from './middleware/httpsEnforcement.js';
 import { cacheJobs, cacheCourses, cacheSubscriptions } from './middleware/cache.js';
+import Sentry from './instrument.js';
 
 export const app = express();
 
@@ -84,6 +85,12 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Sentry test endpoint - intentionally throws error to test error tracking
+// Remove this endpoint in production or add authentication
+app.get('/debug-sentry', (req, res) => {
+  throw new Error('Sentry error tracking test - this error is intentional!');
+});
+
 // Auth routes - strict rate limiting to prevent brute force
 app.use('/api/auth', authLimiter, authRoutes);
 
@@ -120,6 +127,9 @@ app.use('/api/applications', generalLimiter, addSecurityHeaders, applicationsRou
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
+
+// Sentry error handler - MUST be before other error middleware
+Sentry.setupExpressErrorHandler(app);
 
 // Error logging and handling
 app.use(errorLogger);
