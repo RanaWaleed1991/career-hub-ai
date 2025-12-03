@@ -1,15 +1,89 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import type { Page } from '../types';
+import { getSubscription } from '../services/premiumService';
 
 interface PaymentSuccessProps {
   setPage: (page: Page) => void;
 }
 
 const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [verificationFailed, setVerificationFailed] = useState(false);
+
   useEffect(() => {
-    // Optional: You could fetch updated subscription status here
-    console.log('Payment successful!');
+    // Poll subscription status until webhook has processed
+    const verifySubscription = async () => {
+      const maxAttempts = 20; // 20 seconds max
+      let attempts = 0;
+
+      const checkSubscription = async (): Promise<boolean> => {
+        try {
+          const sub = await getSubscription();
+          console.log('[PaymentSuccess] Checking subscription:', sub);
+
+          // Check if subscription is now premium (weekly or monthly)
+          if (sub && (sub.plan === 'weekly' || sub.plan === 'monthly')) {
+            console.log('[PaymentSuccess] ✅ Premium subscription verified!');
+            return true;
+          }
+
+          return false;
+        } catch (error) {
+          console.error('[PaymentSuccess] Error checking subscription:', error);
+          return false;
+        }
+      };
+
+      // Poll every second until subscription is updated or max attempts reached
+      const pollInterval = setInterval(async () => {
+        attempts++;
+        console.log(`[PaymentSuccess] Polling attempt ${attempts}/${maxAttempts}`);
+
+        const isUpdated = await checkSubscription();
+
+        if (isUpdated) {
+          clearInterval(pollInterval);
+          setIsVerifying(false);
+          console.log('[PaymentSuccess] Subscription verified, showing success message');
+        } else if (attempts >= maxAttempts) {
+          clearInterval(pollInterval);
+          setIsVerifying(false);
+          setVerificationFailed(true);
+          console.warn('[PaymentSuccess] Subscription verification timed out');
+        }
+      }, 1000); // Check every second
+
+      // Cleanup on unmount
+      return () => clearInterval(pollInterval);
+    };
+
+    verifySubscription();
   }, []);
+
+  const handleGoToDashboard = () => {
+    // Force a full page reload to ensure fresh subscription data
+    window.location.href = '/';
+  };
+
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+        <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-8 text-center">
+          <div className="mb-6">
+            <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Processing Your Subscription...
+          </h1>
+          <p className="text-gray-600">
+            Please wait while we activate your premium account.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
@@ -42,9 +116,17 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
           Welcome to Career Hub AI Premium!
         </p>
 
-        <p className="text-gray-500 text-sm mb-8">
+        <p className="text-gray-500 text-sm mb-2">
           Your subscription is now active. You have access to all premium features.
         </p>
+
+        {verificationFailed && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-6">
+            <p className="text-sm text-yellow-800">
+              ⚠️ Subscription is being processed. If you don't see premium features immediately, please refresh the page in a few moments.
+            </p>
+          </div>
+        )}
 
         {/* Features List */}
         <div className="bg-gray-50 rounded-lg p-4 mb-8 text-left">
@@ -76,14 +158,14 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ setPage }) => {
         {/* Action Buttons */}
         <div className="space-y-3">
           <button
-            onClick={() => setPage('dashboard')}
+            onClick={handleGoToDashboard}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
           >
             Go to Dashboard
           </button>
 
           <button
-            onClick={() => setPage('builder')}
+            onClick={handleGoToDashboard}
             className="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-200"
           >
             Start Building Resume
