@@ -203,6 +203,19 @@ export class AdzunaService {
   }
 
   /**
+   * Fetch all jobs broadly without category restrictions
+   * Let Adzuna return whatever jobs are available
+   */
+  async fetchAllJobs(limit: number = 100, location?: string): Promise<MappedJob[]> {
+    const response = await this.searchJobs({
+      what: '', // Empty search - get all jobs
+      where: location,
+      resultsPerPage: limit,
+    });
+    return this.mapJobs(response.results);
+  }
+
+  /**
    * Fetch jobs for all categories
    */
   async fetchAllCategoryJobs(limitPerCategory: number = 20, location?: string): Promise<{
@@ -210,11 +223,13 @@ export class AdzunaService {
     accounting: MappedJob[];
     casual: MappedJob[];
   }> {
-    const [tech, accounting, casual] = await Promise.all([
-      this.fetchTechJobs(limitPerCategory, location),
-      this.fetchAccountingJobs(limitPerCategory, location),
-      this.fetchCasualJobs(limitPerCategory, location),
-    ]);
+    // Use broad search to get all available jobs
+    const allJobs = await this.fetchAllJobs(100, location);
+
+    // Separate by category for stats
+    const tech = allJobs.filter(job => job.category === 'tech');
+    const accounting = allJobs.filter(job => job.category === 'accounting');
+    const casual = allJobs.filter(job => job.category === 'casual');
 
     return { tech, accounting, casual };
   }
