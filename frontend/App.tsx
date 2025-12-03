@@ -74,8 +74,15 @@ const AppContent: React.FC = () => {
   // Detect password recovery token in URL and redirect to reset password page
   useEffect(() => {
     const hash = window.location.hash;
-    if (hash && hash.includes('type=recovery')) {
-      console.log('Password recovery token detected, redirecting to reset-password page');
+    const path = window.location.pathname;
+    const searchParams = new URLSearchParams(window.location.search);
+
+    // Check if URL path is /reset-password or hash contains recovery type
+    if (path.includes('/reset-password') || (searchParams.has('token') && path.includes('reset-password'))) {
+      console.log('Password reset page detected, redirecting to reset-password page');
+      setPage('reset-password');
+    } else if (hash && hash.includes('type=recovery')) {
+      console.log('Password recovery token detected in hash, redirecting to reset-password page');
       setPage('reset-password');
     }
   }, []);
