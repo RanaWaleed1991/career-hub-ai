@@ -201,7 +201,8 @@ const AppContent: React.FC = () => {
   const isPublicPage = publicPages.includes(page);
 
   // If not authenticated but viewing public pages, render them
-  if (!user && (page === 'privacy' || page === 'terms' || page === 'forgot-password' || page === 'reset-password')) {
+  // Note: reset-password needs to work with or without user (verifyOtp creates a session)
+  if ((!user && (page === 'privacy' || page === 'terms' || page === 'forgot-password')) || page === 'reset-password') {
     return (
       <div className="h-screen w-screen bg-slate-50 flex flex-col">
         <main className="flex-grow overflow-y-auto relative">
