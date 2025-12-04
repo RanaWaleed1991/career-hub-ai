@@ -176,7 +176,7 @@ export const getFreeTrialState = async (): Promise<FreeTrial | null> => {
   if (!sub) return null;
 
   const remaining = {
-    resumeDownloads: Math.max(0, 3 - (sub.downloads_used || 0)),
+    resumeDownloads: Math.max(0, 2 - (sub.downloads_used || 0)),
     coverLetters: Math.max(0, 3 - (sub.cover_letters_generated || 0)),
     aiImprovements: Math.max(0, 10 - (sub.ai_enhancements_used || 0)),
     resumeTailoring: Math.max(0, 3 - (sub.tailoring_used || 0)),
@@ -230,7 +230,7 @@ export const canDownloadResume = async (): Promise<boolean> => {
   const sub = await getSubscription();
   if (!sub) return true;
 
-  return (sub.downloads_used || 0) < 3;
+  return (sub.downloads_used || 0) < 2;
 };
 
 export const useResumeDownload = async (): Promise<void> => {
