@@ -12,6 +12,7 @@ import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFla
 import Dashboard from './components/Dashboard';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ProtectedRoute, AdminRoute } from './src/components/routes';
+import { SEO } from './src/components/SEO';
 
 // Lazy load heavy components to reduce initial bundle size
 // These will be loaded on-demand when user navigates to them
@@ -225,16 +226,24 @@ const AppContent: React.FC = () => {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={
-              <LandingPage
-                setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)}
-                {...modalProps}
-                openTailorModal={() => openTailorModal()}
-                isAuthenticated={!!user}
-                isAdmin={isAdmin}
-              />
+              <>
+                <SEO page="homepage" />
+                <LandingPage
+                  setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)}
+                  {...modalProps}
+                  openTailorModal={() => openTailorModal()}
+                  isAuthenticated={!!user}
+                  isAdmin={isAdmin}
+                />
+              </>
             } />
             <Route path="/login" element={
-              user ? <Navigate to="/dashboard" replace /> : <AuthPage setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+              user ? <Navigate to="/dashboard" replace /> : (
+                <>
+                  <SEO page="login" />
+                  <AuthPage setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+                </>
+              )
             } />
             <Route path="/forgot-password" element={
               <ForgotPasswordPage setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
@@ -243,52 +252,79 @@ const AppContent: React.FC = () => {
               <ResetPasswordPage setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
             } />
             <Route path="/privacy" element={
-              <PrivacyPolicy setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+              <>
+                <SEO page="privacy" />
+                <PrivacyPolicy setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+              </>
             } />
             <Route path="/terms" element={
-              <TermsOfService setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+              <>
+                <SEO page="terms" />
+                <TermsOfService setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+              </>
             } />
 
             {/* Resume Builder - Accessible to both guests and authenticated users */}
             <Route path="/resume-builder" element={
-              <ResumeBuilder
-                key={user?.id || 'guest'}
-                {...modalProps}
-                setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)}
-                openTailorModal={openTailorModal}
-                isGuestMode={!user}
-              />
+              <>
+                <SEO page="resumeBuilder" />
+                <ResumeBuilder
+                  key={user?.id || 'guest'}
+                  {...modalProps}
+                  setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)}
+                  openTailorModal={openTailorModal}
+                  isGuestMode={!user}
+                />
+              </>
             } />
 
             {/* Protected Routes - Require Authentication */}
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <Dashboard setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} openTailorModal={() => openTailorModal()} />
+                <>
+                  <SEO page="dashboard" />
+                  <Dashboard setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} openTailorModal={() => openTailorModal()} />
+                </>
               </ProtectedRoute>
             } />
             <Route path="/resume-analysis" element={
               <ProtectedRoute>
-                <ResumeAnalyserPage {...modalProps} />
+                <>
+                  <SEO page="resumeAnalysis" />
+                  <ResumeAnalyserPage {...modalProps} />
+                </>
               </ProtectedRoute>
             } />
             <Route path="/cover-letter" element={
               <ProtectedRoute>
-                <CoverLetterBuilder {...modalProps} />
+                <>
+                  <SEO page="coverLetter" />
+                  <CoverLetterBuilder {...modalProps} />
+                </>
               </ProtectedRoute>
             } />
             <Route path="/jobs" element={
               <ProtectedRoute>
-                <JobsPage />
+                <>
+                  <SEO page="jobs" />
+                  <JobsPage />
+                </>
               </ProtectedRoute>
             } />
             <Route path="/courses" element={
               <ProtectedRoute>
-                <CoursesPage />
+                <>
+                  <SEO page="courses" />
+                  <CoursesPage />
+                </>
               </ProtectedRoute>
             } />
             <Route path="/applications" element={
               <ProtectedRoute>
-                <ApplicationTrackerPage />
+                <>
+                  <SEO page="applications" />
+                  <ApplicationTrackerPage />
+                </>
               </ProtectedRoute>
             } />
             <Route path="/versions" element={

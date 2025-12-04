@@ -3,6 +3,7 @@ import './polyfills';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { HelmetProvider } from 'react-helmet-async';
 import * as Sentry from "@sentry/react";
 import { injectSpeedInsights } from '@vercel/speed-insights';
 import App from './App';
@@ -34,6 +35,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <HelmetProvider>
+      <App />
+    </HelmetProvider>
   </React.StrictMode>
 );
