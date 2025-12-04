@@ -1,0 +1,18 @@
+# Career Hub AI - Robots.txt
+# Allow all search engines to crawl public pages
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /applications
+Disallow: /subscription
+Disallow: /versions
+Disallow: /payment/
+
+# Sitemap location
+Sitemap: https://www.careerhubai.com.au/sitemap.xml
+
+# Crawl-delay for politeness (optional)
+Crawl-delay: 1
