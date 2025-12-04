@@ -1,16 +1,16 @@
 import express, { Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
 import { subscriptionDb, ensureDatabaseConfigured, handleDatabaseError } from '../services/database.js';
-import { cacheSubscriptions, clearUserSubscriptionCache } from '../middleware/cache.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authMiddleware);
 
-// Apply caching AFTER authentication to ensure user-specific cache keys
-// Prevents 429 errors from duplicate subscription API calls on login
-router.use(cacheSubscriptions);
+// NOTE: Caching removed from subscription routes
+// Subscription data changes frequently (downloads, analyses, cover letters)
+// and users expect real-time credit updates. Caching caused race conditions
+// where credit counters would fluctuate on refresh.
 
 /**
  * GET /api/subscriptions/current
@@ -93,9 +93,6 @@ router.post('/upgrade', async (req: AuthRequest, res: Response): Promise<void> =
       resume_analyses_done: 0,
     });
 
-    // Clear cache so frontend gets updated subscription immediately
-    clearUserSubscriptionCache(req.user.id);
-
     res.status(200).json({ subscription, message: 'Subscription updated successfully' });
   } catch (error) {
     const message = handleDatabaseError(error, 'upgrade subscription');
@@ -135,9 +132,6 @@ router.put('/features', async (req: AuthRequest, res: Response): Promise<void> =
 
     const subscription = await subscriptionDb.updateFeatureUsage(req.user.id, featureUpdates);
 
-    // Clear cache so frontend gets updated counter immediately
-    clearUserSubscriptionCache(req.user.id);
-
     res.status(200).json({ subscription });
   } catch (error) {
     const message = handleDatabaseError(error, 'update feature usage');
@@ -164,7 +158,7 @@ router.get('/check-limit/:feature', async (req: AuthRequest, res: Response): Pro
     const limits: Record<string, any> = {
       free: {
         ai_enhancements: 3,
-        downloads: 3,
+        downloads: 2,  // Reduced from 3 to create better conversion funnel
         cover_letters: 3,
         resume_analyses: 3,
       },
