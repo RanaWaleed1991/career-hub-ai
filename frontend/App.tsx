@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header';
 import LandingPage from './components/LandingPage';
@@ -8,9 +9,9 @@ import ResetPasswordPage from './components/ResetPasswordPage';
 import WelcomeModal from './components/WelcomeModal';
 import SubscriptionExpiredModal from './components/SubscriptionExpiredModal';
 import { Plan, purchasePlan, hasSubscriptionExpired, clearExpiredSubscriptionFlag, getSubscription } from './services/premiumService';
-import type { Page } from './types';
 import Dashboard from './components/Dashboard';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
+import { ProtectedRoute, AdminRoute } from './src/components/routes';
 
 // Lazy load heavy components to reduce initial bundle size
 // These will be loaded on-demand when user navigates to them
@@ -43,7 +44,8 @@ const LoadingFallback: React.FC = () => (
 
 const AppContent: React.FC = () => {
   const { user, loading, logout, isAdmin } = useAuth();
-  const [page, setPage] = useState<Page>('landing'); // Start with landing page
+  const navigate = useNavigate();
+  const location = useLocation();
   const hasRedirectedAdmin = useRef(false);
 
   // State for premium features modals
@@ -79,29 +81,28 @@ const AppContent: React.FC = () => {
 
     // Check if URL path is /reset-password or hash contains recovery type
     if (path.includes('/reset-password') || (searchParams.has('token') && path.includes('reset-password'))) {
-      console.log('Password reset page detected, redirecting to reset-password page');
-      setPage('reset-password');
+      console.log('Password reset page detected');
+      navigate('/reset-password', { replace: true });
     } else if (hash && hash.includes('type=recovery')) {
       console.log('Password recovery token detected in hash, redirecting to reset-password page');
-      setPage('reset-password');
+      navigate('/reset-password', { replace: true });
     }
-  }, []);
+  }, [navigate]);
 
   // Redirect admin users to admin page on initial login (only once)
   // Redirect authenticated users to dashboard if on landing page
   useEffect(() => {
-    if (user && isAdmin && !hasRedirectedAdmin.current) {
-      setPage('admin');
+    if (user && isAdmin && !hasRedirectedAdmin.current && location.pathname === '/') {
+      navigate('/admin', { replace: true });
       hasRedirectedAdmin.current = true;
-    } else if (user && page === 'landing') {
+    } else if (user && location.pathname === '/') {
       // If user is logged in and on landing page, go to dashboard
-      setPage('dashboard');
+      navigate('/dashboard', { replace: true });
     } else if (!user) {
       // Reset redirect flag when user logs out
       hasRedirectedAdmin.current = false;
-      // Don't redirect guests - let App.tsx render guards handle auth
     }
-  }, [user, isAdmin, page]);
+  }, [user, isAdmin, location.pathname, navigate]);
 
   // Check if welcome message should be shown for the user
   useEffect(() => {
@@ -119,7 +120,7 @@ const AppContent: React.FC = () => {
       await logout();
       console.log('✅ Logout successful');
       // Redirect to landing page after logout
-      setPage('landing');
+      navigate('/', { replace: true });
       console.log('🔴 Redirected to landing page');
     } catch (error) {
       console.error('❌ Logout error:', error);
@@ -131,7 +132,7 @@ const AppContent: React.FC = () => {
         setShowExpiredModal(true);
     } else {
         // Redirect to pricing page for Stripe checkout
-        setPage('pricing');
+        navigate('/pricing');
     }
   };
 
@@ -168,7 +169,7 @@ const AppContent: React.FC = () => {
     setShowExpiredModal(false);
     clearExpiredSubscriptionFlag();
     // Redirect to pricing page for Stripe checkout
-    setPage('pricing');
+    navigate('/pricing');
   };
 
   const openTailorModal = (initialText?: string) => {
@@ -195,123 +196,6 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // If not authenticated and trying to access protected pages, show landing page
-  // Public pages (landing, privacy, terms, builder, jobs, courses, coverLetter, forgot-password, reset-password) are accessible without auth
-  const publicPages = ['landing', 'privacy', 'terms', 'builder', 'jobs', 'courses', 'coverLetter', 'forgot-password', 'reset-password'];
-  const isPublicPage = publicPages.includes(page);
-
-  // If not authenticated but viewing public pages, render them
-  // Note: reset-password needs to work with or without user (verifyOtp creates a session)
-  if ((!user && (page === 'privacy' || page === 'terms' || page === 'forgot-password')) || page === 'reset-password') {
-    return (
-      <div className="h-screen w-screen bg-slate-50 flex flex-col">
-        <main className="flex-grow overflow-y-auto relative">
-          <Suspense fallback={<LoadingFallback />}>
-            {page === 'privacy' && <PrivacyPolicy setPage={setPage} />}
-            {page === 'terms' && <TermsOfService setPage={setPage} />}
-            {page === 'forgot-password' && <ForgotPasswordPage setPage={setPage} />}
-            {page === 'reset-password' && <ResetPasswordPage setPage={setPage} />}
-          </Suspense>
-        </main>
-      </div>
-    );
-  }
-
-  // If not authenticated and on landing page, show landing page with proper auth indication
-  if (!user && page === 'landing') {
-    return (
-      <div className="h-screen w-screen bg-slate-50 flex flex-col">
-        {tailorModalState.isOpen && (
-          <>
-            {console.log('🟣 Rendering TailorResumeModal (guest landing), isOpen:', tailorModalState.isOpen)}
-            <Suspense fallback={null}>
-              <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
-            </Suspense>
-          </>
-        )}
-        <main className="flex-grow overflow-y-auto relative">
-          <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={false} isAdmin={false} />
-        </main>
-      </div>
-    );
-  }
-
-  // If not authenticated and on builder page, show builder in guest mode
-  if (!user && page === 'builder') {
-    return (
-      <div className="h-screen w-screen bg-slate-50 flex flex-col">
-        {tailorModalState.isOpen && (
-          <>
-            {console.log('🟣 Rendering TailorResumeModal (guest builder), isOpen:', tailorModalState.isOpen)}
-            <Suspense fallback={null}>
-              <TailorResumeModal onClose={() => setTailorModalState({isOpen: false})} initialResumeText={tailorModalState.initialText} />
-            </Suspense>
-          </>
-        )}
-        <Header onGoToHome={() => setPage('landing')} onLogout={handleLogout} page={page} showLogout={false} />
-        <main className="flex-grow overflow-y-auto relative">
-          <Suspense fallback={<LoadingFallback />}>
-            <ResumeBuilder
-              key="guest-builder"
-              {...modalProps}
-              setPage={setPage}
-              openTailorModal={openTailorModal}
-              isGuestMode={true}
-            />
-          </Suspense>
-        </main>
-      </div>
-    );
-  }
-
-  // If not authenticated and trying to access protected pages, show auth page
-  if (!user && !isPublicPage) {
-    return <AuthPage setPage={setPage} />;
-  }
-
-  const renderPage = () => {
-    switch (page) {
-      case 'dashboard':
-        return <Dashboard setPage={setPage} openTailorModal={() => openTailorModal()} />;
-      case 'builder':
-        return <ResumeBuilder key={user?.id || 'guest'} {...modalProps} setPage={setPage} openTailorModal={openTailorModal}/>;
-      case 'analyser':
-        return <ResumeAnalyserPage {...modalProps} />;
-      case 'courses':
-        return <CoursesPage />;
-      case 'jobs':
-        return <JobsPage />;
-      case 'coverLetter':
-        return <CoverLetterBuilder {...modalProps} />;
-      case 'tracker':
-        return <ApplicationTrackerPage />;
-      case 'versions':
-        return <VersionHistoryPage setPage={setPage} />;
-      case 'admin':
-        // Protect admin route - only allow access if user is admin
-        if (!isAdmin) {
-          setPage('dashboard');
-          return <Dashboard setPage={setPage} openTailorModal={() => openTailorModal()} />;
-        }
-        return <AdminPage />;
-      case 'pricing':
-        return <PricingPage userToken={null} currentPlan={currentPlan} />;
-      case 'subscription':
-        return <SubscriptionManagement userToken={null} />;
-      case 'paymentSuccess':
-        return <PaymentSuccess setPage={setPage} />;
-      case 'paymentCancel':
-        return <PaymentCancel setPage={setPage} />;
-      case 'privacy':
-        return <PrivacyPolicy setPage={setPage} />;
-      case 'terms':
-        return <TermsOfService setPage={setPage} />;
-      case 'landing':
-      default:
-        return <LandingPage setPage={setPage} {...modalProps} openTailorModal={() => openTailorModal()} isAuthenticated={!!user} isAdmin={isAdmin} />;
-    }
-  };
-
   return (
     <div className="h-screen w-screen bg-slate-50 flex flex-col">
       {tailorModalState.isOpen && (
@@ -335,10 +219,114 @@ const AppContent: React.FC = () => {
           onUpgrade={handleUpgradeFromExpired}
         />
       )}
-      <Header onGoToHome={() => setPage(user ? 'dashboard' : 'landing')} onLogout={handleLogout} page={page} showLogout={!!user} />
+      <Header onGoToHome={() => navigate(user ? '/dashboard' : '/')} onLogout={handleLogout} page={location.pathname.slice(1) || 'landing'} showLogout={!!user} />
       <main className="flex-grow overflow-y-auto relative fade-in">
         <Suspense fallback={<LoadingFallback />}>
-          {renderPage()}
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={
+              <LandingPage
+                setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)}
+                {...modalProps}
+                openTailorModal={() => openTailorModal()}
+                isAuthenticated={!!user}
+                isAdmin={isAdmin}
+              />
+            } />
+            <Route path="/login" element={
+              user ? <Navigate to="/dashboard" replace /> : <AuthPage setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+            } />
+            <Route path="/forgot-password" element={
+              <ForgotPasswordPage setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+            } />
+            <Route path="/reset-password" element={
+              <ResetPasswordPage setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+            } />
+            <Route path="/privacy" element={
+              <PrivacyPolicy setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+            } />
+            <Route path="/terms" element={
+              <TermsOfService setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+            } />
+
+            {/* Resume Builder - Accessible to both guests and authenticated users */}
+            <Route path="/resume-builder" element={
+              <ResumeBuilder
+                key={user?.id || 'guest'}
+                {...modalProps}
+                setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)}
+                openTailorModal={openTailorModal}
+                isGuestMode={!user}
+              />
+            } />
+
+            {/* Protected Routes - Require Authentication */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <Dashboard setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} openTailorModal={() => openTailorModal()} />
+              </ProtectedRoute>
+            } />
+            <Route path="/resume-analysis" element={
+              <ProtectedRoute>
+                <ResumeAnalyserPage {...modalProps} />
+              </ProtectedRoute>
+            } />
+            <Route path="/cover-letter" element={
+              <ProtectedRoute>
+                <CoverLetterBuilder {...modalProps} />
+              </ProtectedRoute>
+            } />
+            <Route path="/jobs" element={
+              <ProtectedRoute>
+                <JobsPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/courses" element={
+              <ProtectedRoute>
+                <CoursesPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/applications" element={
+              <ProtectedRoute>
+                <ApplicationTrackerPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/versions" element={
+              <ProtectedRoute>
+                <VersionHistoryPage setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+              </ProtectedRoute>
+            } />
+            <Route path="/pricing" element={
+              <ProtectedRoute>
+                <PricingPage userToken={null} currentPlan={currentPlan} />
+              </ProtectedRoute>
+            } />
+            <Route path="/subscription" element={
+              <ProtectedRoute>
+                <SubscriptionManagement userToken={null} />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment/success" element={
+              <ProtectedRoute>
+                <PaymentSuccess setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+              </ProtectedRoute>
+            } />
+            <Route path="/payment/cancel" element={
+              <ProtectedRoute>
+                <PaymentCancel setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+              </ProtectedRoute>
+            } />
+
+            {/* Admin Routes - Require Admin Authentication */}
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminPage />
+              </AdminRoute>
+            } />
+
+            {/* Catch-all route - redirect to landing */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
         </Suspense>
       </main>
     </div>
@@ -347,10 +335,12 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <AppContent />
-      <Analytics />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+        <Analytics />
+      </AuthProvider>
+    </BrowserRouter>
   );
 };
 
