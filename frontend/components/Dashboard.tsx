@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import type { Page, ResumeData, Application } from '../types';
+import { useNavigate } from 'react-router-dom';
+import type { ResumeData, Application } from '../types';
 import ProgressTracker from './ProgressTracker';
 import TrialStatus from './TrialStatus';
 import { getLatestResume } from '../services/resumeService';
@@ -13,12 +14,13 @@ import { useAuth } from '../src/contexts/AuthContext';
 import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon, CogIcon } from './icons';
 
 interface DashboardProps {
-    setPage: (page: Page) => void;
+    setPage: (page: string) => void;
     openTailorModal: () => void;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
     const { isAdmin } = useAuth();
+    const navigate = useNavigate();
     const [resumeData, setResumeData] = useState<ResumeData | null>(null);
     const [applications, setApplications] = useState<Application[]>([]);
     const [versionCount, setVersionCount] = useState<number>(0);
@@ -79,16 +81,16 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
     };
 
     const quickActions = [
-        { title: "Edit My Resume", page: 'builder', icon: DocumentTextIcon, color: 'bg-indigo-100 text-indigo-600' },
+        { title: "Edit My Resume", path: '/resume-builder', icon: DocumentTextIcon, color: 'bg-indigo-100 text-indigo-600' },
         { title: "Tailor for a Job", action: openTailorModal, icon: ClipboardDocumentCheckIcon, color: 'bg-rose-100 text-rose-600' },
-        { title: "Generate Cover Letter", page: 'coverLetter', icon: EnvelopeIcon, color: 'bg-purple-100 text-purple-600' },
+        { title: "Generate Cover Letter", path: '/cover-letter', icon: EnvelopeIcon, color: 'bg-purple-100 text-purple-600' },
     ];
-    
+
     const toolkitActions = [
-        { title: "Find Jobs", page: 'jobs', icon: BriefcaseIcon },
-        { title: "Explore Courses", page: 'courses', icon: BookOpenIcon },
-        { title: "Resume Analyser", page: 'analyser', icon: DocumentChartBarIcon },
-        ...(isAdmin ? [{ title: "Admin Panel", page: 'admin', icon: CogIcon }] : []),
+        { title: "Find Jobs", path: '/jobs', icon: BriefcaseIcon },
+        { title: "Explore Courses", path: '/courses', icon: BookOpenIcon },
+        { title: "Resume Analyser", path: '/resume-analysis', icon: DocumentChartBarIcon },
+        ...(isAdmin ? [{ title: "Admin Panel", path: '/admin', icon: CogIcon }] : []),
     ]
 
     return (
@@ -108,7 +110,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                             {quickActions.map(action => (
                                 <button
                                     key={action.title}
-                                    onClick={() => action.page ? setPage(action.page as Page) : action.action?.()}
+                                    onClick={() => action.path ? navigate(action.path) : action.action?.()}
                                     className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 text-left w-full flex flex-col items-center border border-slate-200"
                                 >
                                     <div className={`p-3 rounded-lg ${action.color} inline-flex self-center mb-4`}>
@@ -124,7 +126,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                         <h3 className="text-xl font-semibold text-slate-800 mb-4">Your Career Toolkit</h3>
                         <div className="bg-white p-4 rounded-xl shadow-lg border border-slate-200 space-y-2">
                              {toolkitActions.map(action => (
-                                <button key={action.title} onClick={() => setPage(action.page as Page)} className="w-full flex items-center p-3 rounded-lg hover:bg-slate-100 transition-colors">
+                                <button key={action.title} onClick={() => navigate(action.path)} className="w-full flex items-center p-3 rounded-lg hover:bg-slate-100 transition-colors">
                                     <div className="p-2 rounded-lg bg-slate-200 text-slate-600 mr-4">
                                        <action.icon className="w-6 h-6" />
                                     </div>
@@ -167,7 +169,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                                 <span className="font-bold text-slate-800">{applicationSummary.interviewing}</span>
                             </div>
                         </div>
-                        <button onClick={() => setPage('tracker')} className="mt-4 w-full text-center px-4 py-2 bg-slate-200 text-slate-800 text-sm font-semibold rounded-md hover:bg-slate-300 transition-colors">
+                        <button onClick={() => navigate('/applications')} className="mt-4 w-full text-center px-4 py-2 bg-slate-200 text-slate-800 text-sm font-semibold rounded-md hover:bg-slate-300 transition-colors">
                             View Full Tracker
                         </button>
                     </div>
@@ -184,7 +186,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
                                 Free tier: Up to 3 versions
                             </p>
                         </div>
-                         <button onClick={() => setPage('versions')} className="mt-2 w-full text-center px-4 py-2 bg-slate-200 text-slate-800 text-sm font-semibold rounded-md hover:bg-slate-300 transition-colors">
+                         <button onClick={() => navigate('/versions')} className="mt-2 w-full text-center px-4 py-2 bg-slate-200 text-slate-800 text-sm font-semibold rounded-md hover:bg-slate-300 transition-colors">
                             Manage Versions
                         </button>
                     </div>
