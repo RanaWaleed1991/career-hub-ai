@@ -45,8 +45,8 @@ const CoverLetterBuilder: React.FC<CoverLetterBuilderProps> = ({ triggerPremiumF
             const result = await generateCoverLetter(resumeText, jobTitle, company, jobDescription);
             setGeneratedLetter(result);
 
-            // Only track usage after successful generation
-            await useCoverLetterAttempt();
+            // Backend already tracks usage in /api/gemini/generate-cover-letter
+            // No need to track again here (was causing double-counting)
         } catch (err) {
             // Check if this is a limit reached error
             if (err instanceof Error && (err as any).limitReached) {

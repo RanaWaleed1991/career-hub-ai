@@ -162,8 +162,8 @@ const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ triggerPremiumFlow, setAc
 
       const enhancedText = await enhanceTextWithAI(text, field);
 
-      // Only track usage after successful enhancement
-      await useAIImprovementAttempt();
+      // Backend already tracks usage in /api/gemini/enhance-summary
+      // No need to track again here (was causing double-counting)
 
       setResumeData(prev => {
         if (field === 'summary') {

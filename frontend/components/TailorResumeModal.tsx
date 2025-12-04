@@ -34,8 +34,8 @@ const TailorResumeModal: React.FC<TailorResumeModalProps> = ({ onClose, initialR
       const result = await tailorResumeForJob(resumeText, jobDescription);
       setTailoredContent(result);
 
-      // Only track usage after successful tailoring
-      await useTailorAttempt();
+      // Backend already tracks usage in /api/gemini/tailor-resume
+      // No need to track again here (was causing double-counting)
 
       setStep('result');
     } catch (err) {

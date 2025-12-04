@@ -339,7 +339,17 @@ router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, as
       // Don't fail the request if counter update fails
     }
 
-    res.json({ analysis });
+    // Add warning for weekly users approaching limit
+    const newUsage = currentUsage + 1;
+    let warningMessage: string | undefined;
+    if (plan === 'weekly' && newUsage >= 8) {
+      const remaining = limit - newUsage;
+      warningMessage = remaining === 1
+        ? `You have 1 resume analysis left this week.`
+        : `You have ${remaining} resume analyses left this week.`;
+    }
+
+    res.json({ analysis, ...(warningMessage && { warningMessage }) });
   } catch (error) {
     console.error('Error calling Gemini API for resume analysis:', error);
     res.status(500).json({ error: 'Failed to analyze resume. Please try again.' });

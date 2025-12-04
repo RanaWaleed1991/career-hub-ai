@@ -105,8 +105,8 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
 
             const result = await analyzeResume(textContent);
 
-            // Track usage after successful analysis
-            await useResumeAnalysisAttempt();
+            // Backend already tracks usage in /api/gemini/analyze-resume
+            // No need to track again here (was causing double-counting)
 
             setAnalysisResult(result);
             setView('result');
@@ -291,6 +291,11 @@ const ResumeAnalyserPage: React.FC<ResumeAnalyserPageProps> = ({ triggerPremiumF
                                 </button>
                             </div>
                         </div>
+                        {(analysisResult as any).__warningMessage && (
+                            <div className="bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 mb-6 rounded-md print:hidden" role="alert">
+                                <p className="font-semibold">⚠️ {(analysisResult as any).__warningMessage}</p>
+                            </div>
+                        )}
                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <div className="lg:col-span-1 space-y-6">
                                 <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm text-center" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>

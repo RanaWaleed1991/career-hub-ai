@@ -183,6 +183,12 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysisR
     }
 
     const data = await response.json();
+
+    // If there's a warning message from backend, attach it to the result
+    if (data.warningMessage) {
+      (data.analysis as any).__warningMessage = data.warningMessage;
+    }
+
     return data.analysis;
   } catch (error) {
     console.error("Error calling backend API for resume analysis:", error);
