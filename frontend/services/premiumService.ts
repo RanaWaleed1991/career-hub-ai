@@ -29,6 +29,7 @@ interface Subscription {
   downloads_used: number;
   cover_letters_generated: number;
   resume_analyses_done: number;
+  ai_tailoring_used: number;
   trial_used: boolean;
   subscription_expires: string | null;
 }
@@ -179,7 +180,7 @@ export const getFreeTrialState = async (): Promise<FreeTrial | null> => {
     resumeDownloads: Math.max(0, 2 - (sub.downloads_used || 0)),
     coverLetters: Math.max(0, 3 - (sub.cover_letters_generated || 0)),
     aiImprovements: Math.max(0, 10 - (sub.ai_enhancements_used || 0)),
-    resumeTailoring: Math.max(0, 3 - (sub.tailoring_used || 0)),
+    resumeTailoring: Math.max(0, 3 - (sub.ai_tailoring_used || 0)),
     resumeAnalyses: Math.max(0, 3 - (sub.resume_analyses_done || 0)),
     expiry: sub.subscription_expires ? new Date(sub.subscription_expires).getTime() : 0,
   };
