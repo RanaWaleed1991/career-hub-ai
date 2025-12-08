@@ -140,3 +140,25 @@ export interface Application {
   dateApplied: string;
   notes: string;
 }
+
+export type BlogStatus = 'draft' | 'published';
+
+export interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt?: string;
+  author: string;
+  category?: string;
+  tags?: string[];
+  featured_image?: string;
+  status: BlogStatus;
+  published_date?: string;
+  meta_title?: string;
+  meta_description?: string;
+  reading_time_minutes: number;
+  view_count: number;
+  created_at: string;
+  updated_at: string;
+}
