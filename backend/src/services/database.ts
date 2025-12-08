@@ -871,3 +871,137 @@ export const courseDb = {
     return { success: true };
   },
 };
+
+/**
+ * Database service for blogs
+ */
+export const blogDb = {
+  /**
+   * Get all published blogs with pagination
+   */
+  async getPublished(options: { category?: string; tag?: string; search?: string; limit?: number; offset?: number }) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { category, tag, search, limit = 10, offset = 0 } = options;
+
+    let query = supabase
+      .from('blogs')
+      .select('*', { count: 'exact' })
+      .eq('status', 'published')
+      .order('published_date', { ascending: false });
+
+    if (category) {
+      query = query.eq('category', category);
+    }
+
+    if (tag) {
+      query = query.contains('tags', [tag]);
+    }
+
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
+    }
+
+    query = query.range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
+
+    if (error) throw error;
+    return { blogs: data || [], total: count || 0 };
+  },
+
+  /**
+   * Get a single blog by slug (public)
+   */
+  async getBySlug(slug: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('blogs')
+      .select('*')
+      .eq('slug', slug)
+      .eq('status', 'published')
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Get all blogs including drafts (admin)
+   */
+  async getAll() {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('blogs')
+      .select('*')
+      .order('created_at', { ascending: false});
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  /**
+   * Create a new blog
+   */
+  async create(blogData: any) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('blogs')
+      .insert([blogData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Update a blog
+   */
+  async update(id: string, blogData: any) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { data, error } = await supabase
+      .from('blogs')
+      .update(blogData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  /**
+   * Delete a blog
+   */
+  async delete(id: string) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { error } = await supabase
+      .from('blogs')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return { success: true };
+  },
+
+  /**
+   * Increment view count
+   */
+  async incrementViewCount(id: string, currentCount: number) {
+    if (!supabase) throw new Error('Database not configured');
+
+    const { error } = await supabase
+      .from('blogs')
+      .update({ view_count: currentCount + 1 })
+      .eq('id', id);
+
+    if (error) throw error;
+    return { success: true };
+  },
+};

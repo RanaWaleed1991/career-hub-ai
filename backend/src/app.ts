@@ -25,6 +25,7 @@ import paymentsRoutes from './routes/payments.js';
 import webhooksRoutes from './routes/webhooks.js';
 import jobsRoutes from './routes/jobs.js';
 import coursesRoutes from './routes/courses.js';
+import blogsRoutes from './routes/blogs.js';
 import userRoutes from './routes/user.js';
 import { enforceHttps, addSecurityHeaders } from './middleware/httpsEnforcement.js';
 import { cacheJobs, cacheCourses, cacheSubscriptions } from './middleware/cache.js';
@@ -101,9 +102,10 @@ app.use('/api/subscriptions', generalLimiter, subscriptionsRoutes);
 
 // Admin routes - strict rate limiting for sensitive operations
 // Note: These are protected by adminMiddleware inside the route files
-// Caching applied to GET requests only (5 min for jobs, 10 min for courses)
+// Caching applied to GET requests only (5 min for jobs, 10 min for courses, blogs)
 app.use('/api/jobs', strictLimiter, cacheJobs, jobsRoutes);
 app.use('/api/courses', strictLimiter, cacheCourses, coursesRoutes);
+app.use('/api/blogs', strictLimiter, cacheCourses, blogsRoutes); // Reusing courses cache
 
 // User data management routes - GDPR compliance (with security headers)
 app.use('/api/user', generalLimiter, addSecurityHeaders, userRoutes);

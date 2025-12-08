@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import type { Job, JobCategory, Course, CourseType } from '../types';
 import { getJobs, addJob, deleteJob, getCourses, addCourse, deleteCourse, syncJobsFromAdzuna } from '../services/contentService';
 import { MinusCircleIcon } from './icons';
+import BlogManagement from './BlogManagement';
 
 const AdminPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'jobs' | 'courses'>('jobs');
+  const [activeTab, setActiveTab] = useState<'jobs' | 'courses' | 'blogs'>('jobs');
 
   // Jobs state
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -244,6 +245,7 @@ const AdminPage: React.FC = () => {
         <div className="flex space-x-2 border-b">
           <button onClick={() => setActiveTab('jobs')} className={`px-4 py-2 font-medium ${activeTab === 'jobs' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>Manage Jobs</button>
           <button onClick={() => setActiveTab('courses')} className={`px-4 py-2 font-medium ${activeTab === 'courses' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>Manage Courses</button>
+          <button onClick={() => setActiveTab('blogs')} className={`px-4 py-2 font-medium ${activeTab === 'blogs' ? 'border-b-2 border-indigo-500 text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}>Manage Blogs</button>
         </div>
       </div>
 
@@ -454,6 +456,10 @@ const AdminPage: React.FC = () => {
                 )}
             </div>
         </div>
+      )}
+
+      {activeTab === 'blogs' && (
+        <BlogManagement />
       )}
     </div>
   );
