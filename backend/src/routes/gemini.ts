@@ -23,7 +23,6 @@ import {
   tailorResumeSchema,
 } from '../validators/schemas.js';
 import { subscriptionDb } from '../services/database.js';
-import { clearUserSubscriptionCache } from '../middleware/cache.js';
 
 const router = Router();
 
@@ -199,8 +198,6 @@ router.post('/enhance-summary', authMiddleware, enhanceSummarySchema, validate, 
       await subscriptionDb.updateFeatureUsage(req.user.id, {
         ai_enhancements_used: currentUsage + 1
       });
-      // Clear cache so frontend gets updated counter immediately
-      clearUserSubscriptionCache(req.user.id);
     } catch (dbError) {
       console.error('Failed to update AI enhancement usage counter:', dbError);
       // Don't fail the request if counter update fails
@@ -265,8 +262,6 @@ router.post('/generate-cover-letter', authMiddleware, generateCoverLetterSchema,
       await subscriptionDb.updateFeatureUsage(req.user.id, {
         cover_letters_generated: currentUsage + 1
       });
-      // Clear cache so frontend gets updated counter immediately
-      clearUserSubscriptionCache(req.user.id);
     } catch (dbError) {
       console.error('Failed to update cover letter usage counter:', dbError);
       // Don't fail the request if counter update fails
@@ -332,8 +327,6 @@ router.post('/analyze-resume', authMiddleware, analyzeResumeSchema, validate, as
       await subscriptionDb.updateFeatureUsage(req.user.id, {
         resume_analyses_done: currentUsage + 1
       });
-      // Clear cache so frontend gets updated counter immediately
-      clearUserSubscriptionCache(req.user.id);
     } catch (dbError) {
       console.error('Failed to update resume analysis usage counter:', dbError);
       // Don't fail the request if counter update fails
@@ -406,8 +399,6 @@ router.post('/tailor-resume', authMiddleware, tailorResumeSchema, validate, asyn
       await subscriptionDb.updateFeatureUsage(req.user.id, {
         ai_tailoring_used: currentUsage + 1
       } as any);
-      // Clear cache so frontend gets updated counter immediately
-      clearUserSubscriptionCache(req.user.id);
     } catch (dbError) {
       console.error('Failed to update tailoring usage counter:', dbError);
       // Don't fail the request if counter update fails
