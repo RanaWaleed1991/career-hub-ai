@@ -21,6 +21,8 @@ const ResumeAnalyserPage = lazy(() => import('./components/ResumeAnalyserPage'))
 const AdminPage = lazy(() => import('./components/AdminPage'));
 const CoursesPage = lazy(() => import('./components/CoursesPage'));
 const JobsPage = lazy(() => import('./components/JobsPage'));
+const BlogsPage = lazy(() => import('./components/BlogsPage'));
+const BlogPostPage = lazy(() => import('./components/BlogPostPage'));
 const CoverLetterBuilder = lazy(() => import('./components/CoverLetterBuilder'));
 const ApplicationTrackerPage = lazy(() => import('./components/ApplicationTrackerPage'));
 const VersionHistoryPage = lazy(() => import('./components/VersionHistoryPage'));
@@ -317,6 +319,19 @@ const AppContent: React.FC = () => {
                   <SEO page="courses" />
                   <CoursesPage />
                 </>
+              </ProtectedRoute>
+            } />
+            <Route path="/blogs" element={
+              <ProtectedRoute>
+                <>
+                  <SEO page="blogs" />
+                  <BlogsPage />
+                </>
+              </ProtectedRoute>
+            } />
+            <Route path="/blog/:slug" element={
+              <ProtectedRoute>
+                <BlogPostPage />
               </ProtectedRoute>
             } />
             <Route path="/applications" element={
