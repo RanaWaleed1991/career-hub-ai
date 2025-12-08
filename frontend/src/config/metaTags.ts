@@ -82,6 +82,28 @@ export const metaTags = {
     canonical: "https://www.careerhubai.com.au/courses"
   },
 
+  // BLOG SECTION
+  blogs: {
+    title: "Career Tips & Job Search Advice | Blog - Career Hub AI",
+    description: "Expert career advice, resume tips, interview strategies, and job search guidance. Learn from industry professionals to accelerate your career.",
+    keywords: "career blog, resume tips, job search advice australia, interview tips, career development blog",
+    ogTitle: "Career Hub Blog - Expert Tips & Advice",
+    ogDescription: "Get actionable career advice, resume tips, and job search strategies from industry experts.",
+    ogImage: "https://www.careerhubai.com.au/og-blog.jpg",
+    canonical: "https://www.careerhubai.com.au/blogs"
+  },
+
+  // INDIVIDUAL BLOG POST (dynamic - will be overridden by blog-specific SEO)
+  blog: {
+    title: "Career Hub AI Blog",
+    description: "Read the latest career tips and job search advice from Career Hub AI.",
+    keywords: "career blog, job search tips, resume advice",
+    ogTitle: "Career Hub AI Blog",
+    ogDescription: "Expert career advice and tips for job seekers.",
+    ogImage: "https://www.careerhubai.com.au/og-blog.jpg",
+    canonical: "https://www.careerhubai.com.au/blog"
+  },
+
   // APPLICATION TRACKER
   applications: {
     title: "Job Application Tracker | Organize Your Job Search - Career Hub AI",
