@@ -33,6 +33,7 @@ router.get('/current', async (req: AuthRequest, res: Response): Promise<void> =>
           user_id: req.user.id,
           plan: 'free',
           ai_enhancements_used: 0,
+          ai_tailoring_used: 0,
           downloads_used: 0,
           cover_letters_generated: 0,
           resume_analyses_done: 0,
@@ -88,6 +89,7 @@ router.post('/upgrade', async (req: AuthRequest, res: Response): Promise<void> =
       subscription_expires: expiresAt,
       // Reset usage counters on upgrade
       ai_enhancements_used: 0,
+      ai_tailoring_used: 0,
       downloads_used: 0,
       cover_letters_generated: 0,
       resume_analyses_done: 0,
@@ -117,6 +119,7 @@ router.put('/features', async (req: AuthRequest, res: Response): Promise<void> =
     // Validate feature fields
     const allowedFields = [
       'ai_enhancements_used',
+      'ai_tailoring_used',
       'downloads_used',
       'cover_letters_generated',
       'resume_analyses_done',

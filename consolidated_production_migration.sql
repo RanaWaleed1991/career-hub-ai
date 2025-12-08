@@ -36,6 +36,7 @@ BEGIN
     resume_analyses_done,
     cover_letters_generated,
     ai_enhancements_used,
+    ai_tailoring_used,
     resumes_created,
     resumes_downloaded,
     ai_analyses_used
@@ -43,6 +44,7 @@ BEGIN
     NEW.id,
     'free',
     'active',
+    0,
     0,
     0,
     0,
@@ -113,6 +115,7 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
   resume_analyses_done INTEGER DEFAULT 0,
   cover_letters_generated INTEGER DEFAULT 0,
   ai_enhancements_used INTEGER DEFAULT 0,
+  ai_tailoring_used INTEGER DEFAULT 0,
   resumes_created INTEGER DEFAULT 0,
   resumes_downloaded INTEGER DEFAULT 0,
   ai_analyses_used INTEGER DEFAULT 0,
