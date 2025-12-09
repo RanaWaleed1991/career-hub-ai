@@ -199,21 +199,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
 
             {/* Legal Links */}
             <div className="flex justify-center items-center space-x-6 text-sm text-slate-600">
-              <button
-                type="button"
-                onClick={() => setPage('privacy')}
+              <a
+                href="/privacy"
+                onClick={(e) => { e.preventDefault(); setPage('privacy'); }}
                 className="hover:text-indigo-600 transition-colors hover:underline"
               >
                 Privacy Policy
-              </button>
+              </a>
               <span className="text-slate-400">•</span>
-              <button
-                type="button"
-                onClick={() => setPage('terms')}
+              <a
+                href="/terms"
+                onClick={(e) => { e.preventDefault(); setPage('terms'); }}
                 className="hover:text-indigo-600 transition-colors hover:underline"
               >
                 Terms of Service
-              </button>
+              </a>
             </div>
 
             {/* Copyright */}
