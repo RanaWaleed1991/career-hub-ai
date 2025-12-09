@@ -216,7 +216,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
             {/* Social Media */}
             <div className="text-center mb-4">
               <a
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61584777962745"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center space-x-2 text-slate-600 hover:text-blue-600 transition-colors group"
