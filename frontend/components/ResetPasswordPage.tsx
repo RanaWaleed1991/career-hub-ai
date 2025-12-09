@@ -16,19 +16,40 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
+    // Listen for auth state changes to catch PASSWORD_RECOVERY event
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+
+      console.log('Auth event:', event, 'Session:', !!session);
+
+      // PASSWORD_RECOVERY event means user clicked reset link
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        setValidToken(true);
+        setChecking(false);
+        // Clean up URL hash
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+
+      // SIGNED_IN event with existing session (user navigated back)
+      if (event === 'SIGNED_IN' && session) {
+        setValidToken(true);
+        setChecking(false);
+      }
+    });
+
     // Check if we have a valid session after Supabase redirect
     const checkSession = async () => {
-      try {
-        // When user clicks the action_link in email:
-        // 1. Supabase verifies the token server-side
-        // 2. Supabase redirects to /reset-password with session in URL hash
-        // 3. Supabase JS client automatically picks up the session
-        // 4. We just need to check if session exists
+      if (!mounted) return;
 
+      try {
         // First, handle any hash fragments from Supabase redirect
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const errorCode = hashParams.get('error_code');
         const errorDescription = hashParams.get('error_description');
+        const type = hashParams.get('type');
 
         if (errorCode) {
           // Show user-friendly error message
@@ -43,11 +64,25 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
           return;
         }
 
+        // Check if this is a recovery link (type=recovery in hash)
+        if (type === 'recovery') {
+          // Give Supabase a moment to establish the session
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
         // Check for valid session (established after Supabase redirect)
         const { data: { session }, error } = await supabase.auth.getSession();
 
-        if (error || !session) {
-          setError('Invalid or expired reset link. Please request a new one.');
+        if (error) {
+          console.error('Session error:', error);
+          setError('Failed to verify reset link. Please try again.');
+          setChecking(false);
+          return;
+        }
+
+        if (!session) {
+          // No session and no type=recovery means user navigated directly
+          setError('Please click the reset link in your email to continue.');
           setChecking(false);
           return;
         }
@@ -66,6 +101,12 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
     };
 
     checkSession();
+
+    // Cleanup
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,6 +126,7 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
     setLoading(true);
 
     try {
+      // Update password
       const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
@@ -95,6 +137,9 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
         return;
       }
 
+      // Password updated successfully - now sign out to clear session
+      await supabase.auth.signOut();
+
       setSuccess(true);
       setLoading(false);
 
@@ -103,6 +148,7 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
         setPage('auth');
       }, 3000);
     } catch (err) {
+      console.error('Password reset error:', err);
       setError('Network error. Please check your connection and try again.');
       setLoading(false);
     }
