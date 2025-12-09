@@ -211,14 +211,17 @@ export async function sendWelcomeEmail(
 /**
  * Send Password Reset Email
  * Sent when user requests password reset
+ *
+ * @param to - Recipient email address
+ * @param actionLink - Full Supabase action link for password reset
+ * @param userName - User's name for personalization
  */
 export async function sendPasswordResetEmail(
   to: string,
-  resetToken: string,
+  actionLink: string,
   userName: string
 ): Promise<{ success: boolean; error?: string }> {
   const firstName = userName.split(' ')[0] || 'there';
-  const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   const content = `
     <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">
@@ -234,7 +237,7 @@ export async function sendPasswordResetEmail(
     </p>
 
     <div style="text-align: center; margin: 32px 0;">
-      <a href="${resetUrl}" style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+      <a href="${actionLink}" style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
         Reset My Password
       </a>
     </div>
@@ -243,7 +246,7 @@ export async function sendPasswordResetEmail(
       Or copy and paste this link into your browser:
     </p>
     <p style="color: #3b82f6; line-height: 1.6; margin: 8px 0; font-size: 14px; word-break: break-all;">
-      ${resetUrl}
+      ${actionLink}
     </p>
 
     <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0; border-radius: 4px;">

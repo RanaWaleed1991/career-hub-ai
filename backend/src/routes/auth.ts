@@ -283,18 +283,19 @@ router.post('/password-reset/request', async (req: Request, res: Response): Prom
       const { data, error } = await supabase!.auth.admin.generateLink({
         type: 'recovery',
         email: normalizedEmail,
+        options: {
+          redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
+        },
       });
 
       if (!error && data.properties?.action_link) {
-        // Extract token from Supabase's action link
+        // Use the full action_link for proper server-side verification
         const actionLink = data.properties.action_link;
-        const tokenMatch = actionLink.match(/token=([^&]+)/);
-        const resetToken = tokenMatch ? tokenMatch[1] : '';
 
-        // Send custom password reset email via SendGrid
+        // Send custom password reset email via SendGrid with full action link
         const emailResult = await sendPasswordResetEmail(
           normalizedEmail,
-          resetToken,
+          actionLink,
           user.user_metadata?.full_name || user.email || 'there'
         );
 

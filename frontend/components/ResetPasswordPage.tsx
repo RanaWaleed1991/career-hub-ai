@@ -16,48 +16,56 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Check if we have a valid reset token in the URL
-    const checkToken = async () => {
+    // Check if we have a valid session after Supabase redirect
+    const checkSession = async () => {
       try {
-        // Try to get token from URL query parameter first
-        const searchParams = new URLSearchParams(window.location.search);
-        const tokenFromQuery = searchParams.get('token');
+        // When user clicks the action_link in email:
+        // 1. Supabase verifies the token server-side
+        // 2. Supabase redirects to /reset-password with session in URL hash
+        // 3. Supabase JS client automatically picks up the session
+        // 4. We just need to check if session exists
 
-        if (tokenFromQuery) {
-          // Verify the recovery token with Supabase
-          const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: tokenFromQuery,
-            type: 'recovery',
-          });
+        // First, handle any hash fragments from Supabase redirect
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const errorCode = hashParams.get('error_code');
+        const errorDescription = hashParams.get('error_description');
 
-          if (error || !data.session) {
-            setError('Invalid or expired reset link. Please request a new one.');
-            setChecking(false);
-            return;
+        if (errorCode) {
+          // Show user-friendly error message
+          if (errorCode === 'otp_expired') {
+            setError('This reset link has expired. Please request a new one.');
+          } else {
+            setError(errorDescription || 'Invalid reset link. Please request a new one.');
           }
-
-          setValidToken(true);
           setChecking(false);
-        } else {
-          // Fallback: check if Supabase automatically handled token from URL hash
-          const { data: { session }, error } = await supabase.auth.getSession();
-
-          if (error || !session) {
-            setError('Invalid or expired reset link. Please request a new one.');
-            setChecking(false);
-            return;
-          }
-
-          setValidToken(true);
-          setChecking(false);
+          // Clean up the URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+          return;
         }
+
+        // Check for valid session (established after Supabase redirect)
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error || !session) {
+          setError('Invalid or expired reset link. Please request a new one.');
+          setChecking(false);
+          return;
+        }
+
+        // Session exists - user can reset password
+        setValidToken(true);
+        setChecking(false);
+
+        // Clean up the URL hash for better UX
+        window.history.replaceState({}, document.title, window.location.pathname);
       } catch (err) {
+        console.error('Session check error:', err);
         setError('Failed to verify reset link. Please try again.');
         setChecking(false);
       }
     };
 
-    checkToken();
+    checkSession();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
