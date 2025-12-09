@@ -274,15 +274,42 @@ router.post('/password-reset/request', async (req: Request, res: Response): Prom
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Use Supabase's built-in password reset (it handles user existence check internally)
-    const { error } = await supabase!.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
-    });
+    // Check if user exists (but don't reveal this to client for security)
+    const { data: authUser } = await supabase!.auth.admin.listUsers();
+    const user = authUser?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
 
-    if (error) {
-      console.error('Failed to send password reset email:', error.message);
-    } else {
-      console.log(`✅ Password reset email request processed for: ${normalizedEmail}`);
+    if (user) {
+      // Generate password reset link using Supabase
+      const { data, error } = await supabase!.auth.admin.generateLink({
+        type: 'recovery',
+        email: normalizedEmail,
+      });
+
+      if (!error && data.properties?.action_link) {
+        // Extract token from Supabase's action link
+        const actionLink = data.properties.action_link;
+        const tokenMatch = actionLink.match(/token=([^&]+)/);
+        const resetToken = tokenMatch ? tokenMatch[1] : '';
+
+        // Send custom password reset email via SendGrid
+        const emailResult = await sendPasswordResetEmail(
+          normalizedEmail,
+          resetToken,
+          user.user_metadata?.full_name || user.email || 'there'
+        );
+
+        if (emailResult.success) {
+          console.log(`✅ Custom password reset email sent to: ${normalizedEmail}`);
+        } else {
+          console.error(`❌ Failed to send password reset email: ${emailResult.error}`);
+          // Fall back to Supabase's email if custom email fails
+          await supabase!.auth.resetPasswordForEmail(normalizedEmail, {
+            redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
+          });
+        }
+      } else {
+        console.error('Failed to generate reset link:', error?.message);
+      }
     }
 
     // Always return success message (don't reveal if email exists for security)
