@@ -77,18 +77,17 @@ const AppContent: React.FC = () => {
   }, [user]);
 
   // Detect password recovery token in URL and redirect to reset password page
+  // IMPORTANT: Only redirect if NOT already on /reset-password to preserve URL hash
   useEffect(() => {
     const hash = window.location.hash;
     const path = window.location.pathname;
-    const searchParams = new URLSearchParams(window.location.search);
 
-    // Check if URL path is /reset-password or hash contains recovery type
-    if (path.includes('/reset-password') || (searchParams.has('token') && path.includes('reset-password'))) {
-      console.log('Password reset page detected');
-      navigate('/reset-password', { replace: true });
-    } else if (hash && hash.includes('type=recovery')) {
+    // Only redirect if we have a recovery hash but are NOT on the reset-password page
+    // This prevents stripping the hash when landing on /reset-password from Supabase
+    if (hash && hash.includes('type=recovery') && !path.includes('/reset-password')) {
       console.log('Password recovery token detected in hash, redirecting to reset-password page');
-      navigate('/reset-password', { replace: true });
+      // Preserve the hash when navigating
+      navigate('/reset-password' + window.location.hash, { replace: true });
     }
   }, [navigate]);
 
