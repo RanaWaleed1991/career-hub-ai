@@ -314,25 +314,19 @@ const AppContent: React.FC = () => {
               </ProtectedRoute>
             } />
             <Route path="/courses" element={
-              <ProtectedRoute>
-                <>
-                  <SEO page="courses" />
-                  <CoursesPage />
-                </>
-              </ProtectedRoute>
+              <>
+                <SEO page="courses" />
+                <CoursesPage />
+              </>
             } />
             <Route path="/blogs" element={
-              <ProtectedRoute>
-                <>
-                  <SEO page="blogs" />
-                  <BlogsPage />
-                </>
-              </ProtectedRoute>
+              <>
+                <SEO page="blogs" />
+                <BlogsPage />
+              </>
             } />
             <Route path="/blog/:slug" element={
-              <ProtectedRoute>
-                <BlogPostPage />
-              </ProtectedRoute>
+              <BlogPostPage />
             } />
             <Route path="/applications" element={
               <ProtectedRoute>
