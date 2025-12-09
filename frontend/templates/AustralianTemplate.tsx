@@ -72,9 +72,9 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
           <div className="col-span-2 flex flex-col gap-8">
             {/* About Me / Summary */}
             {summary && (
-              <section style={{ pageBreakInside: 'avoid' }}>
+              <section>
                 <h3
-                  className="font-bold mb-3 flex items-start gap-2"
+                  className="font-bold mb-3 flex items-center gap-2"
                   style={{
                     fontSize: '18px',
                     fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -108,7 +108,7 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
             {experience.length > 0 && experience.some(e => e.jobTitle) && (
               <section>
                 <h3
-                  className="font-bold mb-6 flex items-start gap-2"
+                  className="font-bold mb-6 flex items-center gap-2"
                   style={{
                     fontSize: '18px',
                     fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -131,7 +131,7 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                   style={{ borderLeft: '1px solid #e5e7eb' }}
                 >
                   {experience.filter(e => e.jobTitle).map((exp) => (
-                    <div key={exp.id} className="relative" style={{ pageBreakInside: 'avoid' }}>
+                    <div key={exp.id} className="relative">
                       {/* Timeline Dot */}
                       <div
                         className="absolute rounded-full bg-white"
@@ -194,7 +194,7 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
             {certifications && certifications.length > 0 && certifications.some(c => c.name) && (
               <section>
                 <h3
-                  className="font-bold mb-4 flex items-start gap-2"
+                  className="font-bold mb-4 flex items-center gap-2"
                   style={{
                     fontSize: '18px',
                     fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -220,7 +220,6 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                       style={{
                         backgroundColor: '#f9fafb',
                         border: '1px solid #f3f4f6',
-                        pageBreakInside: 'avoid',
                       }}
                     >
                       <div className="flex justify-between items-start mb-2">
@@ -278,9 +277,9 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
                   .filter(s => s.title)
                   .sort((a, b) => a.order - b.order)
                   .map((section) => (
-                    <section key={section.id} style={{ pageBreakInside: 'avoid' }}>
+                    <section key={section.id}>
                       <h3
-                        className="font-bold mb-4 flex items-start gap-2"
+                        className="font-bold mb-4 flex items-center gap-2"
                         style={{
                           fontSize: '18px',
                           fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -329,7 +328,7 @@ const AustralianTemplate: React.FC<TemplateProps> = ({ data, showWatermark = fal
             {references && references.length > 0 && references.some(r => r.name) && (
               <section>
                 <h3
-                  className="font-bold mb-4 flex items-start gap-2"
+                  className="font-bold mb-4 flex items-center gap-2"
                   style={{
                     fontSize: '18px',
                     fontFamily: "'Georgia', 'Times New Roman', serif",
