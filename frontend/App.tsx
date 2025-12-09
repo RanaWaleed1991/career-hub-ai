@@ -13,6 +13,7 @@ import Dashboard from './components/Dashboard';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ProtectedRoute, AdminRoute } from './src/components/routes';
 import { SEO } from './src/components/SEO';
+import { supabase } from './src/config/supabase';
 
 // Lazy load heavy components to reduce initial bundle size
 // These will be loaded on-demand when user navigates to them
@@ -65,6 +66,9 @@ const AppContent: React.FC = () => {
   // State for current subscription plan
   const [currentPlan, setCurrentPlan] = useState<Plan>('free');
 
+  // State to track if user is in password recovery mode
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+
   // Fetch current subscription plan
   useEffect(() => {
     if (user) {
@@ -75,6 +79,35 @@ const AppContent: React.FC = () => {
       });
     }
   }, [user]);
+
+  // Listen for PASSWORD_RECOVERY events and enforce recovery mode restrictions
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // User is in password recovery mode - restrict navigation
+        setIsPasswordRecovery(true);
+        console.log('🔒 Password recovery mode activated - navigation restricted');
+      } else if (event === 'SIGNED_OUT' || event === 'SIGNED_IN') {
+        // Clear recovery mode on sign out or successful sign in
+        setIsPasswordRecovery(false);
+        console.log('🔓 Password recovery mode deactivated');
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Block navigation during password recovery mode
+  useEffect(() => {
+    if (isPasswordRecovery && location.pathname !== '/reset-password') {
+      console.log('⚠️ Navigation blocked - must complete password reset first');
+      // Sign out and redirect to reset password
+      supabase.auth.signOut();
+      navigate('/login', { replace: true });
+    }
+  }, [isPasswordRecovery, location.pathname, navigate]);
 
   // Detect password recovery token in URL and redirect to reset password page
   // IMPORTANT: Only redirect if NOT already on /reset-password to preserve URL hash
