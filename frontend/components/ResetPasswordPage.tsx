@@ -16,39 +16,27 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Check if we have a valid reset token in the URL
+    // Check if we have a valid reset session
+    // Supabase automatically handles the recovery token from the URL hash
     const checkToken = async () => {
       try {
-        // Try to get token from URL query parameter first
-        const searchParams = new URLSearchParams(window.location.search);
-        const tokenFromQuery = searchParams.get('token');
+        // Wait a moment for Supabase to process the URL hash
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (tokenFromQuery) {
-          // Verify the recovery token with Supabase
-          const { data, error } = await supabase.auth.verifyOtp({
-            token_hash: tokenFromQuery,
-            type: 'recovery',
-          });
+        const { data: { session }, error } = await supabase.auth.getSession();
 
-          if (error || !data.session) {
-            setError('Invalid or expired reset link. Please request a new one.');
-            setChecking(false);
-            return;
-          }
+        if (error || !session) {
+          setError('Invalid or expired reset link. Please request a new one.');
+          setChecking(false);
+          return;
+        }
 
+        // Verify this is a recovery session
+        if (session.user) {
           setValidToken(true);
           setChecking(false);
         } else {
-          // Fallback: check if Supabase automatically handled token from URL hash
-          const { data: { session }, error } = await supabase.auth.getSession();
-
-          if (error || !session) {
-            setError('Invalid or expired reset link. Please request a new one.');
-            setChecking(false);
-            return;
-          }
-
-          setValidToken(true);
+          setError('Invalid reset link. Please request a new one.');
           setChecking(false);
         }
       } catch (err) {

@@ -286,15 +286,13 @@ router.post('/password-reset/request', async (req: Request, res: Response): Prom
       });
 
       if (!error && data.properties?.action_link) {
-        // Extract token from Supabase's action link
+        // Use the full action link from Supabase (contains all necessary tokens)
         const actionLink = data.properties.action_link;
-        const tokenMatch = actionLink.match(/token=([^&]+)/);
-        const resetToken = tokenMatch ? tokenMatch[1] : '';
 
-        // Send custom password reset email via SendGrid
+        // Send custom password reset email via SendGrid with full link
         const emailResult = await sendPasswordResetEmail(
           normalizedEmail,
-          resetToken,
+          actionLink,
           user.user_metadata?.full_name || user.email || 'there'
         );
 
