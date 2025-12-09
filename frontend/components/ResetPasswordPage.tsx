@@ -14,6 +14,7 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
   const [success, setSuccess] = useState(false);
   const [validToken, setValidToken] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -28,6 +29,7 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
       if (event === 'PASSWORD_RECOVERY' && session) {
         setValidToken(true);
         setChecking(false);
+        setIsRecoveryMode(true); // Track recovery mode
         // Clean up URL hash
         window.history.replaceState({}, document.title, window.location.pathname);
         return;
@@ -185,11 +187,23 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center items-center p-4 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      {/* Back button */}
+      {/* Back button - disabled during password recovery */}
       <button
         type="button"
-        onClick={() => setPage('auth')}
-        className="absolute top-4 left-4 flex items-center space-x-2 text-slate-600 hover:text-indigo-600 transition-colors px-4 py-2 rounded-lg hover:bg-white/50"
+        onClick={() => {
+          if (isRecoveryMode) {
+            console.log('⚠️ Navigation blocked - complete password reset first');
+            return;
+          }
+          setPage('auth');
+        }}
+        disabled={isRecoveryMode}
+        className={`absolute top-4 left-4 flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+          isRecoveryMode
+            ? 'text-slate-400 cursor-not-allowed opacity-50'
+            : 'text-slate-600 hover:text-indigo-600 hover:bg-white/50 cursor-pointer'
+        }`}
+        title={isRecoveryMode ? 'Complete password reset to continue' : 'Back to Login'}
       >
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5">
           <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
