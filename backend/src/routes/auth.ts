@@ -274,22 +274,15 @@ router.post('/password-reset/request', async (req: Request, res: Response): Prom
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Check if user exists (but don't reveal this to client for security)
-    const { data: authUser } = await supabase!.auth.admin.listUsers();
-    const user = authUser?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
+    // Use Supabase's built-in password reset (it handles user existence check internally)
+    const { error } = await supabase!.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
+    });
 
-    if (user) {
-      // Use Supabase's built-in password reset email system
-      // This is more reliable than generateLink for email-based flows
-      const { error } = await supabase!.auth.resetPasswordForEmail(normalizedEmail, {
-        redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
-      });
-
-      if (error) {
-        console.error('Failed to send password reset email:', error.message);
-      } else {
-        console.log(`✅ Password reset email sent to: ${normalizedEmail}`);
-      }
+    if (error) {
+      console.error('Failed to send password reset email:', error.message);
+    } else {
+      console.log(`✅ Password reset email request processed for: ${normalizedEmail}`);
     }
 
     // Always return success message (don't reveal if email exists for security)
