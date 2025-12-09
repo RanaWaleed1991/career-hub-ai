@@ -45,11 +45,23 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
       if (!mounted) return;
 
       try {
+        // Debug: Log the full URL and hash
+        console.log('Full URL:', window.location.href);
+        console.log('URL Hash:', window.location.hash);
+
         // First, handle any hash fragments from Supabase redirect
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const errorCode = hashParams.get('error_code');
         const errorDescription = hashParams.get('error_description');
         const type = hashParams.get('type');
+        const accessToken = hashParams.get('access_token');
+
+        console.log('Hash params:', {
+          type,
+          errorCode,
+          errorDescription,
+          hasAccessToken: !!accessToken
+        });
 
         if (errorCode) {
           // Show user-friendly error message
