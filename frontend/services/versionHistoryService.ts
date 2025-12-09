@@ -2,6 +2,7 @@ import { supabase } from '../src/config/supabase';
 import type { ResumeData, ResumeVersion as ResumeVersionType } from '../types';
 import { getAccessToken } from './userService';
 import { getActiveResume } from './resumeService';
+import { canSaveVersion, useVersionSave } from './premiumService';
 
 const API_URL = 'https://api.careerhubai.com.au';
 
@@ -175,6 +176,12 @@ export const getVersions = async (): Promise<ResumeVersionType[]> => {
  */
 export const saveVersion = async (name: string, resumeData: ResumeData): Promise<void> => {
   try {
+    // Check if user can save more versions (free users limited to 3)
+    const canSave = await canSaveVersion();
+    if (!canSave) {
+      throw new Error('You have reached the maximum number of saved versions (3) for free users. Please upgrade to premium to save unlimited versions, or delete an existing version.');
+    }
+
     const headers = await getAuthHeaders();
 
     // Get the active resume to link the version to it
@@ -197,6 +204,9 @@ export const saveVersion = async (name: string, resumeData: ResumeData): Promise
     if (!response.ok) {
       throw new Error(`Failed to save version: ${response.status}`);
     }
+
+    // Increment version save count for free users
+    await useVersionSave();
   } catch (error) {
     console.error('Failed to save version:', error);
     throw error;

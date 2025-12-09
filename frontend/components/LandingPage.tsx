@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Page } from '../types';
 import { DocumentTextIcon, BriefcaseIcon, BookOpenIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, Cog6ToothIcon, FacebookIcon, ChartBarIcon, DocumentChartBarIcon } from './icons';
 import TailorResumeModal from './TailorResumeModal';
@@ -78,6 +79,14 @@ const baseFeatures = [
     color: 'bg-teal-500',
     isPremium: false,
   },
+  {
+    page: 'blogs',
+    title: 'Read Our Blog',
+    description: 'Get expert career tips, resume advice, and job search strategies to boost your success.',
+    icon: BookOpenIcon,
+    color: 'bg-violet-500',
+    isPremium: false,
+  },
 ];
 
 const adminFeature = {
@@ -115,11 +124,32 @@ const FeatureCard: React.FC<{ feature: typeof baseFeatures[0]; onClick: () => vo
 );
 
 const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, setActionToRetry, openTailorModal, isAuthenticated = false, isAdmin = false }) => {
+  const navigate = useNavigate();
   const features = isAdmin ? [...baseFeatures, adminFeature].filter(f => f.page !== 'versions') : baseFeatures; // temp hide versions from admin
+
+  // Map old page names to new routes
+  const pageToRoute = (page: string): string => {
+    const routeMap: Record<string, string> = {
+      'builder': '/resume-builder',
+      'coverLetter': '/cover-letter',
+      'analyser': '/resume-analysis',
+      'tracker': '/applications',
+      'versions': '/versions',
+      'jobs': '/jobs',
+      'courses': '/courses',
+      'admin': '/admin',
+      'dashboard': '/dashboard',
+      'privacy': '/privacy',
+      'terms': '/terms',
+      'blogs': '/blogs',
+      'landing': '/',
+    };
+    return routeMap[page] || `/${page}`;
+  };
 
   const handleGetStartedClick = () => {
     // Go to builder - if not authenticated, App.tsx will show auth page
-    setPage('builder');
+    navigate('/resume-builder');
   };
 
   const handleFeatureClick = (page: Page | 'tailor') => {
@@ -128,7 +158,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
       openTailorModal();
     } else {
       // Navigate to the page - App.tsx handles authentication and access control
-      setPage(page as Page);
+      navigate(pageToRoute(page as string));
     }
   };
 
@@ -155,7 +185,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
                 {!isAuthenticated && (
                   <button
                     type="button"
-                    onClick={() => setPage('dashboard')}
+                    onClick={() => navigate('/dashboard')}
                     className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-white text-indigo-600 hover:bg-slate-50 focus:ring-indigo-500 text-lg border-2 border-indigo-600"
                   >
                     Already have an account? Sign In
@@ -201,7 +231,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
             <div className="flex justify-center items-center space-x-6 text-sm text-slate-600">
               <a
                 href="/privacy"
-                onClick={(e) => { e.preventDefault(); setPage('privacy'); }}
+                onClick={(e) => { e.preventDefault(); navigate('/privacy'); }}
                 className="hover:text-indigo-600 transition-colors hover:underline"
               >
                 Privacy Policy
@@ -209,7 +239,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
               <span className="text-slate-400">•</span>
               <a
                 href="/terms"
-                onClick={(e) => { e.preventDefault(); setPage('terms'); }}
+                onClick={(e) => { e.preventDefault(); navigate('/terms'); }}
                 className="hover:text-indigo-600 transition-colors hover:underline"
               >
                 Terms of Service
