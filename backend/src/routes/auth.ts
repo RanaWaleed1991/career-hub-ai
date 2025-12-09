@@ -283,6 +283,9 @@ router.post('/password-reset/request', async (req: Request, res: Response): Prom
       const { data, error } = await supabase!.auth.admin.generateLink({
         type: 'recovery',
         email: normalizedEmail,
+        options: {
+          redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
+        },
       });
 
       if (!error && data.properties?.action_link) {
