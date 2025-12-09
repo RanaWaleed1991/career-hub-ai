@@ -279,37 +279,16 @@ router.post('/password-reset/request', async (req: Request, res: Response): Prom
     const user = authUser?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
 
     if (user) {
-      // Generate password reset link using Supabase
-      const { data, error } = await supabase!.auth.admin.generateLink({
-        type: 'recovery',
-        email: normalizedEmail,
-        options: {
-          redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
-        },
+      // Use Supabase's built-in password reset email system
+      // This is more reliable than generateLink for email-based flows
+      const { error } = await supabase!.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
       });
 
-      if (!error && data.properties?.action_link) {
-        // Use the full action link from Supabase (contains all necessary tokens)
-        const actionLink = data.properties.action_link;
-
-        // Send custom password reset email via SendGrid with full link
-        const emailResult = await sendPasswordResetEmail(
-          normalizedEmail,
-          actionLink,
-          user.user_metadata?.full_name || user.email || 'there'
-        );
-
-        if (emailResult.success) {
-          console.log(`✅ Custom password reset email sent to: ${normalizedEmail}`);
-        } else {
-          console.error(`❌ Failed to send password reset email: ${emailResult.error}`);
-          // Fall back to Supabase's email if custom email fails
-          await supabase!.auth.resetPasswordForEmail(normalizedEmail, {
-            redirectTo: `${process.env.FRONTEND_URL}/reset-password`,
-          });
-        }
+      if (error) {
+        console.error('Failed to send password reset email:', error.message);
       } else {
-        console.error('Failed to generate reset link:', error?.message);
+        console.log(`✅ Password reset email sent to: ${normalizedEmail}`);
       }
     }
 
