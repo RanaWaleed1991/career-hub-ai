@@ -18,34 +18,62 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
   useEffect(() => {
     // Check if we have a valid reset session
     // Supabase automatically handles the recovery token from the URL hash
+    let mounted = true;
+
     const checkToken = async () => {
       try {
-        // Wait a moment for Supabase to process the URL hash
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Listen for auth state changes - Supabase will emit when session is established
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+          if (!mounted) return;
 
-        const { data: { session }, error } = await supabase.auth.getSession();
+          if (event === 'PASSWORD_RECOVERY') {
+            // Password recovery session detected
+            setValidToken(true);
+            setChecking(false);
+          } else if (event === 'SIGNED_IN' && session) {
+            // Session established
+            setValidToken(true);
+            setChecking(false);
+          }
+        });
 
-        if (error || !session) {
-          setError('Invalid or expired reset link. Please request a new one.');
-          setChecking(false);
-          return;
-        }
+        // Also check current session after a brief delay
+        setTimeout(async () => {
+          if (!mounted) return;
 
-        // Verify this is a recovery session
-        if (session.user) {
-          setValidToken(true);
-          setChecking(false);
-        } else {
-          setError('Invalid reset link. Please request a new one.');
-          setChecking(false);
-        }
+          const { data: { session }, error } = await supabase.auth.getSession();
+
+          if (error) {
+            console.error('Session check error:', error);
+          }
+
+          if (session) {
+            setValidToken(true);
+            setChecking(false);
+          } else {
+            // No session found after waiting
+            setError('Invalid or expired reset link. Please request a new one.');
+            setChecking(false);
+          }
+        }, 2000); // Increased timeout to 2 seconds
+
+        // Cleanup subscription
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (err) {
-        setError('Failed to verify reset link. Please try again.');
-        setChecking(false);
+        if (mounted) {
+          setError('Failed to verify reset link. Please try again.');
+          setChecking(false);
+        }
       }
     };
 
     checkToken();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
