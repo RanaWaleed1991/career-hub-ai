@@ -13,6 +13,7 @@ import Dashboard from './components/Dashboard';
 import { AuthProvider, useAuth } from './src/contexts/AuthContext';
 import { ProtectedRoute, AdminRoute } from './src/components/routes';
 import { SEO } from './src/components/SEO';
+import { supabase } from './src/config/supabase';
 
 // Lazy load heavy components to reduce initial bundle size
 // These will be loaded on-demand when user navigates to them
@@ -65,6 +66,24 @@ const AppContent: React.FC = () => {
   // State for current subscription plan
   const [currentPlan, setCurrentPlan] = useState<Plan>('free');
 
+  // State to track password recovery mode
+  const [isInRecoveryMode, setIsInRecoveryMode] = useState(false);
+
+  // Listen for PASSWORD_RECOVERY auth events
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsInRecoveryMode(true);
+        console.log('🔒 Password recovery mode activated');
+      } else if (event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+        setIsInRecoveryMode(false);
+        console.log('🔓 Password recovery mode deactivated');
+      }
+    });
+
+    return () => authListener.subscription.unsubscribe();
+  }, []);
+
   // Fetch current subscription plan
   useEffect(() => {
     if (user) {
@@ -107,14 +126,15 @@ const AppContent: React.FC = () => {
   }, [user, isAdmin, location.pathname, navigate]);
 
   // Check if welcome message should be shown for the user
+  // Skip if in password recovery mode
   useEffect(() => {
-    if (user?.email) {
+    if (user?.email && !isInRecoveryMode) {
       const welcomeKey = `welcome_shown_${user.email.toLowerCase().trim()}`;
       if (!localStorage.getItem(welcomeKey)) {
         setShowWelcomeModal(true);
       }
     }
-  }, [user?.email]);
+  }, [user?.email, isInRecoveryMode]);
 
   const handleLogout = async () => {
     console.log('🔴 handleLogout called');
@@ -221,7 +241,19 @@ const AppContent: React.FC = () => {
           onUpgrade={handleUpgradeFromExpired}
         />
       )}
-      <Header onGoToHome={() => navigate(user ? '/dashboard' : '/')} onLogout={handleLogout} page={location.pathname.slice(1) || 'landing'} showLogout={!!user} />
+      <Header
+        onGoToHome={() => {
+          // Block navigation during password recovery
+          if (isInRecoveryMode) {
+            console.log('⚠️ Navigation blocked - complete password reset first');
+            return;
+          }
+          navigate(user ? '/dashboard' : '/');
+        }}
+        onLogout={handleLogout}
+        page={location.pathname.slice(1) || 'landing'}
+        showLogout={!!user}
+      />
       <main className="flex-grow overflow-y-auto relative fade-in">
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
