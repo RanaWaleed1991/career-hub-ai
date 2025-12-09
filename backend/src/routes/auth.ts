@@ -292,6 +292,11 @@ router.post('/password-reset/request', async (req: Request, res: Response): Prom
         // Use the full action_link for proper server-side verification
         const actionLink = data.properties.action_link;
 
+        // Debug: Log the action link structure (redact token for security)
+        console.log('🔗 Generated action_link:', actionLink.substring(0, 100) + '...');
+        console.log('📍 FRONTEND_URL:', process.env.FRONTEND_URL);
+        console.log('🎯 redirectTo:', `${process.env.FRONTEND_URL}/reset-password`);
+
         // Send custom password reset email via SendGrid with full action link
         const emailResult = await sendPasswordResetEmail(
           normalizedEmail,
