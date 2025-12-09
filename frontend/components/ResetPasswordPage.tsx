@@ -16,64 +16,48 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Check if we have a valid reset session
-    // Supabase automatically handles the recovery token from the URL hash
-    let mounted = true;
-
+    // Check if we have a valid reset token in the URL
     const checkToken = async () => {
       try {
-        // Listen for auth state changes - Supabase will emit when session is established
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-          if (!mounted) return;
+        // Try to get token from URL query parameter first
+        const searchParams = new URLSearchParams(window.location.search);
+        const tokenFromQuery = searchParams.get('token');
 
-          if (event === 'PASSWORD_RECOVERY') {
-            // Password recovery session detected
-            setValidToken(true);
-            setChecking(false);
-          } else if (event === 'SIGNED_IN' && session) {
-            // Session established
-            setValidToken(true);
-            setChecking(false);
-          }
-        });
+        if (tokenFromQuery) {
+          // Verify the recovery token with Supabase
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenFromQuery,
+            type: 'recovery',
+          });
 
-        // Also check current session after a brief delay
-        setTimeout(async () => {
-          if (!mounted) return;
-
-          const { data: { session }, error } = await supabase.auth.getSession();
-
-          if (error) {
-            console.error('Session check error:', error);
-          }
-
-          if (session) {
-            setValidToken(true);
-            setChecking(false);
-          } else {
-            // No session found after waiting
+          if (error || !data.session) {
             setError('Invalid or expired reset link. Please request a new one.');
             setChecking(false);
+            return;
           }
-        }, 2000); // Increased timeout to 2 seconds
 
-        // Cleanup subscription
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (err) {
-        if (mounted) {
-          setError('Failed to verify reset link. Please try again.');
+          setValidToken(true);
+          setChecking(false);
+        } else {
+          // Fallback: check if Supabase automatically handled token from URL hash
+          const { data: { session }, error } = await supabase.auth.getSession();
+
+          if (error || !session) {
+            setError('Invalid or expired reset link. Please request a new one.');
+            setChecking(false);
+            return;
+          }
+
+          setValidToken(true);
           setChecking(false);
         }
+      } catch (err) {
+        setError('Failed to verify reset link. Please try again.');
+        setChecking(false);
       }
     };
 
     checkToken();
-
-    return () => {
-      mounted = false;
-    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

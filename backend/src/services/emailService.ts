@@ -214,11 +214,11 @@ export async function sendWelcomeEmail(
  */
 export async function sendPasswordResetEmail(
   to: string,
-  resetLink: string,
+  resetToken: string,
   userName: string
 ): Promise<{ success: boolean; error?: string }> {
   const firstName = userName.split(' ')[0] || 'there';
-  const resetUrl = resetLink;
+  const resetUrl = `${FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   const content = `
     <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">
