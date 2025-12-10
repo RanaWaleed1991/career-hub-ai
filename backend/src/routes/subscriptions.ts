@@ -160,8 +160,8 @@ router.get('/check-limit/:feature', async (req: AuthRequest, res: Response): Pro
     // Define limits per plan (matching SUBSCRIPTION_TIERS from stripe config)
     const limits: Record<string, any> = {
       free: {
-        ai_enhancements: 3,
-        downloads: 2,  // Reduced from 3 to create better conversion funnel
+        ai_enhancements: 10,
+        downloads: 3,
         cover_letters: 3,
         resume_analyses: 3,
       },
