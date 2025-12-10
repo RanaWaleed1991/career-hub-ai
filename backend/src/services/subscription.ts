@@ -314,6 +314,8 @@ export async function handleCheckoutComplete(session: Stripe.Checkout.Session): 
     current_period_start: currentPeriodStart ? new Date(currentPeriodStart * 1000).toISOString() : null,
     current_period_end: currentPeriodEnd ? new Date(currentPeriodEnd * 1000).toISOString() : null,
     cancel_at_period_end: (stripeSubscription as any).cancel_at_period_end || false,
+    // Mark that user has ever subscribed (prevents free tier access after cancellation)
+    trial_used: true,
     // Reset usage counters on new subscription
     ai_enhancements_used: 0,
     downloads_used: 0,
@@ -388,6 +390,8 @@ export async function handleSubscriptionUpdate(
       ? new Date((subscription as any).current_period_end * 1000).toISOString()
       : null,
     cancel_at_period_end: (subscription as any).cancel_at_period_end,
+    // Mark trial as used for any active subscription
+    trial_used: true,
   });
 }
 
@@ -405,6 +409,7 @@ export async function handleSubscriptionDelete(
   }
 
   // Downgrade to free plan
+  // Set high usage counts to prevent free tier access after paid subscription
   await subscriptionDb.upsert(userId, {
     plan: 'free',
     status: 'canceled',
@@ -412,6 +417,13 @@ export async function handleSubscriptionDelete(
     stripe_price_id: null,
     current_period_end: null,
     cancel_at_period_end: false,
+    // Block free tier features by setting counters to high numbers
+    // User had a paid subscription, so no free tier access after cancellation
+    ai_enhancements_used: 999,
+    downloads_used: 999,
+    cover_letters_generated: 999,
+    resume_analyses_done: 999,
+    ai_tailoring_used: 999,
   });
 
   // Send subscription cancellation confirmation email
