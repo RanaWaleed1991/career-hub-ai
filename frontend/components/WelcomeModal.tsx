@@ -20,7 +20,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
           <p className="mt-2 text-slate-600">Your 1-week free trial has started. Here's what's included:</p>
 
           <ul className="mt-4 text-left space-y-2 text-slate-600 bg-slate-50 p-4 rounded-lg">
-            <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>2 Free Resume Downloads</strong> (with watermark).</span></li>
+            <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>3 Free Resume Downloads</strong> (with watermark).</span></li>
             <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>10 AI Improvements</strong> for your summary & experience.</span></li>
             <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>3 AI Resume Tailoring</strong> attempts.</span></li>
             <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>3 Cover Letter</strong> generations.</span></li>
