@@ -19,7 +19,7 @@ export const metaTags = {
   // RESUME BUILDER - Priority #2
   resumeBuilder: {
     title: "Free AI Resume Builder | 8 ATS Templates Australia - Career Hub AI",
-    description: "Create stunning ATS-friendly resumes with AI assistance. Choose from 8 professional templates. Download PDF instantly. 2 free resume downloads included.",
+    description: "Create stunning ATS-friendly resumes with AI assistance. Choose from 8 professional templates. Download PDF instantly. 3 free resume downloads included.",
     keywords: "resume builder, free resume builder, resume templates australia, ATS resume templates, AI resume creator",
     ogTitle: "Build Your Professional Resume in Minutes - Free AI Tool",
     ogDescription: "8 ATS-optimized templates, AI-powered content, instant PDF download. Start building your resume free!",
@@ -52,10 +52,10 @@ export const metaTags = {
   // PRICING
   pricing: {
     title: "Pricing - Affordable Resume Tools | $5/week - Career Hub AI",
-    description: "Choose your plan: Free (2 resumes, 3 analyses), Weekly ($5 AUD/week), or Monthly ($15/month). No credit card required for free plan.",
+    description: "Choose your plan: Free (3 resumes, 3 analyses), Weekly ($5 AUD/week), or Monthly ($15/month). No credit card required for free plan.",
     keywords: "resume builder pricing, cheap resume builder, affordable resume tools australia, resume subscription",
     ogTitle: "Simple, Affordable Pricing - Career Hub AI",
-    ogDescription: "Start free with 2 resume downloads. Upgrade to weekly ($5) or monthly ($15) for unlimited access. Cancel anytime.",
+    ogDescription: "Start free with 3 resume downloads. Upgrade to weekly ($5) or monthly ($15) for unlimited access. Cancel anytime.",
     ogImage: "https://www.careerhubai.com.au/og-pricing.jpg",
     canonical: "https://www.careerhubai.com.au/pricing"
   },
