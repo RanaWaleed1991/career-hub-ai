@@ -1,6 +1,6 @@
 import express, { Response } from 'express';
 import { authMiddleware, AuthRequest } from '../middleware/auth.js';
-import { versionDb, resumeDb, ensureDatabaseConfigured, handleDatabaseError } from '../services/database.js';
+import { versionDb, resumeDb, subscriptionDb, ensureDatabaseConfigured, handleDatabaseError } from '../services/database.js';
 
 const router = express.Router();
 
@@ -33,6 +33,27 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
       console.error('❌ Missing required fields:', { resumeId: !!resumeId, versionData: !!versionData, versionName: !!versionName });
       res.status(400).json({ error: 'Resume ID, version data, and version name are required' });
       return;
+    }
+
+    // Check version limit for free users
+    const subscription = await subscriptionDb.getCurrent(req.user.id);
+    const plan = subscription?.plan || 'free';
+    const isPremium = plan === 'weekly' || plan === 'monthly';
+
+    if (!isPremium) {
+      // Free users limited to 3 versions
+      const existingVersions = await versionDb.getAll(req.user.id);
+      const versionCount = existingVersions.length;
+
+      if (versionCount >= 3) {
+        console.log('⚠️ User reached free version limit:', { userId: req.user.id, versionCount });
+        res.status(403).json({
+          error: 'You have reached the maximum number of saved versions (3) for free users. Please upgrade to premium to save unlimited versions, or delete an existing version.',
+          limit: 3,
+          current: versionCount
+        });
+        return;
+      }
     }
 
     const version = await versionDb.create(req.user.id, resumeId, versionData, versionName);
