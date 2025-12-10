@@ -82,6 +82,7 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
         if (type === 'recovery') {
           // Give Supabase a moment to establish the session
           await new Promise(resolve => setTimeout(resolve, 500));
+          setIsRecoveryMode(true); // Set recovery mode for URL-based detection
         }
 
         // Check for valid session (established after Supabase redirect)
@@ -104,6 +105,13 @@ const ResetPasswordPage: React.FC<ResetPasswordPageProps> = ({ setPage }) => {
         // Session exists - user can reset password
         setValidToken(true);
         setChecking(false);
+
+        // Double-check: if we have a session but type wasn't in hash, still set recovery mode
+        // This handles cases where hash was already cleaned up
+        if (!type) {
+          setIsRecoveryMode(true);
+          console.log('🔒 Recovery mode set from session check');
+        }
 
         // Clean up the URL hash for better UX
         window.history.replaceState({}, document.title, window.location.pathname);
