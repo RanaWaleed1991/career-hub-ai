@@ -118,7 +118,7 @@ export const metaTags = {
   // LOGIN PAGE
   login: {
     title: "Login - Career Hub AI | Access Your Resume Tools",
-    description: "Log in to Career Hub AI to access your resumes, cover letters, and job applications. Sign in with Google, Facebook, or email.",
+    description: "Log in to Career Hub AI to access your resumes, cover letters, and job applications. Sign in with Google or email.",
     keywords: "career hub login, resume builder login, sign in",
     ogTitle: "Login to Career Hub AI",
     ogDescription: "Access your AI-powered career tools and saved documents.",

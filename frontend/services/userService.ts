@@ -186,10 +186,10 @@ export const isAdmin = async (): Promise<boolean> => {
 };
 
 /**
- * Sign in with OAuth provider (Google or Facebook)
+ * Sign in with OAuth provider (Google only)
  */
 export const signInWithOAuth = async (
-  provider: 'google' | 'facebook'
+  provider: 'google'
 ): Promise<{ error: string | null }> => {
   try {
     const { error } = await supabase.auth.signInWithOAuth({
