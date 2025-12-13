@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GoogleIcon, FacebookIcon } from './icons';
+import { GoogleIcon } from './icons';
 import { useAuth } from '../src/contexts/AuthContext';
 import type { Page } from '../types';
 
@@ -8,7 +8,7 @@ interface AuthPageProps {
 }
 
 const AuthPage: React.FC<AuthPageProps> = ({ setPage }) => {
-  const { login, signup, signInWithGoogle, signInWithFacebook } = useAuth();
+  const { login, signup, signInWithGoogle } = useAuth();
 
   const [isLoginView, setIsLoginView] = useState(true);
   const [email, setEmail] = useState('');
@@ -77,17 +77,6 @@ const AuthPage: React.FC<AuthPageProps> = ({ setPage }) => {
     // Note: User will be redirected to Google, so we keep loading=true
   };
 
-  const handleFacebookSignIn = async () => {
-    setLoading(true);
-    setError(null);
-    const { error: facebookError } = await signInWithFacebook();
-    if (facebookError) {
-      setError(facebookError);
-      setLoading(false);
-    }
-    // Note: User will be redirected to Facebook, so we keep loading=true
-  };
-
   const inputClass = "mt-1 block w-full px-3 py-2 bg-white border border-slate-300 rounded-md text-sm shadow-sm placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100 disabled:cursor-not-allowed";
   const labelClass = "block text-sm font-medium text-slate-700";
   const buttonClass = "w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed";
@@ -130,14 +119,6 @@ const AuthPage: React.FC<AuthPageProps> = ({ setPage }) => {
             >
               <GoogleIcon className="w-5 h-5 mr-3" />
               Continue with Google
-            </button>
-            <button
-              onClick={handleFacebookSignIn}
-              disabled={loading}
-              className={socialButtonClass}
-            >
-              <FacebookIcon className="w-5 h-5 mr-3 text-[#1877F2]" />
-              Continue with Facebook
             </button>
           </div>
 

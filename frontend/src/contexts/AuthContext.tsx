@@ -19,7 +19,6 @@ interface AuthContextType {
   signup: (email: string, password: string, fullName?: string) => Promise<{ error: string | null }>;
   logout: () => Promise<void>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
-  signInWithFacebook: () => Promise<{ error: string | null }>;
   getToken: () => Promise<string | null>;
 }
 
@@ -131,10 +130,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return signInWithOAuth('google');
   };
 
-  const signInWithFacebook = async (): Promise<{ error: string | null }> => {
-    return signInWithOAuth('facebook');
-  };
-
   const getToken = async (): Promise<string | null> => {
     return getAccessToken();
   };
@@ -147,7 +142,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signup,
     logout,
     signInWithGoogle,
-    signInWithFacebook,
     getToken,
   };
 
