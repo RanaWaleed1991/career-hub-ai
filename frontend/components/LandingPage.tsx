@@ -169,10 +169,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, 
         <div className="w-full bg-gradient-to-br from-indigo-50 via-white to-purple-50">
             <div className="text-center px-4 py-16 md:py-24">
               <h1 className="text-4xl md:text-6xl font-extrabold text-slate-800 mb-4 tracking-tight opacity-0 fade-in" style={{ animationDelay: '100ms' }}>
-                Craft Your Future
+                Build Your Professional Resume in 10 Minutes
               </h1>
               <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-3xl mx-auto opacity-0 fade-in" style={{ animationDelay: '300ms' }}>
-                Leverage the power of Gemini AI to build a resume that opens doors. Explore curated jobs, courses, and track your career progress all in one place.
+                AI-powered resume builder with <span className="font-semibold text-indigo-600">8 ATS-optimized templates</span>. Start free with 3 downloads and 10 AI improvements. <span className="font-semibold">No credit card required.</span>
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 fade-in" style={{ animationDelay: '500ms' }}>
                 <button

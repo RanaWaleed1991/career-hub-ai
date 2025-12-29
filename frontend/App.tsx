@@ -373,9 +373,7 @@ const AppContent: React.FC = () => {
               </ProtectedRoute>
             } />
             <Route path="/pricing" element={
-              <ProtectedRoute>
-                <PricingPage userToken={null} currentPlan={currentPlan} />
-              </ProtectedRoute>
+              <PricingPage userToken={null} currentPlan={currentPlan} />
             } />
             <Route path="/subscription" element={
               <ProtectedRoute>
