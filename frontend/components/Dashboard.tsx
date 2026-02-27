@@ -11,7 +11,7 @@ import { hasPremium } from '../services/premiumService';
 import { createPortalSession } from '../src/services/payments';
 import { getAccessToken } from '../services/userService';
 import { useAuth } from '../src/contexts/AuthContext';
-import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon, CogIcon } from './icons';
+import { BookOpenIcon, BriefcaseIcon, DocumentChartBarIcon, DocumentTextIcon, EnvelopeIcon, ClipboardDocumentCheckIcon, CogIcon, ChartBarIcon, StarIcon } from './icons';
 
 interface DashboardProps {
     setPage: (page: string) => void;
@@ -87,9 +87,11 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
     ];
 
     const toolkitActions = [
+        { title: "Skill Gap Audit", path: '/skill-gap', icon: ChartBarIcon },
+        { title: "Selection Criteria", path: '/selection-criteria', icon: StarIcon },
+        { title: "Resume Analyser", path: '/resume-analysis', icon: DocumentChartBarIcon },
         { title: "Find Jobs", path: '/jobs', icon: BriefcaseIcon },
         { title: "Explore Courses", path: '/courses', icon: BookOpenIcon },
-        { title: "Resume Analyser", path: '/resume-analysis', icon: DocumentChartBarIcon },
         ...(isAdmin ? [{ title: "Admin Panel", path: '/admin', icon: CogIcon }] : []),
     ]
 
