@@ -35,6 +35,8 @@ const TailorResumeModal = lazy(() => import('./components/TailorResumeModal'));
 const PremiumModal = lazy(() => import('./components/PremiumModal'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
+const SkillGapPage = lazy(() => import('./components/SkillGapPage'));
+const SelectionCriteriaPage = lazy(() => import('./components/SelectionCriteriaPage'));
 
 // Loading fallback component for lazy-loaded routes
 const LoadingFallback: React.FC = () => (
@@ -388,6 +390,24 @@ const AppContent: React.FC = () => {
             <Route path="/payment/cancel" element={
               <ProtectedRoute>
                 <PaymentCancel setPage={(page) => navigate(`/${page === 'landing' ? '' : page}`)} />
+              </ProtectedRoute>
+            } />
+
+            {/* Career Intelligence Routes */}
+            <Route path="/skill-gap" element={
+              <ProtectedRoute>
+                <>
+                  <SEO page="skillGap" />
+                  <SkillGapPage {...modalProps} />
+                </>
+              </ProtectedRoute>
+            } />
+            <Route path="/selection-criteria" element={
+              <ProtectedRoute>
+                <>
+                  <SEO page="selectionCriteria" />
+                  <SelectionCriteriaPage {...modalProps} />
+                </>
               </ProtectedRoute>
             } />
 

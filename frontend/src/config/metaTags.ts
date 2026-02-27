@@ -157,6 +157,28 @@ export const metaTags = {
     ogDescription: "Clear terms and conditions for using Career Hub AI services.",
     ogImage: "https://www.careerhubai.com.au/og-homepage.jpg",
     canonical: "https://www.careerhubai.com.au/terms"
+  },
+
+  // SKILL GAP AUDIT
+  skillGap: {
+    title: "Skill Gap Audit | AI Job Match Score - Career Hub AI",
+    description: "Instantly compare your resume against any job description. Get a match score, identify missing skills, and receive a personalised roadmap to close the gap.",
+    keywords: "skill gap analysis, job match score, missing skills, career audit, resume vs job description, ATS keyword gap",
+    ogTitle: "How Well Do You Match This Job? Find Out in 60 Seconds",
+    ogDescription: "AI-powered skill gap analysis. Paste your resume and any job description to get your match score and a clear action plan.",
+    ogImage: "https://www.careerhubai.com.au/og-skill-gap.jpg",
+    canonical: "https://www.careerhubai.com.au/skill-gap"
+  },
+
+  // SELECTION CRITERIA GENERATOR
+  selectionCriteria: {
+    title: "Selection Criteria Generator | STAR Responses - Career Hub AI",
+    description: "Automatically generate evidence-based STAR responses for any job's selection criteria. Save hours on government and corporate applications using only your real experience.",
+    keywords: "selection criteria generator, STAR method responses, statement of claims, key selection criteria, government job application, selection criteria writer",
+    ogTitle: "Write Selection Criteria in Minutes — Not Hours",
+    ogDescription: "AI drafts assertive, evidence-based STAR responses for every criterion in a job description, using only your actual experience.",
+    ogImage: "https://www.careerhubai.com.au/og-selection-criteria.jpg",
+    canonical: "https://www.careerhubai.com.au/selection-criteria"
   }
 
 };

@@ -1,4 +1,4 @@
-import type { ResumeAnalysisResult } from '../types';
+import type { ResumeAnalysisResult, SkillGapResult, SelectionCriteriaResult } from '../types';
 import { getAccessToken } from './userService';
 
 // Get API URL from environment variables
@@ -196,5 +196,89 @@ export const analyzeResume = async (resumeText: string): Promise<ResumeAnalysisR
       throw error;
     }
     throw new Error("Failed to analyze resume. The AI model may be temporarily unavailable. Please try again later.");
+  }
+};
+
+/**
+ * Run a skill gap analysis comparing the user's resume against a job description.
+ * Returns a structured audit with match score, present/missing skills, and recommendations.
+ */
+export const analyzeSkillGap = async (
+  resumeText: string,
+  jobDescription: string
+): Promise<SkillGapResult> => {
+  if (!resumeText.trim() || !jobDescription.trim()) {
+    throw new Error('Both resume text and job description are required.');
+  }
+
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/gemini/skill-gap-analysis`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ resumeText, jobDescription }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Please log in to use this feature.');
+      }
+      if (response.status === 403) {
+        const errorData = await response.json();
+        const error: any = new Error(errorData.message || 'You have reached your limit. Please upgrade to continue.');
+        error.limitReached = true;
+        throw error;
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.analysis as SkillGapResult;
+  } catch (error) {
+    console.error('Error calling backend API for skill-gap-analysis:', error);
+    if (error instanceof Error) throw error;
+    throw new Error('Failed to run skill gap analysis. Please check your connection and try again.');
+  }
+};
+
+/**
+ * Generate selection criteria / statement of claims responses for a job application.
+ * Identifies essential vs desirable criteria and drafts STAR-method responses from the resume.
+ */
+export const generateSelectionCriteria = async (
+  resumeText: string,
+  jobDescription: string
+): Promise<SelectionCriteriaResult> => {
+  if (!resumeText.trim() || !jobDescription.trim()) {
+    throw new Error('Both resume text and job description are required.');
+  }
+
+  try {
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/gemini/selection-criteria`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ resumeText, jobDescription }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Please log in to use this feature.');
+      }
+      if (response.status === 403) {
+        const errorData = await response.json();
+        const error: any = new Error(errorData.message || 'You have reached your limit. Please upgrade to continue.');
+        error.limitReached = true;
+        throw error;
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.result as SelectionCriteriaResult;
+  } catch (error) {
+    console.error('Error calling backend API for selection-criteria:', error);
+    if (error instanceof Error) throw error;
+    throw new Error('Failed to generate selection criteria. Please check your connection and try again.');
   }
 };
