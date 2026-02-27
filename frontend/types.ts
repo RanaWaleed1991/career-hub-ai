@@ -81,7 +81,71 @@ export interface ResumeVersion {
 
 export type TemplateType = 'classic' | 'modern' | 'australian' | 'picture' | 'ats' | 'minimal';
 
-export type Page = 'landing' | 'auth' | 'forgot-password' | 'reset-password' | 'builder' | 'courses' | 'jobs' | 'coverLetter' | 'admin' | 'tracker' | 'versions' | 'analyser' | 'dashboard' | 'paymentSuccess' | 'paymentCancel' | 'pricing' | 'subscription' | 'privacy' | 'terms' | 'blogs' | 'blog';
+export type Page = 'landing' | 'auth' | 'forgot-password' | 'reset-password' | 'builder' | 'courses' | 'jobs' | 'coverLetter' | 'admin' | 'tracker' | 'versions' | 'analyser' | 'dashboard' | 'paymentSuccess' | 'paymentCancel' | 'pricing' | 'subscription' | 'privacy' | 'terms' | 'blogs' | 'blog' | 'skill-gap' | 'selection-criteria';
+
+// ─── Skill Gap Analysis ───────────────────────────────────────────────────────
+
+export type SkillCategory = 'technical' | 'soft' | 'certification' | 'domain';
+export type SkillStrength = 'strong' | 'moderate' | 'mentioned';
+export type SkillPriority = 'critical' | 'important' | 'nice-to-have';
+export type RecommendationType = 'highlight' | 'learn' | 'reframe';
+
+export interface PresentSkill {
+  name: string;
+  category: SkillCategory;
+  strength: SkillStrength;
+}
+
+export interface MissingSkill {
+  name: string;
+  category: SkillCategory;
+  priority: SkillPriority;
+  reason: string;
+}
+
+export interface SkillRecommendation {
+  skill: string;
+  action: string;
+  type: RecommendationType;
+}
+
+export interface SkillGapResult {
+  matchScore: number;
+  matchSummary: string;
+  presentSkills: PresentSkill[];
+  missingSkills: MissingSkill[];
+  keywordGaps: string[];
+  recommendations: SkillRecommendation[];
+  strengthAreas: string[];
+  improvementAreas: string[];
+}
+
+// ─── Selection Criteria ───────────────────────────────────────────────────────
+
+export type CriterionType = 'essential' | 'desirable';
+export type CriterionConfidence = 'high' | 'medium' | 'low';
+
+export interface StarResponse {
+  situation: string;
+  task: string;
+  action: string;
+  result: string;
+}
+
+export interface SelectionCriterion {
+  type: CriterionType;
+  criterion: string;
+  starResponse: StarResponse;
+  fullResponse: string;
+  confidence: CriterionConfidence;
+}
+
+export interface SelectionCriteriaResult {
+  jobTitle: string;
+  organization: string;
+  criteria: SelectionCriterion[];
+  generalNotes: string;
+}
 
 export interface ResumeAnalysisResult {
   atsScore: number;

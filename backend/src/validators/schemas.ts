@@ -527,6 +527,38 @@ export const tailorResumeSchema = [
     .withMessage('Job description must be between 20 and 10,000 characters'),
 ];
 
+export const skillGapSchema = [
+  body('resumeText')
+    .trim()
+    .notEmpty()
+    .withMessage('Resume text is required')
+    .isLength({ min: 50, max: 20000 })
+    .withMessage('Resume text must be between 50 and 20,000 characters'),
+
+  body('jobDescription')
+    .trim()
+    .notEmpty()
+    .withMessage('Job description is required')
+    .isLength({ min: 20, max: 10000 })
+    .withMessage('Job description must be between 20 and 10,000 characters'),
+];
+
+export const selectionCriteriaSchema = [
+  body('resumeText')
+    .trim()
+    .notEmpty()
+    .withMessage('Resume text is required')
+    .isLength({ min: 50, max: 20000 })
+    .withMessage('Resume text must be between 50 and 20,000 characters'),
+
+  body('jobDescription')
+    .trim()
+    .notEmpty()
+    .withMessage('Job description is required')
+    .isLength({ min: 20, max: 15000 })
+    .withMessage('Job description must be between 20 and 15,000 characters'),
+];
+
 // =======================
 // PAYMENT VALIDATION SCHEMAS
 // =======================

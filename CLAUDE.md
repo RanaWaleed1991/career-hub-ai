@@ -289,6 +289,8 @@ Run `consolidated_production_migration.sql` on a fresh Supabase project to set u
 - AI resume tailoring to job descriptions (unlimited for all users)
 - AI resume analysis with ATS scoring (3 free, unlimited paid)
 - AI cover letter generation (3 free, unlimited paid)
+- **Skill Gap Audit** — match score + missing skills heatmap + action plan (`/skill-gap`)
+- **Selection Criteria Generator** — STAR-method responses for job applications (`/selection-criteria`)
 - PDF export/import
 - Resume version history (3 free saves, unlimited paid)
 - Job listings (manual admin entry + Adzuna sync ready)
@@ -319,8 +321,9 @@ Run `consolidated_production_migration.sql` on a fresh Supabase project to set u
 1. Fix password reset flow (when user volume justifies it)
 2. Set up Google Analytics event tracking (GA4 installed, events not configured)
 3. Add Stripe webhook monitoring/retry logic for missed events
-4. E2E tests for: payment flows, resume builder, cover letter generator
+4. E2E tests for: payment flows, resume builder, cover letter generator, skill gap, selection criteria
 5. Admin analytics dashboard (user metrics, revenue)
+6. Chrome Extension (Module C) — see Career Intelligence section below
 
 ---
 
@@ -501,6 +504,9 @@ Frontend                          Backend                     Supabase
 | XSS sanitization | `backend/src/utils/sanitization.ts` |
 | Input validation schemas | `backend/src/validators/schemas.ts` |
 | Brute force protection | `backend/src/utils/loginAttempts.ts` |
+| Skill Gap Audit logic | `backend/src/routes/gemini.ts` (POST /skill-gap-analysis) + `frontend/components/SkillGapPage.tsx` |
+| Selection Criteria logic | `backend/src/routes/gemini.ts` (POST /selection-criteria) + `frontend/components/SelectionCriteriaPage.tsx` |
+| Career Intelligence types | `frontend/types.ts` (SkillGapResult, SelectionCriteriaResult, etc.) |
 
 ---
 
@@ -523,6 +529,10 @@ There is no FPSC-specific grading standard in this codebase. Resume analysis sco
 **Subscription tracking in a single `subscriptions` table row per user**: Usage counters (`downloads_used`, `resume_analyses_done`, etc.) are incremented per operation. Weekly plan resets these every 7 days; monthly plan has no enforced limits. The `on_auth_user_created` trigger auto-creates a free subscription row on signup.
 
 **Blogs require DOMPurify on the frontend**: Blog content is stored as HTML (admin enters HTML). `BlogPostPage.tsx` uses `DOMPurify.sanitize()` before rendering via `dangerouslySetInnerHTML`. Never render blog HTML without sanitizing.
+
+**Skill Gap and Selection Criteria share existing counters**: `skill-gap-analysis` shares the `resume_analyses_done` counter (same limits as resume analysis). `selection-criteria` shares `cover_letters_generated`. This avoids new DB columns while still enforcing usage limits.
+
+**Career Intelligence modules use Gemini structured JSON output**: Both new endpoints pass a `responseSchema` to Gemini to get strictly-typed JSON back. Never call these endpoints without the schema — the parsing will break on free-form text output.
 
 ### Rate Limits and Quotas
 
@@ -639,6 +649,49 @@ stripe listen --forward-to localhost:3001/api/webhooks/stripe
 
 ---
 
+## CAREER INTELLIGENCE MODULES (Added 2026-02-27)
+
+### Module A — Selection Criteria Generator (`/selection-criteria`)
+- **Backend**: `POST /api/gemini/selection-criteria` in `backend/src/routes/gemini.ts`
+- **Frontend**: `frontend/components/SelectionCriteriaPage.tsx`
+- **Service**: `generateSelectionCriteria()` in `frontend/services/geminiService.ts`
+- **Types**: `SelectionCriteriaResult`, `SelectionCriterion`, `StarResponse` in `frontend/types.ts`
+- **Limit**: Shares `cover_letters_generated` counter (3 free / unlimited paid)
+- **Model**: `gemini-2.5-pro` with JSON schema enforcement
+- **What it does**: Extracts every essential/desirable criterion from a JD, drafts a STAR-format prose response (150-250 words) per criterion, using only evidence from the resume. Confidence levels flag weak spots.
+
+### Module B — Skill Gap Audit (`/skill-gap`)
+- **Backend**: `POST /api/gemini/skill-gap-analysis` in `backend/src/routes/gemini.ts`
+- **Frontend**: `frontend/components/SkillGapPage.tsx`
+- **Service**: `analyzeSkillGap()` in `frontend/services/geminiService.ts`
+- **Types**: `SkillGapResult`, `PresentSkill`, `MissingSkill`, `SkillRecommendation` in `frontend/types.ts`
+- **Limit**: Shares `resume_analyses_done` counter (3 free / 10 weekly / unlimited monthly)
+- **Model**: `gemini-2.5-pro` with JSON schema enforcement
+- **What it does**: Returns matchScore (0-100), present skills with strength grades, missing skills with priority (critical/important/nice-to-have), keyword gaps, and an action plan (highlight/learn/reframe per skill).
+
+### Module C — Chrome Extension (PLANNED, not yet built)
+- **Complexity**: Highest of the three modules
+- **Why it's hardest**: Separate Manifest V3 codebase, site-specific DOM scraping that breaks when LinkedIn/Indeed/Seek update their layouts, cross-origin auth bridging, Chrome Web Store review (1-3 weeks)
+- **Tech needed when ready**: Chrome Extension Manifest V3, content scripts per job board, `chrome.storage.local` for auth token caching, `window.postMessage` bridge to main app
+- **Pre-requisites**: Module B must be stable first (Extension calls same skill-gap endpoint)
+- **Do NOT start until**: Skill Gap API is production-tested and there is user demand
+
+### Adding More AI Endpoints (Pattern)
+All new Gemini endpoints must follow this exact pattern in `gemini.ts`:
+1. Add Joi validation schema in `schemas.ts`
+2. Import schema in `gemini.ts`
+3. Check subscription limit against appropriate counter before calling Gemini
+4. Build prompt
+5. Call `ai.models.generateContent()` with `responseMimeType: 'application/json'` + `responseSchema`
+6. Parse response, increment counter, return JSON
+7. Add TypeScript interface in `frontend/types.ts`
+8. Add service function in `frontend/services/geminiService.ts`
+9. Create page component in `frontend/components/`
+10. Add route in `frontend/App.tsx` (lazy-loaded, protected)
+11. Add SEO entry in `frontend/src/config/metaTags.ts`
+
+---
+
 ## AGENT WORKFLOW INSTRUCTIONS
 
 ### Before Making Any Change
@@ -679,4 +732,4 @@ npm run test:e2e                     # E2E (from project root, servers must be r
 
 ---
 
-*Last updated: 2026-02-27 | Version: 1.0 | Status: LIVE IN PRODUCTION*
+*Last updated: 2026-02-27 | Version: 1.1 | Status: LIVE IN PRODUCTION*
