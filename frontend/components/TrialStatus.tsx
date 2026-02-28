@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getFreeTrialState, hasPremium, getSubscription } from '../services/premiumService';
-import { SparklesIcon, EnvelopeIcon, DocumentChartBarIcon, DownloadIcon, ClipboardDocumentCheckIcon, FolderIcon } from './icons';
+import { SparklesIcon, EnvelopeIcon, DocumentChartBarIcon, DownloadIcon, ClipboardDocumentCheckIcon, ChartBarIcon } from './icons';
 
 const TrialStatus: React.FC = () => {
   const [trialState, setTrialState] = useState<any>(null);
@@ -11,18 +11,15 @@ const TrialStatus: React.FC = () => {
   useEffect(() => {
     const loadTrialState = async () => {
       try {
-        // Check if user has premium
         const premium = await hasPremium();
         setIsPremium(premium);
 
         if (premium) {
-          // Get subscription details to show plan name
           const sub = await getSubscription();
           if (sub) {
             setPremiumPlan(sub.plan === 'weekly' ? 'Weekly Premium' : 'Monthly Premium');
           }
         } else {
-          // Only load trial state for free users
           const state = await getFreeTrialState();
           setTrialState(state);
         }
@@ -42,7 +39,7 @@ const TrialStatus: React.FC = () => {
         <div className="animate-pulse">
           <div className="h-4 bg-slate-200 rounded w-3/4 mb-4"></div>
           <div className="space-y-3">
-            {[...Array(6)].map((_, i) => (
+            {[...Array(5)].map((_, i) => (
               <div key={i} className="h-3 bg-slate-200 rounded"></div>
             ))}
           </div>
@@ -51,7 +48,6 @@ const TrialStatus: React.FC = () => {
     );
   }
 
-  // Show premium badge for premium users
   if (isPremium) {
     return (
       <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-xl shadow-lg border border-indigo-300 opacity-0 slide-in-up" style={{ animationDelay: `300ms` }}>
@@ -61,32 +57,30 @@ const TrialStatus: React.FC = () => {
             {premiumPlan} Active
           </h3>
           <span className="bg-white bg-opacity-20 text-white text-xs font-bold px-3 py-1 rounded-full">
-            ✓ PREMIUM
+            PREMIUM
           </span>
         </div>
         <div className="space-y-2 text-white text-opacity-90">
-          <p className="text-sm flex items-center">
-            <DownloadIcon className="w-4 h-4 mr-2" />
+          <p className="text-sm flex items-center gap-2">
+            <DownloadIcon className="w-4 h-4 flex-shrink-0" />
             Unlimited resume downloads
           </p>
-          <p className="text-sm flex items-center">
-            <EnvelopeIcon className="w-4 h-4 mr-2" />
-            Unlimited cover letters
+          <p className="text-sm flex items-center gap-2">
+            <EnvelopeIcon className="w-4 h-4 flex-shrink-0" />
+            Unlimited cover letters &amp; selection criteria
           </p>
-          <p className="text-sm flex items-center">
-            <DocumentChartBarIcon className="w-4 h-4 mr-2" />
-            {premiumPlan === 'Monthly Premium' ? 'Unlimited' : '10'} resume analyses per week
+          <p className="text-sm flex items-center gap-2">
+            <ChartBarIcon className="w-4 h-4 flex-shrink-0" />
+            {premiumPlan === 'Monthly Premium' ? 'Unlimited' : '10'} analyses &amp; skill gap audits
           </p>
-          <p className="text-sm flex items-center">
-            <SparklesIcon className="w-4 h-4 mr-2" />
-            Unlimited AI enhancements
+          <p className="text-sm flex items-center gap-2">
+            <SparklesIcon className="w-4 h-4 flex-shrink-0" />
+            Unlimited AI enhancements &amp; tailoring
           </p>
         </div>
         <div className="mt-4 pt-4 border-t border-white border-opacity-20">
           <p className="text-xs text-white text-opacity-75">
-            ✓ No watermarks on downloads<br />
-            ✓ Priority support<br />
-            ✓ Cancel anytime
+            No watermarks on downloads &middot; Priority support &middot; Cancel anytime
           </p>
         </div>
       </div>
@@ -98,32 +92,56 @@ const TrialStatus: React.FC = () => {
   }
 
   const items = [
-    { name: 'Resume Downloads', count: trialState.resumeDownloads, icon: DownloadIcon, unlimited: false },
-    { name: 'Cover Letters', count: trialState.coverLetters, icon: EnvelopeIcon, unlimited: false },
-    { name: 'Resume Analyses', count: trialState.resumeAnalyses, icon: DocumentChartBarIcon, unlimited: false },
-    { name: 'AI Enhancements', count: trialState.aiImprovements, icon: SparklesIcon, unlimited: false },
-    { name: 'Resume Tailoring', count: trialState.resumeTailoring, icon: ClipboardDocumentCheckIcon, unlimited: false },
+    { name: 'Resume Downloads', count: trialState.resumeDownloads, icon: DownloadIcon, limit: 3 },
+    {
+      name: 'Cover Letters & Selection Criteria',
+      count: trialState.coverLetters,
+      icon: EnvelopeIcon,
+      limit: 3,
+    },
+    {
+      name: 'Analyses & Skill Gap Audits',
+      count: trialState.resumeAnalyses,
+      icon: ChartBarIcon,
+      limit: 3,
+    },
+    { name: 'AI Enhancements', count: trialState.aiImprovements, icon: SparklesIcon, limit: 10 },
+    { name: 'Resume Tailoring', count: trialState.resumeTailoring, icon: ClipboardDocumentCheckIcon, limit: 3 },
   ];
 
   return (
     <div className="bg-white p-6 rounded-xl shadow-lg border border-slate-200 opacity-0 slide-in-up" style={{ animationDelay: `300ms` }}>
-      <h3 className="text-xl font-semibold text-slate-800 mb-4">Free Tier Status</h3>
-      <div className="space-y-3">
-        {items.map(item => (
-          <div key={item.name} className="flex justify-between items-center text-sm">
-            <div className="flex items-center">
-              <item.icon className="w-5 h-5 text-indigo-500 mr-2" />
-              <span className="text-slate-600">{item.name}</span>
+      <h3 className="text-xl font-semibold text-slate-800 mb-4">Free Tier Credits</h3>
+      <div className="space-y-4">
+        {items.map(item => {
+          const pct = Math.max(0, Math.round((item.count / item.limit) * 100));
+          const isLow = item.count <= 1;
+          return (
+            <div key={item.name}>
+              <div className="flex justify-between items-center mb-1">
+                <div className="flex items-center gap-2">
+                  <item.icon className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                  <span className="text-xs text-slate-600">{item.name}</span>
+                </div>
+                <span className={`font-bold text-xs px-2 py-0.5 rounded-full ${
+                  isLow ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'
+                }`}>
+                  {item.count} left
+                </span>
+              </div>
+              <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${isLow ? 'bg-red-400' : 'bg-indigo-400'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
             </div>
-            <span className="font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-full">
-              {item.unlimited ? 'Unlimited' : `${item.count} left`}
-            </span>
-          </div>
-        ))}
-        <div className="mt-4 pt-4 border-t border-slate-200">
+          );
+        })}
+        <div className="pt-3 border-t border-slate-200">
           <p className="text-xs text-slate-500">
-            ✓ Full access to courses and jobs section<br />
-            ✓ Save up to 3 resume versions
+            Full access to jobs, courses &amp; application tracker<br />
+            Save up to 3 resume versions
           </p>
         </div>
       </div>

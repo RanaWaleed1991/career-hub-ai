@@ -1,13 +1,14 @@
 import React, { useState, useCallback } from 'react';
 import { generateSelectionCriteria } from '../services/geminiService';
 import type { SelectionCriteriaResult, SelectionCriterion } from '../types';
+import { ClipboardDocumentCheckIcon } from './icons';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const confidenceStyle: Record<string, { badge: string; label: string; icon: string }> = {
-  high: { badge: 'bg-emerald-100 text-emerald-700 border-emerald-200', label: 'Strong Evidence', icon: '✅' },
-  medium: { badge: 'bg-amber-100 text-amber-700 border-amber-200', label: 'Partial Evidence', icon: '⚠️' },
-  low: { badge: 'bg-red-100 text-red-700 border-red-200', label: 'Limited Evidence', icon: '⚠️' },
+const confidenceStyle: Record<string, { badge: string; label: string }> = {
+  high: { badge: 'bg-emerald-100 text-emerald-700 border-emerald-200', label: 'Strong Evidence' },
+  medium: { badge: 'bg-amber-100 text-amber-700 border-amber-200', label: 'Partial Evidence' },
+  low: { badge: 'bg-red-100 text-red-700 border-red-200', label: 'Limited Evidence' },
 };
 
 function copyToClipboard(text: string, setCopied: (s: string) => void, id: string) {
@@ -39,23 +40,18 @@ function StarCard({ criterion, index, copied, setCopied }: {
         onClick={() => setExpanded(e => !e)}
       >
         <div className="flex items-start gap-3 flex-1 min-w-0">
-          <span className="mt-0.5 text-xl flex-shrink-0">
-            {criterion.type === 'essential' ? '⭐' : '➕'}
-          </span>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className={`text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
-                criterion.type === 'essential'
-                  ? 'bg-indigo-100 text-indigo-700'
-                  : 'bg-slate-200 text-slate-600'
-              }`}>
-                {criterion.type}
-              </span>
-              <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${conf.badge}`}>
-                {conf.icon} {conf.label}
-              </span>
-            </div>
-            <p className="text-sm font-semibold text-slate-800">{criterion.criterion}</p>
+          <div className="flex items-center gap-2 flex-wrap mb-1 flex-1">
+            <span className={`text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+              criterion.type === 'essential'
+                ? 'bg-indigo-100 text-indigo-700'
+                : 'bg-slate-200 text-slate-600'
+            }`}>
+              {criterion.type}
+            </span>
+            <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${conf.badge}`}>
+              {conf.label}
+            </span>
+            <p className="text-sm font-semibold text-slate-800 w-full mt-1">{criterion.criterion}</p>
           </div>
         </div>
         <svg
@@ -72,15 +68,15 @@ function StarCard({ criterion, index, copied, setCopied }: {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {(
               [
-                { key: 'situation', label: 'Situation', color: 'bg-blue-50 border-blue-100', icon: '🏢' },
-                { key: 'task', label: 'Task', color: 'bg-purple-50 border-purple-100', icon: '📋' },
-                { key: 'action', label: 'Action', color: 'bg-amber-50 border-amber-100', icon: '⚡' },
-                { key: 'result', label: 'Result', color: 'bg-emerald-50 border-emerald-100', icon: '🎯' },
+                { key: 'situation', label: 'Situation', color: 'bg-blue-50 border-blue-100' },
+                { key: 'task', label: 'Task', color: 'bg-purple-50 border-purple-100' },
+                { key: 'action', label: 'Action', color: 'bg-amber-50 border-amber-100' },
+                { key: 'result', label: 'Result', color: 'bg-emerald-50 border-emerald-100' },
               ] as const
-            ).map(({ key, label, color, icon }) => (
+            ).map(({ key, label, color }) => (
               <div key={key} className={`p-3 rounded-xl border ${color}`}>
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">
-                  {icon} {label}
+                  {label}
                 </p>
                 <p className="text-sm text-slate-700 leading-relaxed">
                   {criterion.starResponse[key]}
@@ -93,7 +89,7 @@ function StarCard({ criterion, index, copied, setCopied }: {
           <div className="bg-white border border-slate-200 rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
-                📝 Full Response
+                Full Response
               </p>
               <button
                 onClick={() => copyToClipboard(criterion.fullResponse, setCopied, copyId)}
@@ -103,7 +99,7 @@ function StarCard({ criterion, index, copied, setCopied }: {
                     : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'
                 }`}
               >
-                {copied === copyId ? '✓ Copied' : '📋 Copy'}
+                {copied === copyId ? 'Copied' : 'Copy'}
               </button>
             </div>
             <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
@@ -113,7 +109,7 @@ function StarCard({ criterion, index, copied, setCopied }: {
 
           {criterion.confidence === 'low' && (
             <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
-              <span>⚠️</span>
+              <span className="font-bold flex-shrink-0">!</span>
               <p>
                 <strong>Limited evidence in your resume</strong> for this criterion. Consider adding relevant experience, or be prepared to address this in an interview.
               </p>
@@ -196,10 +192,12 @@ const SelectionCriteriaPage: React.FC<Props> = ({ triggerPremiumFlow, setActionT
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">📋</span>
+            <div className="p-2 bg-indigo-100 rounded-lg">
+              <ClipboardDocumentCheckIcon className="w-7 h-7 text-indigo-600" />
+            </div>
             <h1 className="text-3xl font-bold text-slate-800">Selection Criteria Generator</h1>
           </div>
-          <p className="text-gray-500 ml-12">
+          <p className="text-gray-500 ml-14">
             Automatically identify essential and desirable criteria from any job description and generate assertive, evidence-based STAR responses using only your actual experience.
           </p>
         </div>
@@ -209,7 +207,6 @@ const SelectionCriteriaPage: React.FC<Props> = ({ triggerPremiumFlow, setActionT
           <div className="space-y-6">
             {/* Info Banner */}
             <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex items-start gap-3">
-              <span className="text-2xl flex-shrink-0">💡</span>
               <div className="text-sm text-indigo-800">
                 <p className="font-semibold mb-1">How it works</p>
                 <p>The AI extracts every selection criterion from the job description, then drafts a structured STAR response for each one using only the experience in your resume. No invented facts — only evidence-based responses.</p>
@@ -219,7 +216,7 @@ const SelectionCriteriaPage: React.FC<Props> = ({ triggerPremiumFlow, setActionT
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  📄 Your Resume
+                  Your Resume
                 </label>
                 <p className="text-xs text-gray-400 mb-3">
                   Paste the plain text of your resume. Include specific metrics, achievements, and dates.
@@ -237,7 +234,7 @@ const SelectionCriteriaPage: React.FC<Props> = ({ triggerPremiumFlow, setActionT
 
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  💼 Job Description
+                  Job Description
                 </label>
                 <p className="text-xs text-gray-400 mb-3">
                   Paste the full job posting. If it has a "Selection Criteria" section, include it — otherwise the AI will infer criteria from responsibilities and requirements.
@@ -274,11 +271,11 @@ const SelectionCriteriaPage: React.FC<Props> = ({ triggerPremiumFlow, setActionT
                   Generating STAR responses... (this may take 30–60 seconds)
                 </>
               ) : (
-                <>📋 Generate Selection Criteria</>
+                'Generate Selection Criteria'
               )}
             </button>
             <p className="text-xs text-center text-gray-400 -mt-4">
-              Uses Gemini 2.5 Pro · Free plan: 3 documents/period
+              Free plan: 3 documents/period — shared with Cover Letter Builder
             </p>
           </div>
         ) : (
@@ -290,7 +287,7 @@ const SelectionCriteriaPage: React.FC<Props> = ({ triggerPremiumFlow, setActionT
                 <div>
                   <h2 className="text-xl font-bold text-slate-800">{result.jobTitle || 'Role'}</h2>
                   {result.organization && (
-                    <p className="text-sm text-gray-500 mt-0.5">🏢 {result.organization}</p>
+                    <p className="text-sm text-gray-500 mt-0.5">{result.organization}</p>
                   )}
                   <div className="flex items-center gap-3 mt-3">
                     <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-semibold">
@@ -310,20 +307,20 @@ const SelectionCriteriaPage: React.FC<Props> = ({ triggerPremiumFlow, setActionT
                         : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'
                     }`}
                   >
-                    {copied === 'all' ? '✓ Copied All' : '📋 Copy All Responses'}
+                    {copied === 'all' ? 'Copied' : 'Copy All Responses'}
                   </button>
                   <button
                     onClick={handleReset}
                     className="px-4 py-2 text-sm font-medium rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 transition-colors"
                   >
-                    ← New Document
+                    New Document
                   </button>
                 </div>
               </div>
 
               {result.generalNotes && (
                 <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl text-sm text-amber-800">
-                  <p className="font-semibold mb-1">💡 Coach's Notes</p>
+                  <p className="font-semibold mb-1">Coach's Notes</p>
                   <p>{result.generalNotes}</p>
                 </div>
               )}
@@ -334,8 +331,8 @@ const SelectionCriteriaPage: React.FC<Props> = ({ triggerPremiumFlow, setActionT
               {(
                 [
                   { key: 'all', label: `All (${result.criteria.length})` },
-                  { key: 'essential', label: `⭐ Essential (${essentialCount})` },
-                  { key: 'desirable', label: `➕ Desirable (${desirableCount})` },
+                  { key: 'essential', label: `Essential (${essentialCount})` },
+                  { key: 'desirable', label: `Desirable (${desirableCount})` },
                 ] as const
               ).map(tab => (
                 <button
@@ -369,7 +366,7 @@ const SelectionCriteriaPage: React.FC<Props> = ({ triggerPremiumFlow, setActionT
               onClick={handleReset}
               className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 hover:border-indigo-400 hover:text-indigo-600 rounded-xl transition-colors text-sm font-medium"
             >
-              ← Generate for a Different Role
+              Generate for a Different Role
             </button>
           </div>
         )}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { tailorResumeForJob } from '../services/geminiService';
-import { canTailorResume, purchasePlan, useTailorAttempt } from '../services/premiumService';
+import { canTailorResume, purchasePlan } from '../services/premiumService';
 import PremiumModal from './PremiumModal';
 import type { Plan } from '../services/premiumService';
 import { ArrowLeftIcon } from './icons';

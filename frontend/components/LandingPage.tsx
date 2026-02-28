@@ -2,7 +2,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Page } from '../types';
-import { DocumentTextIcon, BriefcaseIcon, BookOpenIcon, ClipboardDocumentCheckIcon, EnvelopeIcon, Cog6ToothIcon, FacebookIcon, ChartBarIcon, DocumentChartBarIcon } from './icons';
+import {
+  DocumentTextIcon,
+  BriefcaseIcon,
+  BookOpenIcon,
+  ClipboardDocumentCheckIcon,
+  EnvelopeIcon,
+  Cog6ToothIcon,
+  ChartBarIcon,
+  DocumentChartBarIcon,
+  StarIcon,
+  FacebookIcon,
+} from './icons';
 import TailorResumeModal from './TailorResumeModal';
 
 interface LandingPageProps {
@@ -10,250 +21,382 @@ interface LandingPageProps {
   triggerPremiumFlow: () => void;
   setActionToRetry: (action: (() => void) | null) => void;
   openTailorModal: () => void;
-  isAuthenticated?: boolean; // Optional - indicates if user is logged in
-  isAdmin?: boolean; // Optional - indicates if user is admin
+  isAuthenticated?: boolean;
+  isAdmin?: boolean;
 }
 
-const baseFeatures = [
+// ── Feature definitions ────────────────────────────────────────────────────
+
+const intelligenceFeatures = [
   {
-    page: 'builder',
-    title: 'AI Resume Builder',
-    description: 'Create a standout resume with our AI-powered content enhancer and professional templates.',
-    icon: DocumentTextIcon,
-    color: 'bg-indigo-500',
-    isPremium: false,
-  },
-  {
-    page: 'tailor',
-    title: 'Tailor Resume to Job',
-    description: 'Optimize your resume for any job description to beat applicant tracking systems (ATS).',
-    icon: ClipboardDocumentCheckIcon,
-    color: 'bg-rose-500',
-    isPremium: false,
-  },
-  {
-    page: 'coverLetter',
-    title: 'AI Cover Letter Builder',
-    description: 'Generate a personalized cover letter in seconds based on your resume and the job description.',
-    icon: EnvelopeIcon,
-    color: 'bg-purple-500',
-    isPremium: false,
-  },
-  {
-    page: 'analyser',
-    title: 'AI Resume Analyser',
-    description: 'Get an instant analysis of your resume, with an ATS score and improvement tips from AI.',
-    icon: DocumentChartBarIcon,
-    color: 'bg-cyan-500',
-    isPremium: true,
-  },
-  {
-    page: 'tracker',
-    title: 'Application Tracker',
-    description: 'Track where you applied, manage interview dates, and monitor your job search progress.',
+    path: '/skill-gap',
+    title: 'Skill Gap Audit',
+    description: 'Match your resume to any job, identify missing skills, and get a prioritised roadmap to close the gap.',
     icon: ChartBarIcon,
-    color: 'bg-emerald-500',
-    isPremium: true,
-  },
-   {
-    page: 'versions',
-    title: 'Resume Version History',
-    description: 'Save and compare different versions of your resume to tailor it for specific applications.',
-    icon: DocumentTextIcon,
-    color: 'bg-amber-500',
-    isPremium: true,
+    badge: 'Intelligence',
   },
   {
-    page: 'jobs',
-    title: 'Find Jobs',
-    description: 'Browse curated job listings in your field and location to find your next opportunity.',
-    icon: BriefcaseIcon,
-    color: 'bg-sky-500',
-    isPremium: false,
+    path: '/selection-criteria',
+    title: 'Selection Criteria Generator',
+    description: 'Auto-generate STAR-format responses for every criterion in a government or corporate job description.',
+    icon: StarIcon,
+    badge: 'Intelligence',
   },
   {
-    page: 'courses',
-    title: 'Explore Courses',
-    description: 'Discover recommended free and paid courses to upskill and enhance your qualifications.',
-    icon: BookOpenIcon,
-    color: 'bg-teal-500',
-    isPremium: false,
-  },
-  {
-    page: 'blogs',
-    title: 'Read Our Blog',
-    description: 'Get expert career tips, resume advice, and job search strategies to boost your success.',
-    icon: BookOpenIcon,
-    color: 'bg-violet-500',
-    isPremium: false,
+    path: '/resume-analysis',
+    title: 'Resume Analyser',
+    description: 'Get an instant ATS compatibility score, section-by-section feedback, and recruiter-ready improvements.',
+    icon: DocumentChartBarIcon,
+    badge: 'Intelligence',
   },
 ];
 
-const adminFeature = {
-    page: 'admin',
-    title: 'Admin Panel',
-    description: 'Manage job listings and course recommendations for the entire application.',
-    icon: Cog6ToothIcon,
-    color: 'bg-slate-500',
-    isPremium: false,
-};
+const writingFeatures = [
+  {
+    path: '/resume-builder',
+    title: 'AI Resume Builder',
+    description: 'Build a standout resume with AI-powered content enhancement and six professional templates.',
+    icon: DocumentTextIcon,
+  },
+  {
+    path: 'tailor',
+    title: 'Tailor for a Job',
+    description: 'Rewrite your resume in seconds to match a specific job description and beat ATS filters.',
+    icon: ClipboardDocumentCheckIcon,
+  },
+  {
+    path: '/cover-letter',
+    title: 'Cover Letter Builder',
+    description: 'Generate a personalised, job-specific cover letter based on your resume and role requirements.',
+    icon: EnvelopeIcon,
+  },
+];
 
+const resourceFeatures = [
+  {
+    path: '/jobs',
+    title: 'Find Jobs',
+    description: 'Browse curated listings across technology, healthcare, accounting, and government sectors.',
+    icon: BriefcaseIcon,
+  },
+  {
+    path: '/courses',
+    title: 'Explore Courses',
+    description: 'Discover recommended free and paid courses to upskill and boost your qualifications.',
+    icon: BookOpenIcon,
+  },
+  {
+    path: '/blogs',
+    title: 'Career Blog',
+    description: 'Expert tips on resumes, interviews, job search strategy, and navigating today\'s market.',
+    icon: BookOpenIcon,
+  },
+];
 
-const FeatureCard: React.FC<{ feature: typeof baseFeatures[0]; onClick: () => void; isLocked: boolean; index: number }> = ({ feature, onClick, isLocked, index }) => (
-  <button
-    type="button"
-    onClick={onClick}
-    className="bg-white p-6 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-left w-full flex flex-col relative opacity-0 slide-in-up"
-    style={{ animationDelay: `${index * 100}ms` }}
-    aria-label={`Navigate to ${feature.title}`}
-  >
-    {isLocked && (
-        <span className="absolute top-4 right-4 text-xs font-bold px-3 py-1 rounded-full bg-amber-400 text-amber-900">
-            PREMIUM
+// ── Popular Roles ──────────────────────────────────────────────────────────
+
+const popularRoles = [
+  {
+    sector: 'Technology',
+    highlight: 'Skill Gap Audit',
+    description: 'See exactly which cloud, DevOps, or AI skills are missing from your profile.',
+    path: '/skill-gap',
+    tags: ['Software Engineer', 'Data Analyst', 'DevOps', 'Cybersecurity'],
+  },
+  {
+    sector: 'Government',
+    highlight: 'Selection Criteria',
+    description: 'APS and local government roles require formal selection criteria. We generate STAR responses automatically.',
+    path: '/selection-criteria',
+    tags: ['APS 4–6', 'Policy Officer', 'Project Manager', 'Administration'],
+  },
+  {
+    sector: 'Healthcare',
+    highlight: 'Resume Analyser',
+    description: 'Healthcare ATS systems are strict. Score your resume and fix compliance gaps before you apply.',
+    path: '/resume-analysis',
+    tags: ['Registered Nurse', 'Allied Health', 'Medical Admin', 'Aged Care'],
+  },
+  {
+    sector: 'Finance',
+    highlight: 'Tailor for a Job',
+    description: 'Tailor your resume for each role and ensure your credentials and metrics stand out.',
+    path: '/tailor',
+    tags: ['Accountant', 'Financial Analyst', 'CPA', 'Audit & Compliance'],
+  },
+];
+
+// ── Components ─────────────────────────────────────────────────────────────
+
+function FeatureCard({
+  icon: Icon,
+  title,
+  description,
+  badge,
+  onClick,
+}: {
+  icon: React.FC<{ className?: string }>;
+  title: string;
+  description: string;
+  badge?: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 text-left w-full flex flex-col"
+    >
+      {badge && (
+        <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-3">
+          {badge}
         </span>
-    )}
-    <div className={`p-3 rounded-lg ${feature.color} inline-flex self-start mb-4 shadow-md`}>
-      <feature.icon className="w-6 h-6 text-white" />
-    </div>
-    <h3 className="text-xl font-semibold text-slate-800 mb-2">{feature.title}</h3>
-    <p className="text-sm text-slate-600 flex-grow">{feature.description}</p>
-    <span className={`mt-4 text-sm font-semibold ${isLocked ? 'text-amber-600' : 'text-indigo-600'}`}>
-      {isLocked ? 'Unlock Feature' : `Go to ${feature.title.split(' ')[0]}`} &rarr;
-    </span>
-  </button>
-);
+      )}
+      <div className="p-2.5 bg-slate-100 rounded-lg inline-flex mb-4">
+        <Icon className="w-5 h-5 text-slate-700" />
+      </div>
+      <h3 className="text-base font-semibold text-slate-800 mb-2">{title}</h3>
+      <p className="text-sm text-slate-500 flex-grow leading-relaxed">{description}</p>
+      <span className="mt-4 text-sm font-semibold text-indigo-600">Get started &rarr;</span>
+    </button>
+  );
+}
 
-const LandingPage: React.FC<LandingPageProps> = ({ setPage, triggerPremiumFlow, setActionToRetry, openTailorModal, isAuthenticated = false, isAdmin = false }) => {
+// ── Main Component ─────────────────────────────────────────────────────────
+
+const LandingPage: React.FC<LandingPageProps> = ({
+  setPage,
+  triggerPremiumFlow,
+  setActionToRetry,
+  openTailorModal,
+  isAuthenticated = false,
+  isAdmin = false,
+}) => {
   const navigate = useNavigate();
-  const features = isAdmin ? [...baseFeatures, adminFeature].filter(f => f.page !== 'versions') : baseFeatures; // temp hide versions from admin
 
-  // Map old page names to new routes
-  const pageToRoute = (page: string): string => {
-    const routeMap: Record<string, string> = {
-      'builder': '/resume-builder',
-      'coverLetter': '/cover-letter',
-      'analyser': '/resume-analysis',
-      'tracker': '/applications',
-      'versions': '/versions',
-      'jobs': '/jobs',
-      'courses': '/courses',
-      'admin': '/admin',
-      'dashboard': '/dashboard',
-      'privacy': '/privacy',
-      'terms': '/terms',
-      'blogs': '/blogs',
-      'landing': '/',
-    };
-    return routeMap[page] || `/${page}`;
-  };
-
-  const handleGetStartedClick = () => {
-    // Go to builder - if not authenticated, App.tsx will show auth page
-    navigate('/resume-builder');
-  };
-
-  const handleFeatureClick = (page: Page | 'tailor') => {
-    // Navigate to feature page - App.tsx will handle auth for protected routes
-    if (page === 'tailor') {
+  const handleFeatureClick = (path: string) => {
+    if (path === 'tailor') {
       openTailorModal();
     } else {
-      // Navigate to the page - App.tsx handles authentication and access control
-      navigate(pageToRoute(page as string));
+      navigate(path);
     }
   };
 
   return (
-    <>
-      <div className="flex flex-col h-full bg-slate-50 overflow-y-auto">
-        {/* Hero Section */}
-        <div className="w-full bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-            <div className="text-center px-4 py-16 md:py-24">
-              <h1 className="text-4xl md:text-6xl font-extrabold text-slate-800 mb-4 tracking-tight opacity-0 fade-in" style={{ animationDelay: '100ms' }}>
-                Build Your Professional Resume in 10 Minutes
-              </h1>
-              <p className="text-lg md:text-xl text-slate-600 mb-8 max-w-3xl mx-auto opacity-0 fade-in" style={{ animationDelay: '300ms' }}>
-                AI-powered resume builder with <span className="font-semibold text-indigo-600">8 ATS-optimized templates</span>. Start free with 3 downloads and 10 AI improvements. <span className="font-semibold">No credit card required.</span>
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 fade-in" style={{ animationDelay: '500ms' }}>
-                <button
-                  type="button"
-                  onClick={handleGetStartedClick}
-                  className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500 text-lg"
-                >
-                  {isAuthenticated ? 'Start Building My Resume' : 'Get Started - Sign Up Free'}
-                </button>
-                {!isAuthenticated && (
-                  <button
-                    type="button"
-                    onClick={() => navigate('/dashboard')}
-                    className="px-10 py-4 font-semibold rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-transform transform hover:scale-105 bg-white text-indigo-600 hover:bg-slate-50 focus:ring-indigo-500 text-lg border-2 border-indigo-600"
-                  >
-                    Already have an account? Sign In
-                  </button>
-                )}
-              </div>
-            </div>
-        </div>
+    <div className="flex flex-col min-h-full bg-white overflow-y-auto">
 
-        {/* Features Grid */}
-        <div className="flex-grow p-8 md:p-12">
-          <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl font-bold text-slate-800 text-center mb-10 fade-in opacity-0" style={{ animationDelay: '600ms' }}>Your Complete Career Toolkit</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {features.map((feature, index) => {
-                      const isLocked = feature.isPremium && !isAdmin;
-                      return (
-                         <FeatureCard key={feature.page} feature={feature} onClick={() => handleFeatureClick(feature.page as Page | 'tailor')} isLocked={isLocked} index={index}/>
-                      )
-                  })}
-              </div>
+      {/* ── Hero ── */}
+      <div className="bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+        <div className="max-w-5xl mx-auto px-6 py-20 md:py-28 text-center">
+          <span className="inline-block text-xs font-bold uppercase tracking-widest text-indigo-400 mb-6 border border-indigo-800 rounded-full px-4 py-1.5 bg-indigo-900/50">
+            Powered by Google Gemini
+          </span>
+          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 opacity-0 fade-in" style={{ animationDelay: '100ms' }}>
+            The Intelligent Edge<br />
+            <span className="text-indigo-400">for Your Next Career Move.</span>
+          </h1>
+          <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl mx-auto opacity-0 fade-in" style={{ animationDelay: '300ms' }}>
+            AI-powered tools that go beyond templates — from skill gap analysis and selection criteria to resume tailoring and ATS scoring.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 opacity-0 fade-in" style={{ animationDelay: '500ms' }}>
+            <button
+              type="button"
+              onClick={() => navigate(isAuthenticated ? '/dashboard' : '/resume-builder')}
+              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-lg shadow-lg transition-all hover:scale-105 text-base"
+            >
+              {isAuthenticated ? 'Go to Dashboard' : 'Get Started — Free'}
+            </button>
+            {!isAuthenticated && (
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard')}
+                className="px-8 py-4 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg border border-white/20 transition-all hover:scale-105 text-base"
+              >
+                Sign In
+              </button>
+            )}
+          </div>
+
+          {/* Trust badges */}
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-6 opacity-0 fade-in" style={{ animationDelay: '700ms' }}>
+            {['ATS-Friendly', 'Professional', 'Government-Ready', 'AI-Powered'].map(badge => (
+              <span key={badge} className="flex items-center gap-2 text-sm text-slate-400">
+                <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                {badge}
+              </span>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* Footer Section */}
-        <footer className="w-full bg-slate-100 border-t border-slate-200 mt-auto py-6 px-4">
-          <div className="max-w-6xl mx-auto">
-            {/* Social Media */}
-            <div className="text-center mb-4">
+      {/* ── Intelligence Tools ── */}
+      <div className="bg-slate-50 py-16 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2">New in 2026</p>
+            <h2 className="text-3xl font-bold text-slate-800">Career Intelligence Suite</h2>
+            <p className="text-slate-500 mt-3 max-w-xl mx-auto">
+              Tools that analyse, advise, and respond — not just format.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {intelligenceFeatures.map(f => (
+              <FeatureCard
+                key={f.path}
+                icon={f.icon}
+                title={f.title}
+                description={f.description}
+                badge={f.badge}
+                onClick={() => handleFeatureClick(f.path)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Most Popular Roles ── */}
+      <div className="bg-white py-16 px-6 border-t border-slate-100">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-800">Built for Your Industry</h2>
+            <p className="text-slate-500 mt-3 max-w-xl mx-auto">
+              Specific tools for specific sectors — not generic advice.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {popularRoles.map(role => (
+              <button
+                key={role.sector}
+                type="button"
+                onClick={() => handleFeatureClick(role.path)}
+                className="text-left p-6 border border-slate-200 rounded-xl hover:border-indigo-300 hover:shadow-md transition-all group"
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-bold text-slate-800">{role.sector}</h3>
+                  <span className="text-xs font-semibold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-full px-2.5 py-1">
+                    {role.highlight}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500 leading-relaxed mb-4">{role.description}</p>
+                <div className="flex flex-wrap gap-2">
+                  {role.tags.map(tag => (
+                    <span key={tag} className="text-xs text-slate-600 bg-slate-100 rounded-full px-2.5 py-1">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Writing Tools ── */}
+      <div className="bg-slate-50 py-16 px-6 border-t border-slate-100">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-800">Writing Tools</h2>
+            <p className="text-slate-500 mt-3 max-w-xl mx-auto">
+              Build, tailor, and send — your full application toolkit.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {writingFeatures.map(f => (
+              <FeatureCard
+                key={f.path}
+                icon={f.icon}
+                title={f.title}
+                description={f.description}
+                onClick={() => handleFeatureClick(f.path)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Resources ── */}
+      <div className="bg-white py-16 px-6 border-t border-slate-100">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold text-slate-800">Resources</h2>
+            <p className="text-slate-500 mt-3 max-w-xl mx-auto">
+              Jobs, courses, and expert guidance — all in one place.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {resourceFeatures.map(f => (
+              <FeatureCard
+                key={f.path}
+                icon={f.icon}
+                title={f.title}
+                description={f.description}
+                onClick={() => handleFeatureClick(f.path)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── CTA Banner ── */}
+      <div className="bg-indigo-600 py-14 px-6 text-center">
+        <h2 className="text-3xl font-bold text-white mb-4">Ready to get the edge?</h2>
+        <p className="text-indigo-200 mb-8 max-w-lg mx-auto">
+          Start free. No credit card required. Three analyses, three cover letters, three downloads — on us.
+        </p>
+        <button
+          type="button"
+          onClick={() => navigate(isAuthenticated ? '/dashboard' : '/resume-builder')}
+          className="px-8 py-4 bg-white text-indigo-700 font-bold rounded-lg shadow-lg hover:bg-slate-50 transition-all hover:scale-105 text-base"
+        >
+          {isAuthenticated ? 'Go to Dashboard' : 'Start for Free'}
+        </button>
+      </div>
+
+      {/* ── Footer ── */}
+      <footer className="w-full bg-slate-900 text-slate-400 py-8 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-white">Career Hub AI</span>
+              <span className="text-xs text-indigo-400 border border-indigo-700 rounded px-1.5 py-0.5 bg-indigo-900/50">
+                Gemini
+              </span>
+            </div>
+            <div className="flex items-center gap-6 text-sm">
               <a
                 href="https://www.facebook.com/profile.php?id=61584777962745"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 text-slate-600 hover:text-blue-600 transition-colors group"
+                className="flex items-center gap-2 hover:text-white transition-colors"
                 aria-label="Follow us on Facebook"
               >
-                <FacebookIcon className="w-6 h-6 text-[#1877F2] group-hover:scale-110 transition-transform" />
-                <span className="font-medium">Follow us on Facebook</span>
+                <FacebookIcon className="w-5 h-5 text-[#1877F2]" />
+                Facebook
               </a>
-            </div>
-
-            {/* Legal Links */}
-            <div className="flex justify-center items-center space-x-6 text-sm text-slate-600">
               <a
                 href="/privacy"
                 onClick={(e) => { e.preventDefault(); navigate('/privacy'); }}
-                className="hover:text-indigo-600 transition-colors hover:underline"
+                className="hover:text-white transition-colors"
               >
-                Privacy Policy
+                Privacy
               </a>
-              <span className="text-slate-400">•</span>
               <a
                 href="/terms"
                 onClick={(e) => { e.preventDefault(); navigate('/terms'); }}
-                className="hover:text-indigo-600 transition-colors hover:underline"
+                className="hover:text-white transition-colors"
               >
-                Terms of Service
+                Terms
               </a>
             </div>
-
-            {/* Copyright */}
-            <div className="text-center mt-4 text-xs text-slate-500">
-              © {new Date().getFullYear()} Career Hub AI. All rights reserved.
-            </div>
           </div>
-        </footer>
-      </div>
-    </>
+          <div className="text-center mt-6 text-xs text-slate-600">
+            &copy; {new Date().getFullYear()} Career Hub AI. All rights reserved. &middot; Made in Australia
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 };
 
