@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import html2pdf from 'html2pdf.js';
-import { canAnalyzeResume, useResumeAnalysisAttempt } from '../services/premiumService';
+import { canAnalyzeResume } from '../services/premiumService';
 import { analyzeResume } from '../services/geminiService';
 import { pdfService } from '../services/pdfService';
 import type { ResumeAnalysisResult } from '../types';

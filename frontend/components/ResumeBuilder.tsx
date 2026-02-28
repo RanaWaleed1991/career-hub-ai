@@ -3,10 +3,7 @@ import type { Page, ResumeData, TemplateType } from '../types';
 import ResumeForm from './ResumeForm';
 import ResumePreview from './ResumePreview';
 import { enhanceTextWithAI } from '../services/geminiService';
-import {
-  canUseAIImprovement,
-  useAIImprovementAttempt,
-} from '../services/premiumService';
+import { canUseAIImprovement } from '../services/premiumService';
 import { getLatestResume, saveResume } from '../services/resumeService';
 import LoadVersionModal from './LoadVersionModal';
 

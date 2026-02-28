@@ -1,10 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
 import { generateCoverLetter } from '../services/geminiService';
-import {
-    canGenerateCoverLetter,
-    useCoverLetterAttempt,
-} from '../services/premiumService';
+import { canGenerateCoverLetter } from '../services/premiumService';
 import { DownloadIcon, SparklesIcon } from './icons';
 import { downloadOrSharePDF, isMobileDevice, getPDFSuccessMessage } from '../utils/pdfDownload';
 

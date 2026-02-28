@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { analyzeSkillGap } from '../services/geminiService';
 import type { SkillGapResult, MissingSkill, PresentSkill, SkillRecommendation } from '../types';
+import { ChartBarIcon } from './icons';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -16,17 +17,23 @@ const strengthColor: Record<string, string> = {
   mentioned: 'bg-gray-100 text-gray-600 border-gray-200',
 };
 
-const categoryIcon: Record<string, string> = {
-  technical: '⚙️',
-  soft: '🤝',
-  certification: '🏅',
-  domain: '🏢',
+const categoryLabel: Record<string, string> = {
+  technical: 'Technical',
+  soft: 'Soft Skill',
+  certification: 'Certification',
+  domain: 'Domain',
 };
 
-const recommendationIcon: Record<string, string> = {
-  highlight: '✨',
-  learn: '📚',
-  reframe: '✏️',
+const recommendationLabel: Record<string, string> = {
+  highlight: 'Highlight',
+  learn: 'Learn',
+  reframe: 'Reframe',
+};
+
+const recommendationColor: Record<string, string> = {
+  learn: 'bg-purple-100 text-purple-700',
+  highlight: 'bg-emerald-100 text-emerald-700',
+  reframe: 'bg-blue-100 text-blue-700',
 };
 
 function ScoreRing({ score }: { score: number }) {
@@ -129,10 +136,12 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl">🎯</span>
+            <div className="p-2 bg-indigo-100 rounded-lg">
+              <ChartBarIcon className="w-7 h-7 text-indigo-600" />
+            </div>
             <h1 className="text-3xl font-bold text-slate-800">Skill Gap Audit</h1>
           </div>
-          <p className="text-gray-500 ml-12">
+          <p className="text-gray-500 ml-14">
             Compare your resume against any job description. Get an instant match score, identify missing skills, and get a clear roadmap to close the gap.
           </p>
         </div>
@@ -142,7 +151,7 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                📄 Your Resume
+                Your Resume
               </label>
               <p className="text-xs text-gray-400 mb-3">
                 Paste the plain text of your resume (use Ctrl+A, Ctrl+C from your resume document).
@@ -160,7 +169,7 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col">
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                💼 Job Description
+                Job Description
               </label>
               <p className="text-xs text-gray-400 mb-3">
                 Paste the full job description including responsibilities and requirements.
@@ -196,11 +205,11 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
                     Analysing your profile...
                   </>
                 ) : (
-                  <>🎯 Run Skill Gap Audit</>
+                  'Run Skill Gap Audit'
                 )}
               </button>
               <p className="text-xs text-center text-gray-400 mt-2">
-                Analysis uses Gemini 2.5 Pro · Free plan: 3 audits/period
+                Free plan: 3 audits/period — shared with Resume Analyser
               </p>
             </div>
           </div>
@@ -219,13 +228,17 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
                     <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
                       <p className="text-xs text-emerald-600 font-medium mb-1">Top Strengths</p>
                       {result.strengthAreas.map((s, i) => (
-                        <p key={i} className="text-sm text-emerald-700">✓ {s}</p>
+                        <p key={i} className="text-sm text-emerald-700 flex items-start gap-1">
+                          <span className="font-bold mt-0.5">+</span> {s}
+                        </p>
                       ))}
                     </div>
                     <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
                       <p className="text-xs text-amber-600 font-medium mb-1">Key Gaps</p>
                       {result.improvementAreas.map((s, i) => (
-                        <p key={i} className="text-sm text-amber-700">⚠ {s}</p>
+                        <p key={i} className="text-sm text-amber-700 flex items-start gap-1">
+                          <span className="font-bold mt-0.5">–</span> {s}
+                        </p>
                       ))}
                     </div>
                   </div>
@@ -237,10 +250,10 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
             <div className="flex gap-1 bg-slate-100 rounded-xl p-1">
               {(
                 [
-                  { key: 'overview', label: '📊 Overview', count: null },
-                  { key: 'missing', label: '❌ Missing Skills', count: result.missingSkills.length },
-                  { key: 'present', label: '✅ Your Skills', count: result.presentSkills.length },
-                  { key: 'actions', label: '🚀 Action Plan', count: result.recommendations.length },
+                  { key: 'overview', label: 'Overview', count: null },
+                  { key: 'missing', label: 'Missing Skills', count: result.missingSkills.length },
+                  { key: 'present', label: 'Your Skills', count: result.presentSkills.length },
+                  { key: 'actions', label: 'Action Plan', count: result.recommendations.length },
                 ] as const
               ).map(tab => (
                 <button
@@ -283,7 +296,7 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
                               {kw}
                             </span>
                           ))
-                        : <p className="text-sm text-emerald-600">🎉 No obvious keyword gaps found!</p>
+                        : <p className="text-sm text-emerald-600 font-medium">No obvious keyword gaps found.</p>
                       }
                     </div>
                   </div>
@@ -298,7 +311,9 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
                         .slice(0, 5)
                         .map((s, i) => (
                           <div key={i} className="flex items-start gap-3 p-3 bg-red-50 border border-red-100 rounded-xl">
-                            <span className="text-lg mt-0.5">{categoryIcon[s.category] || '🔧'}</span>
+                            <span className="text-xs font-bold px-2 py-0.5 bg-red-200 text-red-700 rounded mt-0.5">
+                              {categoryLabel[s.category] || s.category}
+                            </span>
                             <div>
                               <p className="text-sm font-semibold text-slate-700">{s.name}</p>
                               <p className="text-xs text-gray-500 mt-0.5">{s.reason}</p>
@@ -306,7 +321,7 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
                           </div>
                         ))}
                       {result.missingSkills.filter(s => s.priority === 'critical').length === 0 && (
-                        <p className="text-sm text-emerald-600">✓ No critical missing skills detected.</p>
+                        <p className="text-sm text-emerald-600 font-medium">No critical missing skills detected.</p>
                       )}
                     </div>
                   </div>
@@ -321,15 +336,20 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
                   {(['critical', 'important', 'nice-to-have'] as const).map(priority => {
                     const skills = result.missingSkills.filter((s: MissingSkill) => s.priority === priority);
                     if (skills.length === 0) return null;
+                    const priorityLabels = { critical: 'Critical', important: 'Important', 'nice-to-have': 'Nice to Have' };
+                    const priorityDot = { critical: 'bg-red-500', important: 'bg-amber-500', 'nice-to-have': 'bg-blue-500' };
                     return (
                       <div key={priority} className="mb-5">
-                        <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">
-                          {priority === 'critical' ? '🔴 Critical' : priority === 'important' ? '🟡 Important' : '🔵 Nice to Have'}
+                        <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2 flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${priorityDot[priority]}`} />
+                          {priorityLabels[priority]}
                         </h4>
                         <div className="space-y-2">
                           {skills.map((s: MissingSkill, i: number) => (
                             <div key={i} className="flex items-start gap-3 p-3 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
-                              <span className="text-xl">{categoryIcon[s.category] || '🔧'}</span>
+                              <span className="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded mt-0.5 flex-shrink-0">
+                                {categoryLabel[s.category] || s.category}
+                              </span>
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="text-sm font-semibold text-slate-700">{s.name}</span>
@@ -354,10 +374,11 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {result.presentSkills.map((s: PresentSkill, i: number) => (
                       <div key={i} className="flex items-center gap-3 p-3 border border-slate-200 rounded-xl">
-                        <span className="text-lg">{categoryIcon[s.category] || '🔧'}</span>
+                        <span className="text-xs font-bold px-2 py-0.5 bg-slate-100 text-slate-500 rounded flex-shrink-0">
+                          {categoryLabel[s.category] || s.category}
+                        </span>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-slate-700 truncate">{s.name}</p>
-                          <p className="text-xs text-gray-400 capitalize">{s.category}</p>
                         </div>
                         <SkillBadge skill={s.strength} colorClass={strengthColor[s.strength]} />
                       </div>
@@ -373,16 +394,11 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
                   </p>
                   {result.recommendations.map((r: SkillRecommendation, i: number) => (
                     <div key={i} className="flex items-start gap-3 p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
-                      <span className="text-2xl flex-shrink-0">{recommendationIcon[r.type] || '→'}</span>
                       <div>
                         <p className="text-sm font-semibold text-slate-700">{r.skill}</p>
                         <p className="text-sm text-gray-600 mt-0.5">{r.action}</p>
-                        <span className={`inline-block mt-2 text-xs px-2 py-0.5 rounded-full font-medium ${
-                          r.type === 'learn' ? 'bg-purple-100 text-purple-700' :
-                          r.type === 'highlight' ? 'bg-emerald-100 text-emerald-700' :
-                          'bg-blue-100 text-blue-700'
-                        }`}>
-                          {r.type === 'learn' ? '📚 Learn' : r.type === 'highlight' ? '✨ Highlight' : '✏️ Reframe'}
+                        <span className={`inline-block mt-2 text-xs px-2 py-0.5 rounded-full font-medium ${recommendationColor[r.type] || 'bg-gray-100 text-gray-700'}`}>
+                          {recommendationLabel[r.type] || r.type}
                         </span>
                       </div>
                     </div>
@@ -396,7 +412,7 @@ const SkillGapPage: React.FC<Props> = ({ triggerPremiumFlow, setActionToRetry })
               onClick={handleReset}
               className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 hover:border-indigo-400 hover:text-indigo-600 rounded-xl transition-colors text-sm font-medium"
             >
-              ← Analyse a Different Role
+              Analyse a Different Role
             </button>
           </div>
         )}
