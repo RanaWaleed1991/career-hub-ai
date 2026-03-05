@@ -873,6 +873,90 @@ export const courseDb = {
 };
 
 /**
+ * Database service for expert reviews
+ */
+export const expertReviewDb = {
+  async create(data: {
+    user_id: string;
+    user_email: string;
+    user_name: string;
+    stripe_payment_intent_id?: string;
+    amount_paid?: number;
+    paid_at?: string;
+    status?: string;
+  }) {
+    if (!supabase) throw new Error('Database not configured');
+    const { data: review, error } = await supabase
+      .from('expert_reviews')
+      .insert({ ...data, status: data.status || 'pending_submission' })
+      .select()
+      .single();
+    if (error) throw error;
+    return review;
+  },
+
+  async getByUserId(userId: string) {
+    if (!supabase) throw new Error('Database not configured');
+    const { data, error } = await supabase
+      .from('expert_reviews')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
+
+  async getActiveByUserId(userId: string) {
+    if (!supabase) throw new Error('Database not configured');
+    const { data, error } = await supabase
+      .from('expert_reviews')
+      .select('*')
+      .eq('user_id', userId)
+      .neq('status', 'completed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data;
+  },
+
+  async getById(reviewId: string) {
+    if (!supabase) throw new Error('Database not configured');
+    const { data, error } = await supabase
+      .from('expert_reviews')
+      .select('*')
+      .eq('id', reviewId)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  },
+
+  async update(reviewId: string, updateData: Record<string, any>) {
+    if (!supabase) throw new Error('Database not configured');
+    const { data, error } = await supabase
+      .from('expert_reviews')
+      .update({ ...updateData, updated_at: new Date().toISOString() })
+      .eq('id', reviewId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getAll(status?: string) {
+    if (!supabase) throw new Error('Database not configured');
+    let query = supabase
+      .from('expert_reviews')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (status) query = query.eq('status', status);
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+};
+
+/**
  * Database service for blogs
  */
 export const blogDb = {

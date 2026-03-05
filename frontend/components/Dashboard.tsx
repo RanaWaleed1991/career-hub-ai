@@ -11,6 +11,7 @@ import { hasPremium } from '../services/premiumService';
 import { createPortalSession } from '../src/services/payments';
 import { getAccessToken } from '../services/userService';
 import { useAuth } from '../src/contexts/AuthContext';
+import ExpertReviewWidget from './ExpertReviewWidget';
 import {
   BookOpenIcon,
   BriefcaseIcon,
@@ -186,6 +187,11 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
         <div className="space-y-6">
           {/* Credit / plan status */}
           <TrialStatus />
+
+          {/* Expert Review Widget */}
+          <div className="opacity-0 slide-in-up" style={{ animationDelay: '300ms' }}>
+            <ExpertReviewWidget />
+          </div>
 
           {/* Manage subscription */}
           {isPremium && (

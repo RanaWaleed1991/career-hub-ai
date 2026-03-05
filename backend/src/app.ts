@@ -27,6 +27,7 @@ import jobsRoutes from './routes/jobs.js';
 import coursesRoutes from './routes/courses.js';
 import blogsRoutes from './routes/blogs.js';
 import userRoutes from './routes/user.js';
+import expertReviewRoutes from './routes/expertReview.js';
 import { enforceHttps, addSecurityHeaders } from './middleware/httpsEnforcement.js';
 import { cacheJobs, cacheCourses, cacheSubscriptions } from './middleware/cache.js';
 import Sentry from './instrument.js';
@@ -109,6 +110,9 @@ app.use('/api/blogs', strictLimiter, cacheCourses, blogsRoutes); // Reusing cour
 
 // User data management routes - GDPR compliance (with security headers)
 app.use('/api/user', generalLimiter, addSecurityHeaders, userRoutes);
+
+// Expert review routes - general rate limiting
+app.use('/api/expert-review', generalLimiter, addSecurityHeaders, expertReviewRoutes);
 
 // General API routes - standard rate limiting (with security headers for sensitive data)
 app.use('/api/resumes', generalLimiter, addSecurityHeaders, resumesRoutes);

@@ -37,6 +37,7 @@ const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
 const SkillGapPage = lazy(() => import('./components/SkillGapPage'));
 const SelectionCriteriaPage = lazy(() => import('./components/SelectionCriteriaPage'));
+const ExpertReviewPage = lazy(() => import('./components/ExpertReviewPage'));
 
 // Loading fallback component for lazy-loaded routes
 const LoadingFallback: React.FC = () => (
@@ -408,6 +409,19 @@ const AppContent: React.FC = () => {
                   <SEO page="selectionCriteria" />
                   <SelectionCriteriaPage {...modalProps} />
                 </>
+              </ProtectedRoute>
+            } />
+
+            {/* Expert Review - Public landing page */}
+            <Route path="/expert-review" element={
+              <>
+                <SEO page="expertReview" />
+                <ExpertReviewPage />
+              </>
+            } />
+            <Route path="/expert-review/success" element={
+              <ProtectedRoute>
+                <Navigate to="/dashboard" replace />
               </ProtectedRoute>
             } />
 
