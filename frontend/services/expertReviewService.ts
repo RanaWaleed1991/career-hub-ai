@@ -15,7 +15,7 @@ const getAuthHeaders = async (): Promise<HeadersInit> => {
 };
 
 /**
- * Create a Stripe checkout session for the expert review ($99)
+ * Create a Stripe checkout session for the expert review ($89)
  */
 export const createExpertReviewCheckout = async (): Promise<{ sessionId: string; sessionUrl: string }> => {
   const headers = await getAuthHeaders();

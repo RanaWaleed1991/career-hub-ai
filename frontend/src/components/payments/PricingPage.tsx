@@ -263,7 +263,7 @@ export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProp
           PREMIUM SERVICE
         </div>
         <h2 style={{ margin: '0 0 12px 0', fontSize: '28px' }}>
-          Expert Resume Review — $99
+          Expert Resume Review — $89
         </h2>
         <p style={{ margin: '0 auto 24px auto', maxWidth: '500px', opacity: 0.9, lineHeight: '1.6' }}>
           Get your resume professionally rewritten by a senior career specialist.

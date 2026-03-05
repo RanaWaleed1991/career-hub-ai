@@ -184,10 +184,10 @@ export const metaTags = {
   // EXPERT RESUME REVIEW
   expertReview: {
     title: "Expert Resume Review | Professional Resume Rewriting - Career Hub AI",
-    description: "Get your resume professionally rewritten by a senior career specialist with 10+ years experience. Includes ATS optimisation, industry-specific formatting, and 30 days Premium access. $99 one-time.",
+    description: "Get your resume professionally rewritten by a senior career specialist. Includes ATS optimisation, industry-specific formatting, and 30 days Premium access. $89 one-time.",
     keywords: "professional resume writing australia, expert resume review, resume rewriting service, career specialist, ATS resume, resume writer",
     ogTitle: "Get Your Resume Professionally Rewritten by a Career Expert",
-    ogDescription: "A senior career specialist will personally review and rewrite your resume. ATS-optimised, industry-specific, delivered in 3-5 days. Just $99.",
+    ogDescription: "A senior career specialist will personally review and rewrite your resume. ATS-optimised, industry-specific, delivered in 1-2 days. Just $89.",
     ogImage: "https://www.careerhubai.com.au/og-expert-review.jpg",
     canonical: "https://www.careerhubai.com.au/expert-review"
   }

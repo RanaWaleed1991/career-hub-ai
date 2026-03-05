@@ -148,7 +148,7 @@ const ExpertReviewWidget: React.FC = () => {
           onClick={() => navigate('/expert-review')}
           className="w-full bg-white text-purple-700 py-2.5 rounded-lg font-semibold text-sm hover:bg-purple-50 transition-colors"
         >
-          Learn More — $99
+          Learn More — $89
         </button>
       </div>
     );

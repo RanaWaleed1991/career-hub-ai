@@ -482,7 +482,7 @@ COMMENT ON TABLE public.course_enrollments IS 'Tracks user enrollments in course
 -- ============================================================================
 
 -- Table: expert_reviews
--- Supports $99 one-time "Expert Resume Review" purchase
+-- Supports $89 one-time "Expert Resume Review" purchase
 CREATE TABLE IF NOT EXISTS public.expert_reviews (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
