@@ -84,7 +84,7 @@ const ExpertReviewPage: React.FC = () => {
               disabled={isLoading}
               className="bg-white text-purple-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-purple-50 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-w-[220px]"
             >
-              {isLoading ? 'Processing...' : 'Get Expert Review — $99'}
+              {isLoading ? 'Processing...' : 'Get Expert Review — $89'}
             </button>
             <p className="text-purple-200 text-sm">
               One-time payment. Includes 30 days Premium.
@@ -108,7 +108,7 @@ const ExpertReviewPage: React.FC = () => {
                 <p className="text-slate-500 text-sm mt-1">Traditional resume writing services in Australia</p>
               </div>
               <div className="border-t md:border-t-0 md:border-l md:border-r border-slate-200 pt-6 md:pt-0 md:px-8">
-                <div className="text-4xl font-extrabold text-purple-600">$99</div>
+                <div className="text-4xl font-extrabold text-purple-600">$89</div>
                 <p className="text-slate-600 text-sm mt-1 font-semibold">Expert Review + 30 days Premium AI tools</p>
               </div>
               <div className="border-t md:border-t-0 pt-6 md:pt-0">
@@ -239,7 +239,7 @@ const ExpertReviewPage: React.FC = () => {
             disabled={isLoading}
             className="bg-white text-purple-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-purple-50 transition-all shadow-lg hover:shadow-xl disabled:opacity-50 min-w-[220px]"
           >
-            {isLoading ? 'Processing...' : 'Get Expert Review — $99'}
+            {isLoading ? 'Processing...' : 'Get Expert Review — $89'}
           </button>
           <p className="text-purple-200 text-sm mt-4">
             Secure payment via Stripe. One-time purchase. No recurring charges.

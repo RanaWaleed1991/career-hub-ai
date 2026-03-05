@@ -1,7 +1,7 @@
 -- ============================================================================
 -- MIGRATION 010: Create expert_reviews table
 -- ============================================================================
--- Supports the "Expert Resume Review" feature — a one-time $99 purchase
+-- Supports the "Expert Resume Review" feature — a one-time $89 purchase
 -- that includes professional human resume review/rewrite + 1 month Premium.
 -- ============================================================================
 
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS public.expert_reviews (
 
   -- Payment
   stripe_payment_intent_id TEXT,
-  amount_paid INTEGER, -- in cents (9900 = $99.00)
+  amount_paid INTEGER, -- in cents (8900 = $89.00)
   paid_at TIMESTAMPTZ,
 
   -- Resume submission

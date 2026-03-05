@@ -21,7 +21,7 @@ const ADMIN_EMAIL = env.EMAIL_FROM || 'careerhubaiaus@gmail.com';
 
 /**
  * POST /api/expert-review/create-checkout
- * Create a Stripe Checkout session for the $99 expert review
+ * Create a Stripe Checkout session for the $89 expert review
  */
 router.post(
   '/create-checkout',

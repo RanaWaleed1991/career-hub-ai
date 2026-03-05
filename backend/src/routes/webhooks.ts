@@ -84,7 +84,7 @@ router.post(
                 user_email: userEmail,
                 user_name: userName,
                 stripe_payment_intent_id: session.payment_intent as string,
-                amount_paid: session.amount_total || 9900,
+                amount_paid: session.amount_total || 8900,
                 paid_at: new Date().toISOString(),
                 status: 'pending_submission',
               });
