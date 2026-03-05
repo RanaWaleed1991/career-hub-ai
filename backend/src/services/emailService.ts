@@ -448,6 +448,225 @@ export async function sendSubscriptionCancelledEmail(
   return await sendEmail(to, subject, getEmailTemplate(content));
 }
 
+// ============================================================================
+// EXPERT REVIEW EMAIL TEMPLATES
+// ============================================================================
+
+/**
+ * Send Expert Review order confirmation to user
+ */
+export async function sendExpertReviewConfirmation(
+  to: string,
+  userName: string
+): Promise<{ success: boolean; error?: string }> {
+  const firstName = userName.split(' ')[0] || 'there';
+
+  const content = `
+    <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">
+      Expert Resume Review Confirmed!
+    </h2>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Hi ${firstName},
+    </p>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Thank you for purchasing the Expert Resume Review! A professional career specialist will personally review and rewrite your resume.
+    </p>
+
+    <div style="background-color: #f3f4f6; border-left: 4px solid #8b5cf6; padding: 20px; margin: 24px 0; border-radius: 4px;">
+      <h3 style="color: #1f2937; margin: 0 0 12px 0; font-size: 18px;">
+        What Happens Next:
+      </h3>
+      <ol style="color: #4b5563; line-height: 1.8; margin: 8px 0; padding-left: 20px;">
+        <li><strong>Upload your current resume</strong> (PDF) from your dashboard</li>
+        <li>Our expert will review it and may send you a short questionnaire</li>
+        <li>You'll receive your professionally rewritten resume within <strong>3-5 business days</strong></li>
+      </ol>
+    </div>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${FRONTEND_URL}/dashboard" style="display: inline-block; background-color: #8b5cf6; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Upload Your Resume Now
+      </a>
+    </div>
+
+    <div style="background-color: #ecfdf5; border-left: 4px solid #10b981; padding: 16px; margin: 24px 0; border-radius: 4px;">
+      <p style="color: #065f46; margin: 0; font-size: 14px; line-height: 1.6;">
+        <strong>Bonus:</strong> Your Premium features are now active for 30 days! Enjoy unlimited AI tools, clean downloads, and more.
+      </p>
+    </div>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Best regards,<br/>
+      <strong>The Career Hub AI Team</strong>
+    </p>
+  `;
+
+  return await sendEmail(to, 'Expert Resume Review Confirmed! - Career Hub AI', getEmailTemplate(content));
+}
+
+/**
+ * Notify admin when a resume is submitted for review
+ */
+export async function sendResumeSubmittedNotification(
+  to: string,
+  details: { userName: string; userEmail: string; reviewId: string }
+): Promise<{ success: boolean; error?: string }> {
+  const content = `
+    <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">
+      New Expert Review Submission
+    </h2>
+
+    <div style="background-color: #f3f4f6; padding: 24px; margin: 24px 0; border-radius: 8px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280;">User:</td>
+          <td style="padding: 8px 0; color: #1f2937; font-weight: 600; text-align: right;">${details.userName}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280;">Email:</td>
+          <td style="padding: 8px 0; color: #1f2937; font-weight: 600; text-align: right;">${details.userEmail}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280;">Review ID:</td>
+          <td style="padding: 8px 0; color: #1f2937; font-weight: 600; text-align: right; font-size: 12px;">${details.reviewId}</td>
+        </tr>
+      </table>
+    </div>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      A user has uploaded their resume for expert review. Log in to the admin panel to download the resume and begin the review process.
+    </p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${FRONTEND_URL}/admin" style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Open Admin Panel
+      </a>
+    </div>
+  `;
+
+  return await sendEmail(to, `New Expert Review Submission - ${details.userName}`, getEmailTemplate(content));
+}
+
+/**
+ * Notify user that expert has sent a questionnaire
+ */
+export async function sendQuestionnaireReady(
+  to: string,
+  userName: string
+): Promise<{ success: boolean; error?: string }> {
+  const firstName = userName.split(' ')[0] || 'there';
+
+  const content = `
+    <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">
+      Your Expert Has Questions
+    </h2>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Hi ${firstName},
+    </p>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Our career expert has reviewed your resume and has a few questions to help them write the best possible version for you. Please complete the short questionnaire on your dashboard.
+    </p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${FRONTEND_URL}/dashboard" style="display: inline-block; background-color: #8b5cf6; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Answer Questions Now
+      </a>
+    </div>
+
+    <p style="color: #6b7280; line-height: 1.6; margin: 16px 0; font-size: 14px;">
+      The sooner you complete the questionnaire, the sooner you'll receive your professionally rewritten resume.
+    </p>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Best regards,<br/>
+      <strong>The Career Hub AI Team</strong>
+    </p>
+  `;
+
+  return await sendEmail(to, 'Your Expert Has Questions - Career Hub AI', getEmailTemplate(content));
+}
+
+/**
+ * Notify admin that user completed questionnaire
+ */
+export async function sendQuestionnaireCompletedNotification(
+  to: string,
+  details: { userName: string; userEmail: string; reviewId: string }
+): Promise<{ success: boolean; error?: string }> {
+  const content = `
+    <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">
+      Questionnaire Completed
+    </h2>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      <strong>${details.userName}</strong> (${details.userEmail}) has completed the expert review questionnaire.
+    </p>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Review ID: <code>${details.reviewId}</code>
+    </p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${FRONTEND_URL}/admin" style="display: inline-block; background-color: #3b82f6; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        View Answers in Admin
+      </a>
+    </div>
+  `;
+
+  return await sendEmail(to, `Questionnaire Completed - ${details.userName}`, getEmailTemplate(content));
+}
+
+/**
+ * Notify user that rewritten resume is ready
+ */
+export async function sendRewrittenResumeReady(
+  to: string,
+  userName: string
+): Promise<{ success: boolean; error?: string }> {
+  const firstName = userName.split(' ')[0] || 'there';
+
+  const content = `
+    <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px;">
+      Your Expert Resume Is Ready!
+    </h2>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Hi ${firstName},
+    </p>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Great news! Our career expert has finished rewriting your resume. Your professionally crafted resume is now ready for download from your dashboard.
+    </p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${FRONTEND_URL}/dashboard" style="display: inline-block; background-color: #10b981; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+        Download Your New Resume
+      </a>
+    </div>
+
+    <div style="background-color: #eff6ff; border-left: 4px solid #3b82f6; padding: 16px; margin: 24px 0; border-radius: 4px;">
+      <p style="color: #1e40af; margin: 0; font-size: 14px; line-height: 1.6;">
+        <strong>Tip:</strong> Use your AI tools (included with your Premium access) to further tailor this resume for specific job applications.
+      </p>
+    </div>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Thank you for choosing Career Hub AI. We wish you the best in your career journey!
+    </p>
+
+    <p style="color: #4b5563; line-height: 1.6; margin: 16px 0;">
+      Best regards,<br/>
+      <strong>The Career Hub AI Team</strong>
+    </p>
+  `;
+
+  return await sendEmail(to, 'Your Expert Resume Is Ready! - Career Hub AI', getEmailTemplate(content));
+}
+
 /**
  * Export all email functions
  */
@@ -456,5 +675,10 @@ export default {
   sendPasswordResetEmail,
   sendPaymentConfirmationEmail,
   sendSubscriptionCancelledEmail,
+  sendExpertReviewConfirmation,
+  sendResumeSubmittedNotification,
+  sendQuestionnaireReady,
+  sendQuestionnaireCompletedNotification,
+  sendRewrittenResumeReady,
   isEmailConfigured,
 };

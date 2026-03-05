@@ -25,6 +25,7 @@ export const stripe = env.STRIPE_SECRET_KEY
 export const STRIPE_PRICE_IDS = {
   WEEKLY: process.env.STRIPE_PRICE_ID_PRO_WEEKLY || '',
   MONTHLY: process.env.STRIPE_PRICE_ID_PRO_MONTHLY || '',
+  EXPERT_REVIEW: process.env.STRIPE_PRICE_ID_EXPERT_REVIEW || '',
 };
 
 /**

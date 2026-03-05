@@ -81,7 +81,7 @@ export interface ResumeVersion {
 
 export type TemplateType = 'classic' | 'modern' | 'australian' | 'picture' | 'ats' | 'minimal';
 
-export type Page = 'landing' | 'auth' | 'forgot-password' | 'reset-password' | 'builder' | 'courses' | 'jobs' | 'coverLetter' | 'admin' | 'tracker' | 'versions' | 'analyser' | 'dashboard' | 'paymentSuccess' | 'paymentCancel' | 'pricing' | 'subscription' | 'privacy' | 'terms' | 'blogs' | 'blog' | 'skill-gap' | 'selection-criteria';
+export type Page = 'landing' | 'auth' | 'forgot-password' | 'reset-password' | 'builder' | 'courses' | 'jobs' | 'coverLetter' | 'admin' | 'tracker' | 'versions' | 'analyser' | 'dashboard' | 'paymentSuccess' | 'paymentCancel' | 'pricing' | 'subscription' | 'privacy' | 'terms' | 'blogs' | 'blog' | 'skill-gap' | 'selection-criteria' | 'expert-review';
 
 // ─── Skill Gap Analysis ───────────────────────────────────────────────────────
 
@@ -145,6 +145,51 @@ export interface SelectionCriteriaResult {
   organization: string;
   criteria: SelectionCriterion[];
   generalNotes: string;
+}
+
+// ─── Expert Review ──────────────────────────────────────────────────────────
+
+export type ExpertReviewStatus =
+  | 'pending_submission'
+  | 'submitted'
+  | 'in_review'
+  | 'questionnaire_sent'
+  | 'questionnaire_completed'
+  | 'revision_in_progress'
+  | 'completed';
+
+export interface QuestionnaireQuestion {
+  question: string;
+  type: 'text' | 'textarea';
+}
+
+export interface QuestionnaireAnswer {
+  question: string;
+  answer: string;
+}
+
+export interface ExpertReview {
+  id: string;
+  user_id: string;
+  status: ExpertReviewStatus;
+  stripe_payment_intent_id?: string;
+  amount_paid?: number;
+  paid_at?: string;
+  original_resume_url?: string;
+  original_resume_filename?: string;
+  submitted_at?: string;
+  questionnaire?: QuestionnaireQuestion[];
+  questionnaire_answers?: QuestionnaireAnswer[];
+  questionnaire_sent_at?: string;
+  questionnaire_completed_at?: string;
+  rewritten_resume_url?: string;
+  rewritten_resume_filename?: string;
+  completed_at?: string;
+  admin_notes?: string;
+  user_email?: string;
+  user_name?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ResumeAnalysisResult {

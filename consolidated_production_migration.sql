@@ -478,7 +478,58 @@ COMMENT ON COLUMN public.courses.is_featured IS 'Whether course is featured/high
 COMMENT ON TABLE public.course_enrollments IS 'Tracks user enrollments in courses';
 
 -- ============================================================================
--- SECTION 8: RELOAD SCHEMA CACHE
+-- SECTION 8: EXPERT REVIEWS TABLE
+-- ============================================================================
+
+-- Table: expert_reviews
+-- Supports $99 one-time "Expert Resume Review" purchase
+CREATE TABLE IF NOT EXISTS public.expert_reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'pending_submission'
+    CHECK (status IN (
+      'pending_submission', 'submitted', 'in_review',
+      'questionnaire_sent', 'questionnaire_completed',
+      'revision_in_progress', 'completed'
+    )),
+  stripe_payment_intent_id TEXT,
+  amount_paid INTEGER,
+  paid_at TIMESTAMPTZ,
+  original_resume_url TEXT,
+  original_resume_filename TEXT,
+  submitted_at TIMESTAMPTZ,
+  questionnaire JSONB,
+  questionnaire_answers JSONB,
+  questionnaire_sent_at TIMESTAMPTZ,
+  questionnaire_completed_at TIMESTAMPTZ,
+  rewritten_resume_url TEXT,
+  rewritten_resume_filename TEXT,
+  completed_at TIMESTAMPTZ,
+  admin_notes TEXT,
+  user_email TEXT,
+  user_name TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_expert_reviews_user_id ON public.expert_reviews(user_id);
+CREATE INDEX IF NOT EXISTS idx_expert_reviews_status ON public.expert_reviews(status);
+CREATE INDEX IF NOT EXISTS idx_expert_reviews_created_at ON public.expert_reviews(created_at);
+
+ALTER TABLE public.expert_reviews ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own expert reviews"
+  ON public.expert_reviews FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own expert reviews"
+  ON public.expert_reviews FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE TRIGGER update_expert_reviews_updated_at
+  BEFORE UPDATE ON public.expert_reviews
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- SECTION 9: RELOAD SCHEMA CACHE
 -- ============================================================================
 
 NOTIFY pgrst, 'reload schema';
@@ -488,7 +539,7 @@ NOTIFY pgrst, 'reload schema';
 -- ============================================================================
 
 SELECT '✅ Database schema migration completed successfully!' as status;
-SELECT 'Tables created: resumes, resume_versions, applications, subscriptions, jobs, courses, course_enrollments' as tables;
+SELECT 'Tables created: resumes, resume_versions, applications, subscriptions, jobs, courses, course_enrollments, expert_reviews' as tables;
 SELECT 'Functions created: update_updated_at_column, create_user_subscription' as functions;
 SELECT 'RLS enabled and policies configured for all tables' as security;
 SELECT 'Ready for production use!' as next_step;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getStripeConfig, createCheckoutSession, SubscriptionTier } from '../../services/payments';
 import { getAccessToken } from '../../../services/userService';
 
@@ -8,6 +9,7 @@ interface PricingPageProps {
 }
 
 export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProps) {
+  const navigate = useNavigate();
   const [tiers, setTiers] = useState<Record<string, SubscriptionTier> | null>(null);
   const [loading, setLoading] = useState(true);
   const [processingTier, setProcessingTier] = useState<string | null>(null);
@@ -243,6 +245,55 @@ export function PricingPage({ userToken, currentPlan = 'free' }: PricingPageProp
               </div>
             );
           })}
+      </div>
+
+      {/* Expert Review Banner */}
+      <div
+        style={{
+          marginTop: '50px',
+          background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)',
+          borderRadius: '16px',
+          padding: '40px 30px',
+          color: 'white',
+          textAlign: 'center',
+          boxShadow: '0 4px 20px rgba(124, 58, 237, 0.3)',
+        }}
+      >
+        <div style={{ fontSize: '12px', fontWeight: 'bold', letterSpacing: '1px', marginBottom: '8px', opacity: 0.8 }}>
+          PREMIUM SERVICE
+        </div>
+        <h2 style={{ margin: '0 0 12px 0', fontSize: '28px' }}>
+          Expert Resume Review — $99
+        </h2>
+        <p style={{ margin: '0 auto 24px auto', maxWidth: '500px', opacity: 0.9, lineHeight: '1.6' }}>
+          Get your resume professionally rewritten by a senior career specialist.
+          Includes 30 days of Premium access to all AI tools.
+        </p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap', marginBottom: '16px' }}>
+          {['Human expert rewrite', '3-5 day delivery', '30 days Premium included'].map((item, i) => (
+            <span key={i} style={{ fontSize: '13px', backgroundColor: 'rgba(255,255,255,0.15)', padding: '6px 14px', borderRadius: '20px' }}>
+              {item}
+            </span>
+          ))}
+        </div>
+        <button
+          onClick={() => navigate('/expert-review')}
+          style={{
+            padding: '14px 32px',
+            backgroundColor: 'white',
+            color: '#7c3aed',
+            border: 'none',
+            borderRadius: '10px',
+            fontSize: '16px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            transition: 'transform 0.2s',
+          }}
+          onMouseOver={(e) => { e.currentTarget.style.transform = 'scale(1.05)'; }}
+          onMouseOut={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+        >
+          Learn More
+        </button>
       </div>
 
       <div style={{ marginTop: '40px', textAlign: 'center', color: '#666' }}>

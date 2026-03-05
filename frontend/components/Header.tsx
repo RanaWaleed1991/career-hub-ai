@@ -72,6 +72,11 @@ const Header: React.FC<HeaderProps> = ({ onGoToHome, onLogout, page, showLogout 
           description: 'Generate a personalised, job-ready cover letter in seconds.',
           path: '/cover-letter',
         },
+        {
+          label: 'Expert Review',
+          description: 'Get your resume professionally rewritten by a career specialist.',
+          path: '/expert-review',
+        },
       ],
     },
     {

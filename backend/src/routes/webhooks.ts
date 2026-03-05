@@ -9,6 +9,9 @@ import {
   handlePaymentSuccess,
   handlePaymentFailure,
 } from '../services/subscription.js';
+import { expertReviewDb, subscriptionDb } from '../services/database.js';
+import { sendExpertReviewConfirmation } from '../services/emailService.js';
+import { supabase } from '../config/supabase.js';
 
 const router = express.Router();
 
@@ -61,7 +64,54 @@ router.post(
           const session = event.data.object as Stripe.Checkout.Session;
           if (session.mode === 'subscription') {
             await handleCheckoutComplete(session);
-            console.log('Successfully handled checkout.session.completed');
+            console.log('Successfully handled checkout.session.completed (subscription)');
+          } else if (session.mode === 'payment' && session.metadata?.type === 'expert_review') {
+            // Handle expert review one-time payment
+            const userId = session.metadata.userId;
+            if (userId) {
+              // Get user info
+              let userEmail = '';
+              let userName = '';
+              if (supabase) {
+                const { data: authUser } = await supabase.auth.admin.getUserById(userId);
+                userEmail = authUser?.user?.email || '';
+                userName = authUser?.user?.user_metadata?.full_name || userEmail;
+              }
+
+              // Create expert review order
+              await expertReviewDb.create({
+                user_id: userId,
+                user_email: userEmail,
+                user_name: userName,
+                stripe_payment_intent_id: session.payment_intent as string,
+                amount_paid: session.amount_total || 9900,
+                paid_at: new Date().toISOString(),
+                status: 'pending_submission',
+              });
+
+              // Activate monthly plan for 30 days
+              const now = new Date();
+              const thirtyDaysLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+              await subscriptionDb.upsert(userId, {
+                plan: 'monthly',
+                status: 'active',
+                current_period_start: now.toISOString(),
+                current_period_end: thirtyDaysLater.toISOString(),
+                // Reset usage counters
+                ai_enhancements_used: 0,
+                downloads_used: 0,
+                cover_letters_generated: 0,
+                resume_analyses_done: 0,
+                ai_tailoring_used: 0,
+              });
+
+              // Send confirmation email
+              if (userEmail) {
+                await sendExpertReviewConfirmation(userEmail, userName);
+              }
+
+              console.log('Successfully handled checkout.session.completed (expert_review)');
+            }
           }
           break;
 
