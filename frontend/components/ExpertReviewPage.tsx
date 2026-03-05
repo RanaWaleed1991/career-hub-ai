@@ -42,7 +42,7 @@ const ExpertReviewPage: React.FC = () => {
     {
       num: '3',
       title: 'Professional Rewrite',
-      desc: 'Your resume is completely rewritten by a human expert with 10+ years of experience.',
+      desc: 'Your resume is completely rewritten by a human expert with years of experience.',
     },
     {
       num: '4',
@@ -75,7 +75,7 @@ const ExpertReviewPage: React.FC = () => {
             <span className="text-purple-200">Professionally Rewritten</span>
           </h1>
           <p className="text-lg md:text-xl text-purple-100 max-w-2xl mx-auto mb-8 leading-relaxed">
-            AI is powerful, but sometimes you need the human touch. A senior career specialist with 10+ years
+            AI is powerful, but sometimes you need the human touch. A senior career specialist with years
             of experience will personally review and rewrite your resume.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -112,7 +112,7 @@ const ExpertReviewPage: React.FC = () => {
                 <p className="text-slate-600 text-sm mt-1 font-semibold">Expert Review + 30 days Premium AI tools</p>
               </div>
               <div className="border-t md:border-t-0 pt-6 md:pt-0">
-                <div className="text-3xl font-bold text-green-600">3-5 days</div>
+                <div className="text-3xl font-bold text-green-600">1-2 days</div>
                 <p className="text-slate-500 text-sm mt-1">Average turnaround time</p>
               </div>
             </div>
@@ -168,7 +168,7 @@ const ExpertReviewPage: React.FC = () => {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-slate-800 mb-1">Senior Resume Strategist</h3>
-            <p className="text-purple-600 font-medium text-sm mb-4">10+ Years Professional Experience</p>
+            <p className="text-purple-600 font-medium text-sm mb-4">Years of Professional Experience</p>
             <p className="text-slate-600 leading-relaxed max-w-lg mx-auto">
               Our expert has helped hundreds of professionals land interviews at top companies across IT, healthcare,
               government, finance, and more. Every resume is personally crafted — never templated.
@@ -179,8 +179,8 @@ const ExpertReviewPage: React.FC = () => {
                 <p className="text-xs text-slate-500">Resumes rewritten</p>
               </div>
               <div>
-                <div className="text-2xl font-bold text-slate-800">10+</div>
-                <p className="text-xs text-slate-500">Years experience</p>
+                <div className="text-2xl font-bold text-slate-800">200+</div>
+                <p className="text-xs text-slate-500">Clients helped</p>
               </div>
               <div>
                 <div className="text-2xl font-bold text-slate-800">3x</div>
