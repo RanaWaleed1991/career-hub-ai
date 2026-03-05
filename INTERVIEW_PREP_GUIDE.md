@@ -16,6 +16,7 @@
 5. [Debugging & Iteration Log](#5-debugging--iteration-log)
 6. [JavaScript/TypeScript & Node.js Knowledge Required](#6-javascripttypescript--nodejs-knowledge-required)
 7. [Recommended 2-Week Learning Path](#7-recommended-2-week-learning-path)
+8. [Feature 12: Expert Resume Review (Added 2026-03-05)](#8-feature-12-expert-resume-review-added-2026-03-05)
 
 ---
 
@@ -829,7 +830,216 @@ Before your interview, you should be able to answer these without hesitation:
 - [ ] What is lazy loading and why does CareerHub AI use it?
 - [ ] How did you design the STAR-method output for selection criteria?
 - [ ] What's the difference between the Supabase service key and anon key?
+- [ ] How does the Expert Review order lifecycle work — what are the 7 statuses and who triggers each transition?
+- [ ] Why does Expert Review use Stripe `mode: 'payment'` instead of `mode: 'subscription'`?
+- [ ] Why is file upload sent as raw binary (not multipart form) and what header carries the filename?
+- [ ] How does Supabase Storage fit into the architecture — what does it store that the database doesn't?
+- [ ] Why does Expert Review use signed URLs for file downloads instead of public URLs?
 
 ---
 
-*Guide version: 1.0 | Based on codebase as of 2026-02-28 | CareerHub AI v1.1*
+## 8. Feature 12: Expert Resume Review (Added 2026-03-05)
+
+### What It Is
+
+A premium human-powered service ($89 one-time purchase) where a real expert rewrites the user's resume. Unlike the AI features, this is a **managed workflow** — a multi-step, state-machine process involving payment, file uploads, a questionnaire exchange, and final delivery. No AI is involved in the review itself.
+
+---
+
+### What I Designed/Configured
+
+- **Business model decision:** One-time Stripe payment (not recurring subscription) at $89 — completely separate from the weekly/monthly subscription plans
+- **Workflow design:** Designed the 7-step order lifecycle: `pending_submission → submitted → in_review → questionnaire_sent → questionnaire_completed → revision_in_progress → completed`
+- **Questionnaire system:** Designed the admin-sends-questions / user-answers flow so the expert can gather context before rewriting
+- **Admin operational tooling:** Decided the admin needs a dedicated panel to manage orders, view original resumes, upload rewrites, and send questionnaires
+- **Storage strategy:** Decided to use Supabase Storage (private bucket `expert-reviews`) for PDF files rather than storing binary data in PostgreSQL
+- **Email notification design:** Specified 5 transactional email touchpoints to keep both the user and admin informed at each stage
+- **Pricing iteration:** Started at $99, changed to $89 based on positioning review
+
+---
+
+### What Claude Code Implemented
+
+| Layer | Files | Purpose |
+|-------|-------|---------|
+| Database | `backend/migrations/010_create_expert_reviews_table.sql` | `expert_reviews` table with status check constraint, JSONB questionnaire fields, RLS policies, storage bucket instructions |
+| Backend routes | `backend/src/routes/expertReview.ts` | 12 endpoints — 6 user-facing, 6 admin-only |
+| Database service | `expertReviewDb` in `backend/src/services/database.ts` | `getById`, `getByUserId`, `getActiveByUserId`, `getAll`, `create`, `update` |
+| Frontend component | `frontend/components/ExpertReviewPage.tsx` | User-facing page: purchase, upload resume, questionnaire, download |
+| Frontend component | `frontend/components/ExpertReviewAdmin.tsx` | Admin panel: order list, status management, file up/download, questionnaire tools |
+| Frontend component | `frontend/components/ExpertReviewWidget.tsx` | Embedded CTA widget shown on Dashboard and other pages |
+| Frontend service | `frontend/services/expertReviewService.ts` | All API calls (user + admin functions) |
+| TypeScript types | `frontend/types.ts` | `ExpertReview`, `ExpertReviewStatus`, `QuestionnaireQuestion`, `QuestionnaireAnswer` interfaces |
+| Stripe config | `backend/src/config/stripe.ts` | `STRIPE_PRICE_IDS.EXPERT_REVIEW` added |
+| Webhooks | `backend/src/routes/webhooks.ts` | Handles `checkout.session.completed` for `type: 'expert_review'` — creates the `expert_reviews` DB row on payment success |
+| Emails | `backend/src/services/emailService.ts` | 5 new email functions: confirmation, resume submitted, questionnaire ready, questionnaire completed, rewrite ready |
+| Pricing page | `frontend/src/components/payments/PricingPage.tsx` | Expert Review banner/CTA added |
+
+---
+
+### The 7-Status Order Lifecycle
+
+```
+Payment succeeds (Stripe webhook)
+         │
+         ▼
+  pending_submission        ← DB row created by webhook; user notified to upload resume
+         │
+         │  User uploads PDF via POST /submit-resume
+         ▼
+      submitted             ← Admin notified by email
+         │
+         │  Admin begins reviewing (manual status update via admin panel)
+         ▼
+      in_review
+         │
+         │  Admin writes questions → POST /admin/:id/questionnaire
+         ▼
+  questionnaire_sent        ← User notified by email to answer
+         │
+         │  User submits answers → POST /questionnaire/:id
+         ▼
+questionnaire_completed     ← Admin notified by email
+         │
+         │  Admin manually sets status
+         ▼
+revision_in_progress        ← Expert actively rewriting
+         │
+         │  Admin uploads PDF → POST /admin/:id/upload-rewrite
+         ▼
+      completed             ← User notified; can download via GET /download/:id
+```
+
+**Who triggers each transition:**
+- `pending_submission` → `submitted`: **User** (uploads resume PDF)
+- `submitted` → `in_review`: **Admin** (manual, marks they've started)
+- `in_review` → `questionnaire_sent`: **Admin** (posts questions; email fires automatically)
+- `questionnaire_sent` → `questionnaire_completed`: **User** (submits answers; email fires automatically)
+- `questionnaire_completed` → `revision_in_progress`: **Admin** (manual)
+- `revision_in_progress` → `completed`: **Admin** (uploads rewritten PDF; email fires automatically)
+
+---
+
+### Key Technical Decisions & Why
+
+| Decision | Rationale |
+|----------|-----------|
+| **Stripe `mode: 'payment'`** (not `'subscription'`) | This is a one-time purchase. The subscription checkout uses `mode: 'subscription'`. Using the wrong mode would fail or create an unwanted recurring charge. |
+| **File upload as raw binary body** (not multipart form) | Simpler to pipe directly to Supabase Storage upload. The filename is carried in `X-Filename` HTTP header. Requires `express.raw()` middleware on those two routes. |
+| **Supabase Storage private bucket** (not public) | Resume PDFs are sensitive personal documents — they must never be publicly accessible. Users get time-limited signed URLs (1-hour expiry) to download their file. |
+| **Signed URLs for downloads** | `createSignedUrl(path, 3600)` generates a URL that expires in 1 hour. Even if someone intercepts the URL, it stops working after the window closes. |
+| **JSONB for questionnaire fields** | The number and content of questions varies per order (the expert customises them). JSONB allows storing `[{question, type}]` and `[{question, answer}]` arrays without a separate questions table. |
+| **Webhook creates the DB row** (not the checkout endpoint) | The checkout endpoint only creates a Stripe session and returns the URL. The actual `expert_reviews` row is created when the webhook confirms payment succeeded — preventing records being created for abandoned checkouts. |
+| **Duplicate purchase prevention** | `getActiveByUserId()` checks for an existing non-completed review before creating a checkout. Returns 400 with the active `reviewId` so the frontend can redirect to the existing order instead. |
+| **User identity snapshot in DB** | `user_email` and `user_name` are stored on the `expert_reviews` row at creation time. This means admin emails always have the correct contact details even if the user later changes their account email. |
+
+---
+
+### API Endpoints Summary
+
+**User endpoints** (all require auth):
+```
+POST /api/expert-review/create-checkout         → Start Stripe Checkout ($89 one-time)
+GET  /api/expert-review/status                  → Get all reviews for current user
+POST /api/expert-review/submit-resume           → Upload original resume PDF (raw binary)
+GET  /api/expert-review/questionnaire/:reviewId → Get questionnaire from expert
+POST /api/expert-review/questionnaire/:reviewId → Submit answers
+GET  /api/expert-review/download/:reviewId      → Get signed URL for rewritten resume PDF
+```
+
+**Admin endpoints** (require auth + admin role):
+```
+GET  /api/expert-review/admin/orders             → List all orders (filterable by status)
+GET  /api/expert-review/admin/:id                → Get full order details
+PUT  /api/expert-review/admin/:id/status         → Update status + admin notes
+POST /api/expert-review/admin/:id/questionnaire  → Set questions + notify user
+POST /api/expert-review/admin/:id/upload-rewrite → Upload rewritten PDF + notify user
+GET  /api/expert-review/admin/:id/download-original → Get signed URL for original PDF
+GET  /api/expert-review/admin/:id/answers        → View user's questionnaire answers
+```
+
+---
+
+### New TypeScript Interfaces Added (`frontend/types.ts`)
+
+```typescript
+export type ExpertReviewStatus =
+  | 'pending_submission'
+  | 'submitted'
+  | 'in_review'
+  | 'questionnaire_sent'
+  | 'questionnaire_completed'
+  | 'revision_in_progress'
+  | 'completed';
+
+export interface QuestionnaireQuestion {
+  question: string;
+  type: 'text' | 'textarea';
+}
+
+export interface QuestionnaireAnswer {
+  question: string;
+  answer: string;
+}
+
+export interface ExpertReview {
+  id: string;
+  user_id: string;
+  status: ExpertReviewStatus;
+  stripe_payment_intent_id?: string;
+  amount_paid?: number;        // stored in cents (8900 = $89.00)
+  paid_at?: string;
+  original_resume_url?: string;
+  original_resume_filename?: string;
+  submitted_at?: string;
+  questionnaire?: QuestionnaireQuestion[];
+  questionnaire_answers?: QuestionnaireAnswer[];
+  questionnaire_sent_at?: string;
+  questionnaire_completed_at?: string;
+  rewritten_resume_url?: string;
+  rewritten_resume_filename?: string;
+  completed_at?: string;
+  admin_notes?: string;
+  user_email?: string;
+  user_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+---
+
+### New Database Table (`expert_reviews`)
+
+Key design notes:
+- `status` column has a **PostgreSQL CHECK constraint** — the database itself rejects invalid status values, not just application code
+- `questionnaire` and `questionnaire_answers` are **JSONB** — flexible, no separate tables needed
+- `amount_paid` stored in **cents** (integer), not dollars — avoids floating-point precision bugs in financial data
+- **RLS policies** allow users to SELECT and UPDATE their own rows; INSERT and admin operations use the service key (bypass RLS)
+- **Private Supabase Storage bucket** (`expert-reviews`) — not accessible without a signed URL
+
+---
+
+### New Email Notifications (`emailService.ts`)
+
+| Function | Trigger | Recipient |
+|----------|---------|-----------|
+| `sendExpertReviewConfirmation()` | Payment webhook succeeds | User |
+| `sendResumeSubmittedNotification()` | User uploads resume | Admin |
+| `sendQuestionnaireReady()` | Admin sends questions | User |
+| `sendQuestionnaireCompletedNotification()` | User submits answers | Admin |
+| `sendRewrittenResumeReady()` | Admin uploads rewritten PDF | User |
+
+---
+
+### Interview Talking Points
+
+> *"Expert Review is the only non-AI feature in CareerHub AI — a human-powered service. The interesting technical challenge was designing a reliable order lifecycle with 7 states, where each transition triggers a different email and a different set of available actions for both the user and the admin. I used a PostgreSQL CHECK constraint on the status column so invalid state values are rejected at the database level, not just in application code."*
+
+> *"I designed the payment flow so the database record is only created when the Stripe webhook confirms payment success — not when the user clicks 'Pay'. This prevents ghost orders from abandoned checkouts. The checkout endpoint only returns a session URL; the webhook is the source of truth."*
+
+> *"File uploads bypass Express's JSON body parser — they use `express.raw()` and stream the binary directly to Supabase Storage. Files are stored in a private bucket and served through signed URLs with 1-hour expiry. This is important for resume PDFs which contain sensitive personal information."*
+
+---
+
+*Guide version: 1.1 | Expert Review feature added 2026-03-05 | CareerHub AI v1.2*
