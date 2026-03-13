@@ -57,7 +57,7 @@ const ExpertReviewPage: React.FC = () => {
     'ATS-friendly structure guaranteed',
     'Personalised questionnaire for targeted improvements',
     '30 days of Premium access (all AI tools, unlimited downloads)',
-    'Delivered within 3-5 business days',
+    'Delivered within 1-2 business days',
     'Satisfaction guarantee — free revision if not happy',
   ];
 
@@ -199,7 +199,7 @@ const ExpertReviewPage: React.FC = () => {
             {[
               {
                 q: 'How long does it take?',
-                a: 'You\'ll receive your professionally rewritten resume within 3-5 business days. If our expert needs additional information, they\'ll send you a short questionnaire through your dashboard.',
+                a: 'You\'ll receive your professionally rewritten resume within 1-2 business days. If our expert needs additional information, they\'ll send you a short questionnaire through your dashboard.',
               },
               {
                 q: 'What if I\'m not satisfied?',
