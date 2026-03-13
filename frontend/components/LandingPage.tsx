@@ -395,6 +395,122 @@ const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </div>
 
+      {/* ── Interactive ATS Score Demo ── */}
+      <div className="bg-gradient-to-br from-slate-50 to-indigo-50/30 py-20 px-6 border-y border-slate-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2">See Your Score Instantly</p>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">
+                Is Your Resume<br />ATS-Ready?
+              </h2>
+              <p className="text-slate-500 mb-6 leading-relaxed text-lg">
+                Most resumes are rejected before a human ever sees them. Our AI analyses your resume against real ATS algorithms and gives you an instant score with actionable feedback.
+              </p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  'Section-by-section scoring and feedback',
+                  'Keyword optimisation recommendations',
+                  'Formatting and compliance checks',
+                  'Recruiter readability assessment',
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-slate-600 text-sm">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                type="button"
+                onClick={() => navigate('/resume-analysis')}
+                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-200 transition-all hover:scale-105 text-sm"
+              >
+                Analyse My Resume — Free
+              </button>
+            </div>
+            <div className="flex justify-center">
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 w-full max-w-sm">
+                <ATSScoreRing score={85} />
+                <div className="mt-6 space-y-3">
+                  {[
+                    { label: 'Content Quality', score: 90, color: 'bg-emerald-500' },
+                    { label: 'ATS Compatibility', score: 85, color: 'bg-blue-500' },
+                    { label: 'Keyword Match', score: 78, color: 'bg-amber-500' },
+                    { label: 'Formatting', score: 92, color: 'bg-indigo-500' },
+                  ].map((item) => (
+                    <div key={item.label}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-slate-600 font-medium">{item.label}</span>
+                        <span className="font-bold text-slate-700">{item.score}%</span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.score}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Expert Resume Review ── */}
+      <div className="bg-white py-16 px-6 border-b border-slate-100">
+        <div className="max-w-6xl mx-auto">
+          <div className="relative bg-gradient-to-br from-violet-700 via-purple-700 to-indigo-700 rounded-2xl p-8 md:p-10 overflow-hidden">
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+              <div className="absolute -bottom-8 -left-8 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
+            </div>
+            <div className="relative grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-200 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-4">
+                  Premium Service
+                </span>
+                <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-3">Expert Resume Review</h3>
+                <p className="text-purple-100 leading-relaxed mb-5">
+                  Get your resume professionally rewritten by a certified career specialist. AI is powerful — but sometimes you need the human touch. Includes 30 days Premium access.
+                </p>
+                <div className="flex flex-wrap gap-3 mb-6">
+                  {['Human expert rewrite', '1-2 day turnaround', '30 days Premium included', 'Free revision guarantee'].map((item) => (
+                    <span key={item} className="flex items-center gap-1.5 text-xs text-purple-100 bg-white/10 rounded-full px-3 py-1.5">
+                      <svg className="w-3.5 h-3.5 text-purple-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                      {item}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/expert-review')}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-purple-700 font-bold rounded-xl hover:bg-purple-50 transition-all hover:scale-105 shadow-lg text-sm"
+                >
+                  Learn more — $89
+                  <span aria-hidden="true">&rarr;</span>
+                </button>
+              </div>
+              {/* Right: stats */}
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { value: '$89', label: 'One-time fee', sub: 'No subscription required' },
+                  { value: '1-2', label: 'Day turnaround', sub: 'Average delivery time' },
+                  { value: '30', label: 'Days Premium', sub: 'All AI tools unlocked' },
+                  { value: '100%', label: 'Satisfaction', sub: 'Free revision if not happy' },
+                ].map((s) => (
+                  <div key={s.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                    <p className="text-2xl font-extrabold text-white">{s.value}</p>
+                    <p className="text-xs font-bold text-purple-200 mt-0.5">{s.label}</p>
+                    <p className="text-[10px] text-purple-300 mt-1">{s.sub}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ── Feature Showcase: Visual Demos ── */}
       <div className="bg-white py-20 px-6">
         <div className="max-w-6xl mx-auto">
@@ -614,117 +730,6 @@ const LandingPage: React.FC<LandingPageProps> = ({
             </div>
           </div>
 
-          {/* Expert Resume Review — Full-width premium banner */}
-          <div className="relative bg-gradient-to-br from-violet-700 via-purple-700 to-indigo-700 rounded-2xl p-8 md:p-10 overflow-hidden">
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-              <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
-              <div className="absolute -bottom-8 -left-8 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
-            </div>
-            <div className="relative grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-200 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-4">
-                  Premium Service
-                </span>
-                <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-3">Expert Resume Review</h3>
-                <p className="text-purple-100 leading-relaxed mb-5">
-                  Get your resume professionally rewritten by a certified career specialist. AI is powerful — but sometimes you need the human touch. Includes 30 days Premium access.
-                </p>
-                <div className="flex flex-wrap gap-3 mb-6">
-                  {['Human expert rewrite', '1-2 day turnaround', '30 days Premium included', 'Free revision guarantee'].map((item) => (
-                    <span key={item} className="flex items-center gap-1.5 text-xs text-purple-100 bg-white/10 rounded-full px-3 py-1.5">
-                      <svg className="w-3.5 h-3.5 text-purple-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                      {item}
-                    </span>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigate('/expert-review')}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-purple-700 font-bold rounded-xl hover:bg-purple-50 transition-all hover:scale-105 shadow-lg text-sm"
-                >
-                  Learn more — $89
-                  <span aria-hidden="true">&rarr;</span>
-                </button>
-              </div>
-              {/* Right: stats */}
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { value: '$89', label: 'One-time fee', sub: 'No subscription required' },
-                  { value: '1-2', label: 'Day turnaround', sub: 'Average delivery time' },
-                  { value: '30', label: 'Days Premium', sub: 'All AI tools unlocked' },
-                  { value: '100%', label: 'Satisfaction', sub: 'Free revision if not happy' },
-                ].map((s) => (
-                  <div key={s.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
-                    <p className="text-2xl font-extrabold text-white">{s.value}</p>
-                    <p className="text-xs font-bold text-purple-200 mt-0.5">{s.label}</p>
-                    <p className="text-[10px] text-purple-300 mt-1">{s.sub}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Interactive ATS Score Demo ── */}
-      <div className="bg-gradient-to-br from-slate-50 to-indigo-50/30 py-20 px-6 border-y border-slate-100">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2">See Your Score Instantly</p>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-4">
-                Is Your Resume<br />ATS-Ready?
-              </h2>
-              <p className="text-slate-500 mb-6 leading-relaxed text-lg">
-                Most resumes are rejected before a human ever sees them. Our AI analyses your resume against real ATS algorithms and gives you an instant score with actionable feedback.
-              </p>
-              <ul className="space-y-3 mb-8">
-                {[
-                  'Section-by-section scoring and feedback',
-                  'Keyword optimisation recommendations',
-                  'Formatting and compliance checks',
-                  'Recruiter readability assessment',
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-slate-600 text-sm">{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <button
-                type="button"
-                onClick={() => navigate('/resume-analysis')}
-                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold rounded-xl shadow-lg shadow-indigo-200 transition-all hover:scale-105 text-sm"
-              >
-                Analyse My Resume — Free
-              </button>
-            </div>
-            <div className="flex justify-center">
-              <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 w-full max-w-sm">
-                <ATSScoreRing score={85} />
-                <div className="mt-6 space-y-3">
-                  {[
-                    { label: 'Content Quality', score: 90, color: 'bg-emerald-500' },
-                    { label: 'ATS Compatibility', score: 85, color: 'bg-blue-500' },
-                    { label: 'Keyword Match', score: 78, color: 'bg-amber-500' },
-                    { label: 'Formatting', score: 92, color: 'bg-indigo-500' },
-                  ].map((item) => (
-                    <div key={item.label}>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="text-slate-600 font-medium">{item.label}</span>
-                        <span className="font-bold text-slate-700">{item.score}%</span>
-                      </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.score}%` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
