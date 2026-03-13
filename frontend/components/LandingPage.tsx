@@ -322,44 +322,224 @@ const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </div>
 
-      {/* ── Core Writing Tools (Most Understandable — Show First) ── */}
+      {/* ── Feature Showcase: Visual Demos ── */}
       <div className="bg-white py-20 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
+          <div className="text-center mb-16">
             <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2">Your Application Toolkit</p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800">
               Build, Tailor &amp; Send —<br className="hidden sm:block" /> All in One Place
             </h2>
             <p className="text-slate-500 mt-4 max-w-2xl mx-auto text-lg">
-              From your first draft to your final application, our AI writing tools handle the heavy lifting so you can focus on what matters.
+              From your first draft to your final application, our AI tools handle the heavy lifting.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureCard
-              icon={DocumentTextIcon}
-              title="AI Resume Builder"
-              description="Pick from 6 professional templates and let AI enhance your content section by section. ATS-optimised from the start."
-              onClick={() => handleFeatureClick('/resume-builder')}
-              gradient="bg-gradient-to-br from-blue-50 to-blue-100"
-              iconColor="text-blue-600"
-            />
-            <FeatureCard
-              icon={ClipboardDocumentCheckIcon}
-              title="Tailor for Any Job"
-              description="Paste a job description and watch AI rewrite your resume to match — beating ATS filters in seconds, not hours."
-              onClick={() => handleFeatureClick('tailor')}
-              gradient="bg-gradient-to-br from-emerald-50 to-emerald-100"
-              iconColor="text-emerald-600"
-            />
-            <FeatureCard
-              icon={EnvelopeIcon}
-              title="Cover Letter Generator"
-              description="Generate a personalised, job-specific cover letter from your resume and role requirements. No more blank-page anxiety."
-              onClick={() => handleFeatureClick('/cover-letter')}
-              gradient="bg-gradient-to-br from-purple-50 to-purple-100"
-              iconColor="text-purple-600"
-            />
+          {/* Showcase 1: Step-by-Step Resume Builder */}
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
+            <div>
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-4">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                AI-powered
+              </span>
+              <h3 className="text-2xl md:text-3xl font-extrabold text-slate-800 mb-4">Step-by-step guidance</h3>
+              <p className="text-slate-500 leading-relaxed mb-6 text-lg">
+                No need to stare at a blank page. We guide you through every step of the process — what to add, where to add it. It's clear and simple.
+              </p>
+              <button
+                type="button"
+                onClick={() => handleFeatureClick('/resume-builder')}
+                className="text-indigo-600 font-semibold flex items-center gap-1 hover:gap-2 transition-all text-sm group"
+              >
+                Create my resume <span className="group-hover:translate-x-1 transition-transform" aria-hidden="true">&rarr;</span>
+              </button>
+            </div>
+            {/* Visual: Step progress mockup */}
+            <div className="flex justify-center">
+              <div className="relative w-full max-w-md">
+                {/* Step cards stacked */}
+                <div className="space-y-3">
+                  <div className="bg-white rounded-xl shadow-lg border border-slate-100 p-4 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <div>
+                      <p className="text-xs text-indigo-500 font-semibold">Step 1</p>
+                      <p className="text-sm font-bold text-slate-800">Personal Details</p>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl shadow-lg border border-slate-100 p-4 flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <div>
+                      <p className="text-xs text-indigo-500 font-semibold">Step 2</p>
+                      <p className="text-sm font-bold text-slate-800">Professional Summary</p>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl shadow-xl border-2 border-indigo-200 p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" /></svg>
+                      </div>
+                      <div>
+                        <p className="text-xs text-indigo-500 font-semibold">Step 3</p>
+                        <p className="text-sm font-bold text-slate-800">Skills</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2 ml-11">
+                      {['Project Management', 'Leadership', 'Data Analysis', 'Communication', 'Problem Solving'].map((skill) => (
+                        <span key={skill} className="text-xs bg-slate-100 text-slate-700 rounded-full px-3 py-1.5 font-medium flex items-center gap-1">
+                          {skill}
+                          <svg className="w-3 h-3 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-slate-50 rounded-xl border border-slate-100 p-4 flex items-center gap-3 opacity-50">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-bold text-slate-500">4</span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-400 font-semibold">Step 4</p>
+                      <p className="text-sm font-medium text-slate-500">Work Experience</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Showcase 2: AI Writes For You */}
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-24">
+            {/* Visual: AI editor mockup (left on desktop) */}
+            <div className="flex justify-center order-2 md:order-1">
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-5 w-full max-w-md">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Professional Summary</p>
+                <p className="text-[11px] text-slate-400 mb-3 leading-relaxed">Write 2–4 short sentences to interest the reader. Mention your role, experience &amp; most importantly — your biggest achievements, best qualities and skills.</p>
+                {/* Toolbar mockup */}
+                <div className="flex items-center gap-1 mb-3 border-b border-slate-100 pb-3">
+                  {['B', 'I', 'U', 'S'].map((btn) => (
+                    <span key={btn} className="w-7 h-7 rounded flex items-center justify-center text-xs font-bold text-slate-400 bg-slate-50">{btn}</span>
+                  ))}
+                  <span className="w-px h-4 bg-slate-200 mx-1" />
+                  <span className="w-7 h-7 rounded flex items-center justify-center text-xs text-slate-400 bg-slate-50">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h12" /></svg>
+                  </span>
+                </div>
+                {/* AI-enhanced text */}
+                <div className="text-sm text-slate-700 leading-relaxed">
+                  <span>Experienced and effective Business Development Manager bringing forth </span>
+                  <span className="bg-indigo-100 text-indigo-700 px-1 rounded font-medium">significant value and a genuine passion for management</span>
+                  <span>. With a proven track record of </span>
+                  <span className="bg-indigo-100 text-indigo-700 px-1 rounded font-medium">driving growth and fostering strong client relationships</span>
+                  <span>, I am dedicated to creating innovative strategies that enhance business performance.</span>
+                </div>
+                {/* AI sparkle indicator */}
+                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
+                  <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <svg className="w-3.5 h-3.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                  </div>
+                  <span className="text-xs text-indigo-600 font-semibold">AI enhanced — 3 improvements made</span>
+                </div>
+              </div>
+            </div>
+            {/* Copy (right on desktop) */}
+            <div className="order-1 md:order-2">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-4">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                AI-powered
+              </span>
+              <h3 className="text-2xl md:text-3xl font-extrabold text-slate-800 mb-4">AI writes for you</h3>
+              <p className="text-slate-500 leading-relaxed mb-6 text-lg">
+                Stuck on what to say? Click to enhance any section and AI rewrites it using professional, recruiter-tested language. Your experience, better words.
+              </p>
+              <button
+                type="button"
+                onClick={() => handleFeatureClick('/resume-builder')}
+                className="text-indigo-600 font-semibold flex items-center gap-1 hover:gap-2 transition-all text-sm group"
+              >
+                Try AI enhancement <span className="group-hover:translate-x-1 transition-transform" aria-hidden="true">&rarr;</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Showcase 3: Cover Letter + Job Tailoring */}
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Cover Letter Card */}
+            <div className="bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-2xl border border-slate-100 p-8">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-4">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z" /></svg>
+                AI-powered
+              </span>
+              <h3 className="text-2xl font-extrabold text-slate-800 mb-3">Instant cover letters</h3>
+              <p className="text-slate-500 leading-relaxed mb-6">
+                Just paste a job description. We create a matching cover letter using your resume. You're done in 2 mins. Purpose-built to impress recruiters.
+              </p>
+              {/* Cover letter mockup */}
+              <div className="bg-white rounded-xl shadow-md border border-slate-100 p-5 mb-6">
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 bg-slate-100 rounded-full" />
+                    <div>
+                      <div className="h-2.5 w-28 bg-slate-800 rounded" />
+                      <div className="h-2 w-20 bg-slate-300 rounded mt-1" />
+                    </div>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 rounded" />
+                  <div className="h-2 w-11/12 bg-slate-100 rounded" />
+                  <div className="h-2 w-9/12 bg-slate-100 rounded" />
+                  <div className="h-px bg-slate-100 my-2" />
+                  <div className="h-2 w-full bg-slate-100 rounded" />
+                  <div className="h-2 w-10/12 bg-slate-100 rounded" />
+                  <div className="h-2 w-8/12 bg-slate-100 rounded" />
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleFeatureClick('/cover-letter')}
+                className="text-indigo-600 font-semibold flex items-center gap-1 hover:gap-2 transition-all text-sm group"
+              >
+                Generate cover letter <span className="group-hover:translate-x-1 transition-transform" aria-hidden="true">&rarr;</span>
+              </button>
+            </div>
+
+            {/* Tailor for Job Card */}
+            <div className="bg-gradient-to-br from-slate-50 to-emerald-50/50 rounded-2xl border border-slate-100 p-8">
+              <h3 className="text-2xl font-extrabold text-slate-800 mb-3">Paste any job description</h3>
+              <p className="text-slate-500 leading-relaxed mb-6">
+                Simple and effective. We have the formula that works for recruiters. Just paste the job description and we tailor your resume to match.
+              </p>
+              {/* Job link mockup */}
+              <div className="space-y-3 mb-6">
+                <div className="bg-white rounded-xl shadow-md border border-slate-100 p-4">
+                  <p className="text-xs font-semibold text-slate-700 mb-2">Paste the job description or link:</p>
+                  <div className="bg-slate-50 rounded-lg border border-slate-200 p-3 flex items-center gap-2">
+                    <div className="flex-grow">
+                      <p className="text-xs text-slate-500 truncate">https://www.seek.com.au/job/senior-product-designer...</p>
+                    </div>
+                    <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-2">Example: https://www.seek.com.au/job/company/position</p>
+                </div>
+                {/* Job board icons */}
+                <div className="flex items-center gap-3">
+                  <p className="text-[10px] text-slate-400 font-medium">Works with</p>
+                  {['Seek', 'Indeed', 'LinkedIn'].map((site) => (
+                    <span key={site} className="text-[10px] bg-white border border-slate-200 rounded-full px-2.5 py-1 text-slate-500 font-medium shadow-sm">{site}</span>
+                  ))}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleFeatureClick('tailor')}
+                className="text-indigo-600 font-semibold flex items-center gap-1 hover:gap-2 transition-all text-sm group"
+              >
+                Tailor my resume <span className="group-hover:translate-x-1 transition-transform" aria-hidden="true">&rarr;</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -727,49 +907,6 @@ const LandingPage: React.FC<LandingPageProps> = ({
                 Start Monthly Plan
               </button>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Social Proof ── */}
-      <div className="bg-white py-20 px-6 border-t border-slate-100">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-12">
-            Trusted by Job Seekers Across Australia
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                quote: 'The Skill Gap Audit showed me exactly what I was missing for cloud engineering roles. Landed interviews within two weeks.',
-                name: 'Tech Professional',
-                role: 'Sydney, NSW',
-              },
-              {
-                quote: 'Selection Criteria Generator saved me hours on my APS application. The STAR responses were spot-on and needed minimal editing.',
-                name: 'Government Applicant',
-                role: 'Canberra, ACT',
-              },
-              {
-                quote: 'My resume went from a 45 to 89 ATS score after using the analyser and tailoring tools. Got three callbacks in a week.',
-                name: 'Career Changer',
-                role: 'Melbourne, VIC',
-              },
-            ].map((t) => (
-              <div key={t.name} className="bg-slate-50 rounded-2xl p-6 text-left border border-slate-100">
-                <div className="flex gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-sm text-slate-600 leading-relaxed mb-4 italic">"{t.quote}"</p>
-                <div>
-                  <p className="text-sm font-bold text-slate-800">{t.name}</p>
-                  <p className="text-xs text-slate-500">{t.role}</p>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>
