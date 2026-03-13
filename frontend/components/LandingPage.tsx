@@ -322,16 +322,89 @@ const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </div>
 
+      {/* ── Career Intelligence Suite ── */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 py-20 px-6 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+        </div>
+        <div className="relative max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-indigo-300 mb-4 border border-indigo-700/50 rounded-full px-4 py-1.5 bg-indigo-900/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+              New in 2026
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white">
+              Career Intelligence Suite
+            </h2>
+            <p className="text-slate-400 mt-4 max-w-2xl mx-auto text-lg">
+              Go beyond templates. These AI tools analyse, advise, and respond — giving you a strategic advantage most candidates don't have.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                path: '/skill-gap',
+                title: 'Skill Gap Audit',
+                description: 'Match your resume to any job description. Get a match score, discover missing skills, and receive a prioritised action plan to close the gap.',
+                icon: ChartBarIcon,
+                gradient: 'from-emerald-500/20 to-emerald-600/10',
+                iconColor: 'text-emerald-400',
+                borderColor: 'hover:border-emerald-500/30',
+              },
+              {
+                path: '/selection-criteria',
+                title: 'Selection Criteria Generator',
+                description: 'Auto-generate STAR-format responses for every essential and desirable criterion in government and corporate job descriptions.',
+                icon: StarIcon,
+                gradient: 'from-amber-500/20 to-amber-600/10',
+                iconColor: 'text-amber-400',
+                borderColor: 'hover:border-amber-500/30',
+              },
+              {
+                path: '/resume-analysis',
+                title: 'ATS Resume Analyser',
+                description: 'Get an instant ATS compatibility score with section-by-section feedback and recruiter-ready improvement suggestions.',
+                icon: DocumentChartBarIcon,
+                gradient: 'from-blue-500/20 to-blue-600/10',
+                iconColor: 'text-blue-400',
+                borderColor: 'hover:border-blue-500/30',
+              },
+            ].map((f) => (
+              <button
+                key={f.path}
+                type="button"
+                onClick={() => handleFeatureClick(f.path)}
+                className={`group bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 ${f.borderColor} hover:bg-white/10 transition-all duration-300 text-left w-full flex flex-col hover:-translate-y-1`}
+              >
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-300 mb-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                  Intelligence
+                </span>
+                <div className={`p-3 rounded-xl inline-flex mb-4 bg-gradient-to-br ${f.gradient}`}>
+                  <f.icon className={`w-6 h-6 ${f.iconColor}`} />
+                </div>
+                <h3 className="text-base font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">{f.title}</h3>
+                <p className="text-sm text-slate-400 flex-grow leading-relaxed">{f.description}</p>
+                <span className="mt-4 text-sm font-semibold text-indigo-400 flex items-center gap-1 group-hover:gap-2 transition-all">
+                  Try it free <span aria-hidden="true">&rarr;</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* ── Feature Showcase: Visual Demos ── */}
       <div className="bg-white py-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2">Your Application Toolkit</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-indigo-600 mb-2">Everything You Need to Get Hired</p>
             <h2 className="text-3xl md:text-4xl font-extrabold text-slate-800">
-              Build, Tailor &amp; Send —<br className="hidden sm:block" /> All in One Place
+              Build, Tailor &amp; Send
             </h2>
-            <p className="text-slate-500 mt-4 max-w-2xl mx-auto text-lg">
-              From your first draft to your final application, our AI tools handle the heavy lifting.
+            <p className="text-slate-500 mt-4 max-w-xl mx-auto text-lg">
+              From your first draft to your final application — every tool you need, powered by AI.
             </p>
           </div>
 
@@ -465,7 +538,7 @@ const LandingPage: React.FC<LandingPageProps> = ({
           </div>
 
           {/* Showcase 3: Cover Letter + Job Tailoring */}
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
             {/* Cover Letter Card */}
             <div className="bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-2xl border border-slate-100 p-8">
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-full px-3 py-1 mb-4">
@@ -524,7 +597,6 @@ const LandingPage: React.FC<LandingPageProps> = ({
                   </div>
                   <p className="text-[10px] text-slate-400 mt-2">Example: https://www.seek.com.au/job/company/position</p>
                 </div>
-                {/* Job board icons */}
                 <div className="flex items-center gap-3">
                   <p className="text-[10px] text-slate-400 font-medium">Works with</p>
                   {['Seek', 'Indeed', 'LinkedIn'].map((site) => (
@@ -539,6 +611,56 @@ const LandingPage: React.FC<LandingPageProps> = ({
               >
                 Tailor my resume <span className="group-hover:translate-x-1 transition-transform" aria-hidden="true">&rarr;</span>
               </button>
+            </div>
+          </div>
+
+          {/* Expert Resume Review — Full-width premium banner */}
+          <div className="relative bg-gradient-to-br from-violet-700 via-purple-700 to-indigo-700 rounded-2xl p-8 md:p-10 overflow-hidden">
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute -top-12 -right-12 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+              <div className="absolute -bottom-8 -left-8 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
+            </div>
+            <div className="relative grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-200 bg-white/10 border border-white/20 rounded-full px-3 py-1 mb-4">
+                  Premium Service
+                </span>
+                <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-3">Expert Resume Review</h3>
+                <p className="text-purple-100 leading-relaxed mb-5">
+                  Get your resume professionally rewritten by a certified career specialist. AI is powerful — but sometimes you need the human touch. Includes 30 days Premium access.
+                </p>
+                <div className="flex flex-wrap gap-3 mb-6">
+                  {['Human expert rewrite', '1-2 day turnaround', '30 days Premium included', 'Free revision guarantee'].map((item) => (
+                    <span key={item} className="flex items-center gap-1.5 text-xs text-purple-100 bg-white/10 rounded-full px-3 py-1.5">
+                      <svg className="w-3.5 h-3.5 text-purple-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                      {item}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/expert-review')}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-purple-700 font-bold rounded-xl hover:bg-purple-50 transition-all hover:scale-105 shadow-lg text-sm"
+                >
+                  Learn more — $89
+                  <span aria-hidden="true">&rarr;</span>
+                </button>
+              </div>
+              {/* Right: stats */}
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { value: '$89', label: 'One-time fee', sub: 'No subscription required' },
+                  { value: '1-2', label: 'Day turnaround', sub: 'Average delivery time' },
+                  { value: '30', label: 'Days Premium', sub: 'All AI tools unlocked' },
+                  { value: '100%', label: 'Satisfaction', sub: 'Free revision if not happy' },
+                ].map((s) => (
+                  <div key={s.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/10">
+                    <p className="text-2xl font-extrabold text-white">{s.value}</p>
+                    <p className="text-xs font-bold text-purple-200 mt-0.5">{s.label}</p>
+                    <p className="text-[10px] text-purple-300 mt-1">{s.sub}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -602,79 +724,6 @@ const LandingPage: React.FC<LandingPageProps> = ({
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Career Intelligence Suite ── */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 py-20 px-6 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-        </div>
-        <div className="relative max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-indigo-300 mb-4 border border-indigo-700/50 rounded-full px-4 py-1.5 bg-indigo-900/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-              New in 2026
-            </span>
-            <h2 className="text-3xl md:text-4xl font-extrabold text-white">
-              Career Intelligence Suite
-            </h2>
-            <p className="text-slate-400 mt-4 max-w-2xl mx-auto text-lg">
-              Go beyond templates. These AI tools analyse, advise, and respond — giving you a strategic advantage most candidates don't have.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                path: '/skill-gap',
-                title: 'Skill Gap Audit',
-                description: 'Match your resume to any job description. Get a match score, discover missing skills, and receive a prioritised action plan to close the gap.',
-                icon: ChartBarIcon,
-                gradient: 'from-emerald-500/20 to-emerald-600/10',
-                iconColor: 'text-emerald-400',
-                borderColor: 'hover:border-emerald-500/30',
-              },
-              {
-                path: '/selection-criteria',
-                title: 'Selection Criteria Generator',
-                description: 'Auto-generate STAR-format responses for every essential and desirable criterion in government and corporate job descriptions.',
-                icon: StarIcon,
-                gradient: 'from-amber-500/20 to-amber-600/10',
-                iconColor: 'text-amber-400',
-                borderColor: 'hover:border-amber-500/30',
-              },
-              {
-                path: '/resume-analysis',
-                title: 'ATS Resume Analyser',
-                description: 'Get an instant ATS compatibility score with section-by-section feedback and recruiter-ready improvement suggestions.',
-                icon: DocumentChartBarIcon,
-                gradient: 'from-blue-500/20 to-blue-600/10',
-                iconColor: 'text-blue-400',
-                borderColor: 'hover:border-blue-500/30',
-              },
-            ].map((f) => (
-              <button
-                key={f.path}
-                type="button"
-                onClick={() => handleFeatureClick(f.path)}
-                className={`group bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 ${f.borderColor} hover:bg-white/10 transition-all duration-300 text-left w-full flex flex-col hover:-translate-y-1`}
-              >
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-indigo-300 mb-3">
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                  Intelligence
-                </span>
-                <div className={`p-3 rounded-xl inline-flex mb-4 bg-gradient-to-br ${f.gradient}`}>
-                  <f.icon className={`w-6 h-6 ${f.iconColor}`} />
-                </div>
-                <h3 className="text-base font-bold text-white mb-2 group-hover:text-indigo-300 transition-colors">{f.title}</h3>
-                <p className="text-sm text-slate-400 flex-grow leading-relaxed">{f.description}</p>
-                <span className="mt-4 text-sm font-semibold text-indigo-400 flex items-center gap-1 group-hover:gap-2 transition-all">
-                  Try it free <span aria-hidden="true">&rarr;</span>
-                </span>
-              </button>
-            ))}
           </div>
         </div>
       </div>
