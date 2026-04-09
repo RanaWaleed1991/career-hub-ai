@@ -24,17 +24,20 @@ export function SubscriptionManagement({ userToken }: SubscriptionManagementProp
     getAccessToken().then((t) => {
       setToken(t);
       if (t) {
-        loadSubscriptionStatus();
+        loadSubscriptionStatus(t);
+      } else {
+        setLoading(false);
       }
     });
   }, []);
 
-  async function loadSubscriptionStatus() {
-    if (!token) return;
+  async function loadSubscriptionStatus(authToken?: string) {
+    const t = authToken || token;
+    if (!t) return;
 
     try {
       setLoading(true);
-      const status = await getSubscriptionStatus(token);
+      const status = await getSubscriptionStatus(t);
       setSubscription(status);
     } catch (err: any) {
       setError(err.message);
