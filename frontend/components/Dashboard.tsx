@@ -5,7 +5,7 @@ import type { ResumeData, Application, ResumeVersion } from '../types';
 import { getLatestResume } from '../services/resumeService';
 import { getApplications } from '../services/applicationService';
 import { getVersions } from '../services/versionHistoryService';
-import { hasPremium, getSubscription, getFreeTrialState } from '../services/premiumService';
+import { hasPremium, getSubscription, getFreeTrialState, FREE_TIER_LIMITS } from '../services/premiumService';
 import { createPortalSession } from '../src/services/payments';
 import { getAccessToken } from '../services/userService';
 import { useAuth } from '../src/contexts/AuthContext';
@@ -186,9 +186,11 @@ const Dashboard: React.FC<DashboardProps> = ({ setPage, openTailorModal }) => {
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Free Plan</span>
               <div className="flex items-center gap-3 flex-wrap">
                 {[
-                  { label: 'Downloads', count: trialState.resumeDownloads, limit: 3 },
-                  { label: 'Analyses', count: trialState.resumeAnalyses, limit: 3 },
-                  { label: 'Letters', count: trialState.coverLetters, limit: 3 },
+                  { label: 'Downloads', count: trialState.resumeDownloads, limit: FREE_TIER_LIMITS.downloads },
+                  { label: 'Analyses', count: trialState.resumeAnalyses, limit: FREE_TIER_LIMITS.resumeAnalyses },
+                  { label: 'Letters', count: trialState.coverLetters, limit: FREE_TIER_LIMITS.coverLetters },
+                  { label: 'AI Enhance', count: trialState.aiImprovements, limit: FREE_TIER_LIMITS.aiEnhancements },
+                  { label: 'Tailoring', count: trialState.resumeTailoring, limit: FREE_TIER_LIMITS.resumeTailoring },
                 ].map(item => {
                   const isLow = item.count <= 1;
                   return (

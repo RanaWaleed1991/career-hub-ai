@@ -1,4 +1,3 @@
-import { supabase } from '../src/config/supabase';
 import { getAccessToken } from './userService';
 
 // Production API URL - hardcoded for reliability
@@ -7,12 +6,17 @@ const API_URL = 'https://api.careerhubai.com.au';
 // Type exports for backward compatibility
 export type Plan = 'free' | 'weekly' | 'monthly';
 
-export interface FreeTrialState {
-  isActive: boolean;
-  daysRemaining: number;
-  generationsRemaining: number;
-  totalGenerations: number;
-}
+// Free tier limits — MUST stay in sync with backend enforcement in
+// backend/src/routes/gemini.ts. Changing these without changing the backend
+// will cause the UI to gate differently from the server.
+export const FREE_TIER_LIMITS = {
+  downloads: 3,
+  aiEnhancements: 10,
+  resumeTailoring: 3,
+  coverLetters: 3,     // shared counter with selection criteria
+  resumeAnalyses: 3,   // shared counter with skill gap audits
+  versionSaves: 3,
+} as const;
 
 export interface FreeTrial {
   expiry: number;
@@ -30,12 +34,9 @@ interface Subscription {
   cover_letters_generated: number;
   resume_analyses_done: number;
   ai_tailoring_used: number;
-  trial_used: boolean;
+  versions_saved?: number;
   subscription_expires: string | null;
 }
-
-const FREE_TRIAL_DAYS = 7;
-const FREE_TRIAL_GENERATIONS = 5;
 
 /**
  * Get auth headers with JWT token
@@ -104,88 +105,22 @@ export const hasPremium = async (): Promise<boolean> => {
   return sub.plan === 'weekly' || sub.plan === 'monthly';
 };
 
-// NEW: Class-based service for TrialStatus component
-class PremiumService {
-  async getFreeTrialState(): Promise<FreeTrialState> {
-    try {
-      console.log('PremiumService: Getting free trial state...');
-
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-
-      if (userError || !user) {
-        console.error('PremiumService: User not authenticated');
-        return {
-          isActive: false,
-          daysRemaining: 0,
-          generationsRemaining: 0,
-          totalGenerations: FREE_TRIAL_GENERATIONS,
-        };
-      }
-
-      console.log('PremiumService: Checking trial for user:', user.id);
-
-      const { data: subscription } = await supabase
-        .from('subscriptions')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (subscription && subscription.tier !== 'free') {
-        return {
-          isActive: false,
-          daysRemaining: 0,
-          generationsRemaining: 0,
-          totalGenerations: FREE_TRIAL_GENERATIONS,
-        };
-      }
-
-      const accountCreated = new Date(user.created_at);
-      const now = new Date();
-      const daysSinceCreation = Math.floor((now.getTime() - accountCreated.getTime()) / (1000 * 60 * 60 * 24));
-      const daysRemaining = Math.max(0, FREE_TRIAL_DAYS - daysSinceCreation);
-      const isActive = daysRemaining > 0;
-
-      const aiGenerationsUsed = subscription?.ai_generations_used || 0;
-      const generationsRemaining = Math.max(0, FREE_TRIAL_GENERATIONS - aiGenerationsUsed);
-
-      const trialState = {
-        isActive: isActive && generationsRemaining > 0,
-        daysRemaining,
-        generationsRemaining,
-        totalGenerations: FREE_TRIAL_GENERATIONS,
-      };
-
-      console.log('PremiumService: Trial state:', trialState);
-      return trialState;
-    } catch (error) {
-      console.error('PremiumService: Error:', error);
-      return {
-        isActive: false,
-        daysRemaining: 0,
-        generationsRemaining: 0,
-        totalGenerations: FREE_TRIAL_GENERATIONS,
-      };
-    }
-  }
-}
-
-export const premiumService = new PremiumService();
-
-// OLD: Backward compatible exports for existing components
+/**
+ * Returns remaining free-tier credits for each metered feature.
+ * Limits match backend enforcement in backend/src/routes/gemini.ts.
+ */
 export const getFreeTrialState = async (): Promise<FreeTrial | null> => {
   const sub = await getSubscription();
   if (!sub) return null;
 
-  const remaining = {
-    resumeDownloads: Math.max(0, 3 - (sub.downloads_used || 0)),
-    coverLetters: Math.max(0, 3 - (sub.cover_letters_generated || 0)),
-    aiImprovements: Math.max(0, 10 - (sub.ai_enhancements_used || 0)),
-    resumeTailoring: Math.max(0, 3 - (sub.ai_tailoring_used || 0)),
-    resumeAnalyses: Math.max(0, 3 - (sub.resume_analyses_done || 0)),
+  return {
+    resumeDownloads: Math.max(0, FREE_TIER_LIMITS.downloads - (sub.downloads_used || 0)),
+    coverLetters: Math.max(0, FREE_TIER_LIMITS.coverLetters - (sub.cover_letters_generated || 0)),
+    aiImprovements: Math.max(0, FREE_TIER_LIMITS.aiEnhancements - (sub.ai_enhancements_used || 0)),
+    resumeTailoring: Math.max(0, FREE_TIER_LIMITS.resumeTailoring - (sub.ai_tailoring_used || 0)),
+    resumeAnalyses: Math.max(0, FREE_TIER_LIMITS.resumeAnalyses - (sub.resume_analyses_done || 0)),
     expiry: sub.subscription_expires ? new Date(sub.subscription_expires).getTime() : 0,
   };
-
-  return remaining;
 };
 
 export const purchasePlan = async (plan: Plan): Promise<void> => {
@@ -224,14 +159,14 @@ export const shouldShowWatermark = async (): Promise<boolean> => {
   return !(await hasPremium());
 };
 
-// --- Resume Downloads ---
+// --- Resume Downloads (3 free, unlimited paid) ---
 export const canDownloadResume = async (): Promise<boolean> => {
   if (await hasPremium()) return true;
 
   const sub = await getSubscription();
   if (!sub) return true;
 
-  return (sub.downloads_used || 0) < 3;
+  return (sub.downloads_used || 0) < FREE_TIER_LIMITS.downloads;
 };
 
 export const useResumeDownload = async (): Promise<void> => {
@@ -261,10 +196,14 @@ export const useResumeDownload = async (): Promise<void> => {
   }
 };
 
-// --- AI Improvements (UNLIMITED for free users) ---
+// --- AI Enhancements (10 free, unlimited paid) ---
 export const canUseAIImprovement = async (): Promise<boolean> => {
-  // AI enhancements are unlimited for all users
-  return true;
+  if (await hasPremium()) return true;
+
+  const sub = await getSubscription();
+  if (!sub) return true;
+
+  return (sub.ai_enhancements_used || 0) < FREE_TIER_LIMITS.aiEnhancements;
 };
 
 export const useAIImprovementAttempt = async (): Promise<void> => {
@@ -294,24 +233,49 @@ export const useAIImprovementAttempt = async (): Promise<void> => {
   }
 };
 
-// --- Resume Tailoring (UNLIMITED for free users) ---
+// --- Resume Tailoring (3 free, unlimited paid) ---
 export const canTailorResume = async (): Promise<boolean> => {
-  // Resume tailoring is unlimited for all users
-  return true;
+  if (await hasPremium()) return true;
+
+  const sub = await getSubscription();
+  if (!sub) return true;
+
+  return (sub.ai_tailoring_used || 0) < FREE_TIER_LIMITS.resumeTailoring;
 };
 
 export const useTailorAttempt = async (): Promise<void> => {
-  await useAIImprovementAttempt();
+  if (await hasPremium()) return;
+
+  try {
+    const headers = await getAuthHeaders();
+    const sub = await getSubscription();
+
+    if (!sub) return;
+
+    const response = await fetch(`${API_URL}/api/subscriptions/features`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify({
+        ai_tailoring_used: (sub?.ai_tailoring_used || 0) + 1,
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn('Failed to update tailoring count:', response.status);
+    }
+  } catch (error) {
+    console.debug('Tailoring tracking skipped:', error);
+  }
 };
 
-// --- Cover Letter Generation (3 free) ---
+// --- Cover Letter Generation (3 free, unlimited paid — shared with selection criteria) ---
 export const canGenerateCoverLetter = async (): Promise<boolean> => {
   if (await hasPremium()) return true;
 
   const sub = await getSubscription();
   if (!sub) return true;
 
-  return (sub.cover_letters_generated || 0) < 3;
+  return (sub.cover_letters_generated || 0) < FREE_TIER_LIMITS.coverLetters;
 };
 
 export const useCoverLetterAttempt = async (): Promise<void> => {
@@ -341,14 +305,14 @@ export const useCoverLetterAttempt = async (): Promise<void> => {
   }
 };
 
-// --- Resume Analysis (3 free) ---
+// --- Resume Analysis (3 free, unlimited paid — shared with skill gap audits) ---
 export const canAnalyzeResume = async (): Promise<boolean> => {
   if (await hasPremium()) return true;
 
   const sub = await getSubscription();
   if (!sub) return true;
 
-  return (sub.resume_analyses_done || 0) < 3;
+  return (sub.resume_analyses_done || 0) < FREE_TIER_LIMITS.resumeAnalyses;
 };
 
 export const useResumeAnalysisAttempt = async (): Promise<void> => {
@@ -391,7 +355,7 @@ export const canSaveVersion = async (): Promise<boolean> => {
   if (!sub) return true;
 
   // Free users can save up to 3 versions
-  return (sub.versions_saved || 0) < 3;
+  return (sub.versions_saved || 0) < FREE_TIER_LIMITS.versionSaves;
 };
 
 export const useVersionSave = async (): Promise<void> => {

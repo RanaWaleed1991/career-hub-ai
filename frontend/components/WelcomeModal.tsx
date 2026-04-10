@@ -54,8 +54,8 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ onClose }) => {
 
               <ul className="mt-4 text-left space-y-2 text-slate-600 bg-slate-50 p-4 rounded-lg">
                 <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>3 Resume Downloads</strong> (with watermark)</span></li>
-                <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>Unlimited</strong> AI content enhancements</span></li>
-                <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>Unlimited</strong> AI resume tailoring</span></li>
+                <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>10 AI Enhancements</strong> for your summary &amp; experience</span></li>
+                <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>3 Resume Tailoring</strong> sessions to match job descriptions</span></li>
                 <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>3 Cover Letters</strong> &amp; selection criteria generations</span></li>
                 <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>3 Resume Analyses</strong> &amp; skill gap audits</span></li>
                 <li className="flex items-start"><span className="text-green-500 font-bold mr-2">✔</span> <span><strong>3 Resume Version</strong> saves</span></li>
