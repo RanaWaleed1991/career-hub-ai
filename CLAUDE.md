@@ -285,13 +285,13 @@ Run `consolidated_production_migration.sql` on a fresh Supabase project to set u
 ### Features Completed and Working ✅
 
 - Resume builder with 6 templates (Classic, Modern, Australian, Picture, ATS, Minimal)
-- AI content enhancement (unlimited for all users)
-- AI resume tailoring to job descriptions (unlimited for all users)
-- AI resume analysis with ATS scoring (3 free, unlimited paid)
+- AI content enhancement (10 free, unlimited paid)
+- AI resume tailoring to job descriptions (3 free, unlimited paid)
+- AI resume analysis with ATS scoring (3 free / 10 weekly / unlimited monthly)
 - AI cover letter generation (3 free, unlimited paid)
 - **Skill Gap Audit** — match score + missing skills heatmap + action plan (`/skill-gap`)
 - **Selection Criteria Generator** — STAR-method responses for job applications (`/selection-criteria`)
-- PDF export/import
+- PDF export/import (3 free downloads with watermark, unlimited paid no watermark)
 - Resume version history (3 free saves, unlimited paid)
 - Job listings (manual admin entry + Adzuna sync ready)
 - Course catalog with enrollment tracking
@@ -315,6 +315,28 @@ Run `consolidated_production_migration.sql` on a fresh Supabase project to set u
 **SendGrid Email Deliverability**
 - Password reset emails sometimes go to spam
 - Fix: Configure SPF/DKIM/DMARC domain authentication in SendGrid dashboard
+
+**Potential double-counting of usage counters (UNVERIFIED — needs backend audit)**
+- The frontend's `useAIImprovementAttempt()`, `useCoverLetterAttempt()`, etc. call `PUT /api/subscriptions/features` to increment counters after a successful AI call.
+- The backend's Gemini routes in `backend/src/routes/gemini.ts` may ALSO increment the same counters internally after generating content.
+- If both sides increment, free users hit their caps at half the advertised usage.
+- To verify: trace a single `/api/gemini/enhance-summary` request end-to-end and see whether `ai_enhancements_used` increments by 1 or 2.
+
+**`subscription_expires` vs `current_period_end` field mismatch (UNVERIFIED)**
+- `frontend/services/premiumService.ts` `hasPremium()` and `hasSubscriptionExpired()` both read `sub.subscription_expires`.
+- Production schema (`consolidated_production_migration.sql`) uses `current_period_end`, not `subscription_expires`.
+- If the backend's `GET /api/subscriptions/current` doesn't map one to the other, expired paid users may stay marked as premium indefinitely.
+- To verify: check what fields `backend/src/routes/subscriptions.ts` returns in the `/current` response.
+
+**`TrialStatus.tsx` is orphaned dead code**
+- Defined in `frontend/components/TrialStatus.tsx` but not imported anywhere.
+- The Dashboard component has its own inline free-tier usage bar (added 2026-04) that shows all 5 metered features.
+- Safe to delete if you don't plan to reinstate it, or keep as a reference component.
+
+**`INTERVIEW_PREP_GUIDE.md` contains factually incorrect claims about limits**
+- Lines 110, 214, 234, 399 state that AI enhancements and resume tailoring are "unlimited for all users including free".
+- This is NOT true. Backend enforces 10 enhancements / 3 tailoring for free users (see `backend/src/routes/gemini.ts`).
+- The interview guide needs those claims corrected before using it to prepare for technical interviews.
 
 ### Immediate Next Priorities
 
@@ -482,7 +504,7 @@ Frontend                          Backend                     Supabase
 |------|--------------------|
 | Add/edit route | `backend/src/routes/<feature>.ts` → `backend/src/app.ts` |
 | Change AI prompts | `backend/src/routes/gemini.ts` |
-| Change free tier limits | `frontend/services/premiumService.ts` |
+| Change free tier limits | `frontend/services/premiumService.ts` (`FREE_TIER_LIMITS` constant) **AND** `backend/src/routes/gemini.ts` (per-route `limits` object) — both must be updated together |
 | Subscription logic | `backend/src/routes/subscriptions.ts` + `backend/src/services/subscription.ts` |
 | Database operations | `backend/src/services/database.ts` (all Supabase queries) |
 | Resume data structure | `frontend/types.ts` (ResumeData interface) |
@@ -526,7 +548,7 @@ There is no FPSC-specific grading standard in this codebase. Resume analysis sco
 
 **React 19 Strict Mode causes double API calls**: In development, effects run twice. The `geminiService.ts` implements request deduplication with an in-flight tracking Map. Do NOT disable Strict Mode — it catches real bugs.
 
-**Subscription tracking in a single `subscriptions` table row per user**: Usage counters (`downloads_used`, `resume_analyses_done`, etc.) are incremented per operation. Weekly plan resets these every 7 days; monthly plan has no enforced limits. The `on_auth_user_created` trigger auto-creates a free subscription row on signup.
+**Subscription tracking in a single `subscriptions` table row per user**: Usage counters (`downloads_used`, `ai_enhancements_used`, `ai_tailoring_used`, `cover_letters_generated`, `resume_analyses_done`, `versions_saved`) are incremented per operation. **Counters do not reset** — there is no weekly/monthly reset cron. Free tier is a permanent cap, not a recurring allowance. Paid plans bypass the counter checks entirely via `hasPremium()`. The `on_auth_user_created` trigger auto-creates a free subscription row on signup.
 
 **Blogs require DOMPurify on the frontend**: Blog content is stored as HTML (admin enters HTML). `BlogPostPage.tsx` uses `DOMPurify.sanitize()` before rendering via `dangerouslySetInnerHTML`. Never render blog HTML without sanitizing.
 
@@ -562,20 +584,27 @@ There is no FPSC-specific grading standard in this codebase. Resume analysis sco
 
 ---
 
-## FREE TIER LIMITS (Authoritative — from `frontend/services/premiumService.ts`)
+## FREEMIUM MODEL & LIMITS (Authoritative)
 
-| Feature | Free | Weekly ($9.99) | Monthly ($24.99) |
-|---------|------|----------------|-----------------|
-| Resume downloads | 3 per period | 20 | Unlimited |
-| AI resume analyses | 3 per period | 20 | Unlimited |
-| AI cover letters | 3 per period | 20 | Unlimited |
-| AI enhancements | **Unlimited** | Unlimited | Unlimited |
-| Resume tailoring | **Unlimited** | Unlimited | Unlimited |
-| Resume versions saved | 3 total | Unlimited | Unlimited |
-| Application tracking | Unlimited | Unlimited | Unlimited |
-| Watermark on resume | Yes | No | No |
+> **This is a freemium product, NOT a trial.** There is no time-limited trial period. On signup, the Supabase `on_auth_user_created` trigger creates a `subscriptions` row with `plan='free'` and all usage counters at 0. Counters never reset for free users — once a free user hits their cap on a feature, they stay capped until they upgrade. There is no `trial_end_date`, no days-remaining, no expiry. The old `FREE_TRIAL_DAYS = 7` / `FREE_TRIAL_GENERATIONS = 5` constants and `PremiumService.getFreeTrialState()` class were removed in 2026-04 because they were never enforced and referenced a non-existent `ai_generations_used` column.
 
-> **Note**: "Per period" for weekly = resets every 7 days. Monthly = calendar month.
+**Single source of truth**: `FREE_TIER_LIMITS` constant in `frontend/services/premiumService.ts`. The frontend gates read this constant. The backend enforces the same limits independently in `backend/src/routes/gemini.ts` — **when changing any limit, update BOTH files or the UI will disagree with the server.**
+
+| Feature | Free | Weekly ($9.99) | Monthly ($24.99) | Enforced by |
+|---------|------|----------------|------------------|-------------|
+| Resume downloads | 3 total | Unlimited | Unlimited | Frontend only (PDF is client-side) |
+| AI enhancements | **10 total** | Unlimited | Unlimited | Backend (`gemini.ts` enhance-summary) |
+| Resume tailoring | **3 total** | Unlimited | Unlimited | Backend (`gemini.ts` tailor-resume) |
+| AI cover letters (+ selection criteria)* | 3 total | Unlimited | Unlimited | Backend (`gemini.ts` generate-cover-letter, selection-criteria) |
+| AI resume analyses (+ skill gap audits)* | 3 total | **10 total** | Unlimited | Backend (`gemini.ts` analyze-resume, skill-gap-analysis) |
+| Resume versions saved | 3 total | Unlimited | Unlimited | Frontend only |
+| Application tracking | Unlimited | Unlimited | Unlimited | No gating |
+| Jobs / Courses / Blogs | Unlimited | Unlimited | Unlimited | No gating |
+| Watermark on resume PDFs | Yes | No | No | Frontend PDF service |
+
+\* **Shared counters**: Cover letters and selection criteria both increment `cover_letters_generated`. Resume analyses and skill gap audits both increment `resume_analyses_done`. A free user who uses all 3 cover letters has 0 selection criteria left (and vice versa).
+
+> **"Total" means exactly that**: these counters never reset. There is no weekly/monthly cycle for free users. A free user who uses their 3 cover letters in week 1 has 0 cover letters forever unless they upgrade.
 
 ---
 
@@ -606,13 +635,16 @@ curl -X POST http://localhost:3001/api/gemini/enhance-summary \
 ```
 
 ### Reset a user's subscription usage (dev/admin)
+Free-tier counters never auto-reset — this is the ONLY way to give a free user more credits without upgrading them.
 ```sql
 -- In Supabase SQL editor
 UPDATE subscriptions
 SET downloads_used = 0,
+    ai_enhancements_used = 0,
+    ai_tailoring_used = 0,
     resume_analyses_done = 0,
     cover_letters_generated = 0,
-    ai_tailoring_used = 0
+    versions_saved = 0
 WHERE user_id = 'USER_UUID_HERE';
 ```
 
@@ -656,7 +688,7 @@ stripe listen --forward-to localhost:3001/api/webhooks/stripe
 - **Frontend**: `frontend/components/SelectionCriteriaPage.tsx`
 - **Service**: `generateSelectionCriteria()` in `frontend/services/geminiService.ts`
 - **Types**: `SelectionCriteriaResult`, `SelectionCriterion`, `StarResponse` in `frontend/types.ts`
-- **Limit**: Shares `cover_letters_generated` counter (3 free / unlimited paid)
+- **Limit**: Shares `cover_letters_generated` counter with cover letter generation (3 free / unlimited paid). A free user who uses all 3 cover letters has 0 selection criteria left and vice versa.
 - **Model**: `gemini-2.5-pro` with JSON schema enforcement
 - **What it does**: Extracts every essential/desirable criterion from a JD, drafts a STAR-format prose response (150-250 words) per criterion, using only evidence from the resume. Confidence levels flag weak spots.
 
@@ -665,7 +697,7 @@ stripe listen --forward-to localhost:3001/api/webhooks/stripe
 - **Frontend**: `frontend/components/SkillGapPage.tsx`
 - **Service**: `analyzeSkillGap()` in `frontend/services/geminiService.ts`
 - **Types**: `SkillGapResult`, `PresentSkill`, `MissingSkill`, `SkillRecommendation` in `frontend/types.ts`
-- **Limit**: Shares `resume_analyses_done` counter (3 free / 10 weekly / unlimited monthly)
+- **Limit**: Shares `resume_analyses_done` counter with resume analysis (3 free / 10 weekly / unlimited monthly). A free user who uses all 3 analyses has 0 skill gap audits left and vice versa.
 - **Model**: `gemini-2.5-pro` with JSON schema enforcement
 - **What it does**: Returns matchScore (0-100), present skills with strength grades, missing skills with priority (critical/important/nice-to-have), keyword gaps, and an action plan (highlight/learn/reframe per skill).
 
@@ -732,4 +764,8 @@ npm run test:e2e                     # E2E (from project root, servers must be r
 
 ---
 
-*Last updated: 2026-02-27 | Version: 1.1 | Status: LIVE IN PRODUCTION*
+*Last updated: 2026-04-10 | Version: 1.2 | Status: LIVE IN PRODUCTION*
+
+**Changelog:**
+- **1.2 (2026-04-10)** — Aligned freemium documentation with actual code. Fixed Free Tier Limits table (AI enhancements: 10 not unlimited; resume tailoring: 3 not unlimited; removed false "per period" language). Clarified that this is a freemium model with permanent caps, not a time-limited trial. Documented the `FREE_TIER_LIMITS` constant as the single source of truth. Added known-issue entries for potential counter double-counting, `subscription_expires`/`current_period_end` field mismatch, orphaned `TrialStatus.tsx`, and incorrect claims in `INTERVIEW_PREP_GUIDE.md`.
+- **1.1 (2026-02-27)** — Added Career Intelligence modules (Skill Gap Audit, Selection Criteria Generator).
