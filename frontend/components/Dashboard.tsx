@@ -5,7 +5,7 @@ import type { ResumeData, Application, ResumeVersion } from '../types';
 import { getLatestResume } from '../services/resumeService';
 import { getApplications } from '../services/applicationService';
 import { getVersions } from '../services/versionHistoryService';
-import { hasPremium, getSubscription, getFreeTrialState } from '../services/premiumService';
+import { hasPremium, getSubscription, getFreeTrialState, FREE_TIER_LIMITS } from '../services/premiumService';
 import { createPortalSession } from '../src/services/payments';
 import { getAccessToken } from '../services/userService';
 import { useAuth } from '../src/contexts/AuthContext';

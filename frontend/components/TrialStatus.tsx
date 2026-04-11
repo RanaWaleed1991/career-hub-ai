@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getFreeTrialState, hasPremium, getSubscription } from '../services/premiumService';
+import { getFreeTrialState, hasPremium, getSubscription, FREE_TIER_LIMITS } from '../services/premiumService';
 import { SparklesIcon, EnvelopeIcon, DocumentChartBarIcon, DownloadIcon, ClipboardDocumentCheckIcon, ChartBarIcon } from './icons';
 
 const TrialStatus: React.FC = () => {
@@ -24,7 +24,7 @@ const TrialStatus: React.FC = () => {
           setTrialState(state);
         }
       } catch (error) {
-        console.error('Failed to load trial state:', error);
+        console.error('Failed to load free tier usage:', error);
       } finally {
         setLoading(false);
       }
@@ -92,21 +92,21 @@ const TrialStatus: React.FC = () => {
   }
 
   const items = [
-    { name: 'Resume Downloads', count: trialState.resumeDownloads, icon: DownloadIcon, limit: 3 },
+    { name: 'Resume Downloads', count: trialState.resumeDownloads, icon: DownloadIcon, limit: FREE_TIER_LIMITS.downloads },
     {
       name: 'Cover Letters & Selection Criteria',
       count: trialState.coverLetters,
       icon: EnvelopeIcon,
-      limit: 3,
+      limit: FREE_TIER_LIMITS.coverLetters,
     },
     {
       name: 'Analyses & Skill Gap Audits',
       count: trialState.resumeAnalyses,
       icon: ChartBarIcon,
-      limit: 3,
+      limit: FREE_TIER_LIMITS.resumeAnalyses,
     },
-    { name: 'AI Enhancements', count: trialState.aiImprovements, icon: SparklesIcon, limit: 10 },
-    { name: 'Resume Tailoring', count: trialState.resumeTailoring, icon: ClipboardDocumentCheckIcon, limit: 3 },
+    { name: 'AI Enhancements', count: trialState.aiImprovements, icon: SparklesIcon, limit: FREE_TIER_LIMITS.aiEnhancements },
+    { name: 'Resume Tailoring', count: trialState.resumeTailoring, icon: ClipboardDocumentCheckIcon, limit: FREE_TIER_LIMITS.resumeTailoring },
   ];
 
   return (
@@ -141,7 +141,7 @@ const TrialStatus: React.FC = () => {
         <div className="pt-3 border-t border-slate-200">
           <p className="text-xs text-slate-500">
             Full access to jobs, courses &amp; application tracker<br />
-            Save up to 3 resume versions
+            Save up to {FREE_TIER_LIMITS.versionSaves} resume versions
           </p>
         </div>
       </div>
